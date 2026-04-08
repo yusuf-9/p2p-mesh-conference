@@ -1,0 +1,54 @@
+{
+  "name": "p2p-mesh-server",
+  "version": "1.0.0",
+  "description": "P2P Mesh Video Conferencing Server - Signaling Only",
+  "main": "dist/index.js",
+  "type": "module",
+  "scripts": {
+    "dev": "tsx watch src/index.ts",
+    "build": "tsc -p tsconfig.json",
+    "start": "node dist/index.js",
+    "db:generate": "drizzle-kit generate",
+    "db:migrate": "tsx src/core/database/migrate.ts",
+    "db:push": "drizzle-kit push",
+    "db:studio": "drizzle-kit studio",
+    "ws:docs": "node scripts/generate-ws-schema.js"
+  },
+  "keywords": [
+    "p2p",
+    "mesh",
+    "webrtc",
+    "video-conferencing",
+    "signaling-server"
+  ],
+  "author": "",
+  "dependencies": {
+    "@types/cors": "^2.8.19",
+    "@types/swagger-ui-express": "^4.1.8",
+    "bcrypt": "^5.1.1",
+    "cors": "^2.8.5",
+    "dotenv": "^16.3.1",
+    "drizzle-orm": "^0.30.4",
+    "express": "^4.18.2",
+    "jsonwebtoken": "^9.0.2",
+    "postgres": "^3.4.3",
+    "swagger-jsdoc": "^6.2.8",
+    "swagger-ui-express": "^5.0.1",
+    "uuid": "^9.0.1",
+    "ws": "^8.18.3",
+    "zod": "^4.0.5"
+  },
+  "devDependencies": {
+    "@types/bcrypt": "^5.0.2",
+    "@types/express": "^4.17.21",
+    "@types/jsonwebtoken": "^9.0.10",
+    "@types/node": "^20.10.0",
+    "@types/supertest": "^6.0.2",
+    "@types/swagger-jsdoc": "^6.0.4",
+    "@types/uuid": "^9.0.7",
+    "@types/ws": "^8.18.1",
+    "drizzle-kit": "^0.21.1",
+    "tsx": "^4.6.0",
+    "typescript": "^5.3.0"
+  }
+}

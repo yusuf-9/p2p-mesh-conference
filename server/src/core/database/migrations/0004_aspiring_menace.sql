@@ -1,0 +1,1 @@
+ALTER TABLE "media_sessions" ADD CONSTRAINT "media_sessions_room_id_unique" UNIQUE("room_id");

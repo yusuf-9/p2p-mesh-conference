@@ -1,0 +1,1 @@
+ALTER TABLE "pending_transactions" ADD COLUMN "metadata" text;

@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Load Test</title>
+    <link rel="stylesheet" href="/load-test/index.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Load Test</h1>
+        <form id="loadTestForm">
+            <div class="form-group">
+                <label for="apiKey">API Key:</label>
+                <input type="text" id="apiKey" name="apiKey" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="roomId">Room ID:</label>
+                <input type="text" id="roomId" name="roomId" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="numUsers">Number of Simulated Users:</label>
+                <input type="number" id="numUsers" name="numUsers" min="1" required>
+            </div>
+            
+            <button type="submit" id="startLoadTest">Start Load Test</button>
+        </form>
+        
+        <div id="progressSection" class="progress-section" style="display: none;">
+            <div class="progress-indicator">
+                <div class="step" id="step1"><span class="step-number">1</span> Connecting</div>
+                <div class="step" id="step2"><span class="step-number">2</span> Joining as Publisher</div>
+                <div class="step" id="step3"><span class="step-number">3</span> Publishing Media</div>
+                <div class="step" id="step4"><span class="step-number">4</span> Subscribing to Peers</div>
+            </div>
+        </div>
+        
+        <div class="stats">
+            <div class="stat-item">
+                <span class="stat-label">Total Users:</span>
+                <span id="totalUsers" class="stat-value">0</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-label">Connected Users:</span>
+                <span id="connectedUsers" class="stat-value">0</span>
+            </div>
+        </div>
+        
+        <div class="video-container">
+            <div class="video-section">
+                <h3>Publisher Streams</h3>
+                <div id="publisherVideos" class="video-grid"></div>
+            </div>
+            <div class="video-section">
+                <div class="video-section-header">
+                    <h3>Subscriber Streams <span id="subscriberCount" class="count">(0)</span></h3>
+                    <button id="toggleSubscriberBtn" class="toggle-btn">Hide</button>
+                </div>
+                <div id="subscriberVideos" class="video-grid"></div>
+            </div>
+        </div>
+    </div>
+    
+    <script src="/load-test/index.js"></script>
+</body>
+</html>
