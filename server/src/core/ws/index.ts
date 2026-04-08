@@ -8,15 +8,12 @@ import {
   validateClientMessage,
   validatePubSubRoomBroadcast,
   type ClientToServerMessage,
-  type RTCIceCandidateData,
-  type MediaStreamToggleData,
   ClientToServerMessages,
 } from "./schema.js";
 import DatabaseService from "../database/index.js";
 import PubSubService from "../pubsub/index.js";
 import { messages } from "../database/schema.js";
 import { CHANNELS, EVENTS } from "./constants.js";
-import SfuManager from "../sfu-manager/index.js";
 import ConfigService from "../config/index.js";
 import { createUserFriendlyErrorMessage } from "./utils.js"
 
@@ -28,7 +25,6 @@ export default class SocketServer {
   private pubSubService: PubSubService;
   private configService: ConfigService;
   private wsConnections: Map<string, AuthenticatedWebSocket> = new Map(); // userId -> WebSocket
-  private sfuManager: SfuManager;
 
   constructor(
     app: express.Application,
@@ -45,14 +41,6 @@ export default class SocketServer {
     this.wss = new WebSocketServer({ noServer: true });
 
     this.initializeServer();
-    this.sfuManager = new SfuManager(
-      this.authService,
-      this.dbService,
-      this.pubSubService,
-      this.configService,
-      this.emitSfuEvent.bind(this),
-      this.emitToRoom.bind(this)
-    );
   }
 
   private initializeServer(): void {
@@ -114,12 +102,12 @@ export default class SocketServer {
     }
   }
 
-  public async emitSfuEvent<T extends keyof ServerToClientMessages>(
+  public async emitP2PEvent<T extends keyof ServerToClientMessages>(
     userToEmitToId: string,
     eventName: T,
     eventData?: ServerToClientMessages[T] extends { data: infer D } ? D : undefined
   ) {
-    console.log(`📤 Emitting SFU event to user ${userToEmitToId}:`, {
+    console.log(`📤 Emitting P2P event to user ${userToEmitToId}:`, {
       event: eventName,
       data: eventData,
     });
@@ -132,7 +120,7 @@ export default class SocketServer {
       }
       ws.send(JSON.stringify(message));
     } else {
-      console.log(`⚠️ Cannot emit SFU event - user ${userToEmitToId} not connected`);
+      console.log(`⚠️ Cannot emit P2P event - user ${userToEmitToId} not connected`);
     }
   }
 
@@ -233,7 +221,7 @@ export default class SocketServer {
   }
 
   private async routeMessage(ws: AuthenticatedWebSocket, message: ClientToServerMessage): Promise<void> {
-    console.log(`🔄 Routing message for user ${ws.userId}:`, {
+    console.log(`🔄 Routing P2P message for user ${ws.userId}:`, {
       type: message.type,
     });
 
@@ -247,36 +235,28 @@ export default class SocketServer {
       case EVENTS.PING:
         this.handlePing(ws);
         break;
-      case EVENTS.JOIN_CONFERENCE_AS_PUBLISHER:
-        this.handleJoinConference(ws, message as ClientToServerMessages[typeof EVENTS.JOIN_CONFERENCE_AS_PUBLISHER]);
+      
+      // P2P Signaling Events
+      case EVENTS.JOIN_CALL:
+        await this.handleJoinCall(ws, message.data);
         break;
-      case EVENTS.SUBSCRIBE_TO_USER_FEED:
-        this.handleSubscribeToUserFeed(ws, message.data);
+      case EVENTS.LEAVE_CALL:
+        await this.handleLeaveCall(ws);
         break;
-      case EVENTS.SEND_OFFER_FOR_PUBLISHING:
-        this.handleSendOfferForPublishing(ws, message.data);
+      case EVENTS.PEER_OFFER:
+        await this.handlePeerOffer(ws, message.data);
         break;
-      case EVENTS.SEND_ANSWER_FOR_SUBSCRIBING:
-        this.handleSendAnswerForSubscribing(ws, message.data);
+      case EVENTS.PEER_ANSWER:
+        await this.handlePeerAnswer(ws, message.data);
         break;
-      case EVENTS.SEND_ICE_CANDIDATES:
-        this.handleSendIceCandidates(ws, message.data);
+      case EVENTS.PEER_ICE_CANDIDATE:
+        await this.handlePeerIceCandidate(ws, message.data);
         break;
-      case EVENTS.SEND_ICE_CANDIDATE_COMPLETED:
-        this.handleSendIceCandidateCompleted(ws, message.data);
+      case EVENTS.TOGGLE_MEDIA:
+        await this.handleToggleMedia(ws, message.data);
         break;
-      case EVENTS.TOGGLE_MEDIA_STREAM:
-        this.handleToggleMediaStream(ws, message.data);
-        break;
-      case EVENTS.UNPUBLISH_FEED:
-        this.handleUnpublishFeed(ws, message.data);
-        break;
-      case EVENTS.GET_PUBLISHER_LIST:
-        this.handleGetPublisherList(ws);
-        break;
-      case EVENTS.LEAVE_CONFERENCE:
-        await this.handleLeaveRoom(ws);
-        break;
+      
+      // Basic interactions (preserved from original)
       case EVENTS.SEND_SCREENSHOT_NOTIFICATION:
         await this.handleSendScreenshotNotification(ws);
         break;
@@ -289,15 +269,7 @@ export default class SocketServer {
       case EVENTS.LOWER_HAND:
         await this.handleLowerHand(ws, message.data);
         break;
-      case EVENTS.MODERATE_FEED:
-        await this.handleModerateFeed(ws, message.data);
-        break;
-      case EVENTS.CONFIGURE_FEED:
-        await this.handleConfigureFeed(ws, message.data);
-        break;
-      case EVENTS.CONFIGURE_FEED_SUBSCRIPTION:
-        await this.handleConfigureFeedSubscription(ws, message.data);
-        break;
+      
       default:
         this.sendError(ws, "Unknown message type");
     }

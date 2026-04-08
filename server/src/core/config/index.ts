@@ -16,11 +16,6 @@ export interface JwtConfig {
   expiresIn: string;
 }
 
-export interface RedisConfig {
-  url: string;
-  password?: string; // Make password optional
-}
-
 export interface ServerConfig {
   port: number;
   nodeEnv: string;
@@ -36,28 +31,20 @@ export interface AppConfig {
   debug: boolean;
 }
 
-export interface SfuConfig {
-  uri: string;
-}
-
 export default class Config {
   public readonly database: DatabaseConfig;
   public readonly jwt: JwtConfig;
-  public readonly redis: RedisConfig;
   public readonly server: ServerConfig;
   public readonly app: AppConfig;
-  public readonly sfu: SfuConfig;
   public readonly swagger: ReturnType<typeof swaggerJSDoc>;
 
   constructor() {
     config();
     this.database = this.validateDatabaseConfig();
     this.jwt = this.validateJwtConfig();
-    this.redis = this.validateRedisConfig();
     this.server = this.validateServerConfig();
     this.app = this.validateAppConfig();
     this.swagger = this.validateSwaggerConfig();
-    this.sfu = this.validateSfuConfig()
   }
 
   private validateDatabaseConfig(): DatabaseConfig {
@@ -92,17 +79,6 @@ export default class Config {
     };
   }
 
-  public validateSfuConfig(): SfuConfig {
-    const sfuWebsocketUri = process.env.SFU_WS_URI
-
-    if (!sfuWebsocketUri) {
-      throw new Error("SFU_WS_URI environment variable is required");
-    }
-
-    return {
-      uri: sfuWebsocketUri
-    }
-  }
 
   private validateJwtConfig(): JwtConfig {
     const superAdminSecret = process.env.JWT_SUPER_ADMIN_SECRET;
@@ -128,23 +104,6 @@ export default class Config {
     };
   }
 
-  private validateRedisConfig(): RedisConfig {
-    const url = process.env.REDIS_URL;
-    const password = process.env.REDIS_PASSWORD;
-
-    if (!url) {
-      throw new Error("REDIS_URL environment variable is required");
-    }
-    // Remove password requirement for development
-    // if (!password) {
-    //   throw new Error('REDIS_PASSWORD environment variable is required');
-    // }
-
-    return {
-      url,
-      password, // password can be undefined
-    };
-  }
 
   private validateServerConfig(): ServerConfig {
     const port = process.env.SERVER_PORT || "3000";
@@ -184,20 +143,20 @@ export default class Config {
       definition: {
         openapi: "3.0.0",
         info: {
-          title: "Media Server API",
+          title: "P2P Mesh Video Conferencing API",
           version: "1.0.0",
           description: `
-            Media Server API provides endpoints for managing video conferencing rooms, user authentication, and real-time communication.
+            P2P Mesh Video Conferencing API provides endpoints for managing video conferencing rooms, user authentication, and peer-to-peer real-time communication.
             
-            ## 📡 Real-time Communication
-            For real-time features like chat, video conferencing, and live updates, see the **[WebSocket API Documentation](/api/ws-docs)**.
+            ## 📡 P2P Mesh Architecture
+            This server facilitates WebRTC signaling for peer-to-peer mesh video conferencing. For real-time features like chat, P2P signaling, and live updates, see the **[WebSocket API Documentation](/api/ws-docs)**.
             
             ## Authentication Flow
             1. **Super Admin Token**: Generated using a script, used to create admin users
             2. **Admin Login**: Admin users login to get admin access tokens
             3. **API Key Creation**: Admin users create API keys using their access tokens
             4. **Room Operations**: API keys are used to create and manage rooms
-            5. **User Access**: Users joining rooms receive user-level access tokens for room operations and WebSocket upgrades
+            5. **User Access**: Users joining rooms receive user-level access tokens for room operations and P2P WebSocket connections
           `,
           contact: {
             name: "Media Server API Support",
