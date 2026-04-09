@@ -1,5 +1,6 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import useStore from "../../../../store";
+
 
 export function VideoChat({ joinCallAutomatically = false }) {
   const {
@@ -8,18 +9,58 @@ export function VideoChat({ joinCallAutomatically = false }) {
     localStreams,
     remoteStreams,
     roomManager,
+    screenShareStream,
     user,
   } = useStore();
 
   const { isInCall, isAudioEnabled, isVideoEnabled, joinRequestState } = callState;
   const [localStream, setLocalStream] = useState(null);
+  const isScreenSharing = !!screenShareStream;
 
   const handleToggleAudio = () => {
-    updateCallState({ isAudioEnabled: !isAudioEnabled });
+    if (isInCall && roomManager) {
+      roomManager.toggleAudio();
+    } else {
+      updateCallState({ isAudioEnabled: !isAudioEnabled });
+    }
   };
 
   const handleToggleVideo = () => {
-    updateCallState({ isVideoEnabled: !isVideoEnabled });
+    if (isInCall && roomManager) {
+      roomManager.toggleVideo();
+    } else {
+      updateCallState({ isVideoEnabled: !isVideoEnabled });
+    }
+  };
+
+  // Auto-request camera when roomManager is ready
+  useEffect(() => {
+    if (joinCallAutomatically && roomManager && !localStream && !isInCall) {
+      handleRequestCamera();
+    }
+  }, [joinCallAutomatically, roomManager]);
+
+  // Auto-join once camera access is granted
+  useEffect(() => {
+    if (joinCallAutomatically && localStream && !isInCall) {
+      handleJoinCall();
+    }
+  }, [joinCallAutomatically, localStream]);
+
+  const handleToggleScreenShare = async () => {
+    if (!roomManager) return;
+    try {
+      if (isScreenSharing) {
+        await roomManager.stopScreenShare();
+      } else {
+        await roomManager.startScreenShare();
+      }
+    } catch (err) {
+      // User cancelled the screen share picker — not an error
+      if (err.name !== 'NotAllowedError') {
+        console.error('Screen share error:', err);
+      }
+    }
   };
 
   const handleRequestCamera = async () => {
@@ -227,6 +268,20 @@ export function VideoChat({ joinCallAutomatically = false }) {
               </svg>
             </button>
             
+            <button
+              onClick={handleToggleScreenShare}
+              className={`p-3 rounded-full transition-all duration-200 ${
+                isScreenSharing
+                  ? 'bg-violet-600 text-white hover:bg-violet-700'
+                  : 'bg-slate-700 text-white hover:bg-slate-600'
+              }`}
+              title={isScreenSharing ? 'Stop sharing' : 'Share screen'}
+            >
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+              </svg>
+            </button>
+
             <button
               onClick={handleLeaveCall}
               className="p-3 rounded-full bg-red-600 text-white hover:bg-red-700 transition-all duration-200"

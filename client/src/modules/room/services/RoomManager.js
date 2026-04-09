@@ -120,7 +120,21 @@ class RoomManager {
       case EVENTS.RECEIVE_WEBRTC_OFFER_FOR_VIDEO_CALL:
       case EVENTS.RECEIVE_WEBRTC_ANSWER_FOR_VIDEO_CALL:
       case EVENTS.RECEIVE_WEBRTC_ICE_CANDIDATE_FOR_VIDEO_CALL:
+      case EVENTS.RECEIVE_WEBRTC_OFFER_FOR_SCREEN_SHARE:
+      case EVENTS.RECEIVE_WEBRTC_ANSWER_FOR_SCREEN_SHARE:
+      case EVENTS.RECEIVE_WEBRTC_ICE_CANDIDATE_FOR_SCREEN_SHARE:
         if (this.p2pMeshManager) this.p2pMeshManager.handleMessage(message);
+        break;
+
+      // Media control events
+      case EVENTS.USER_TOGGLED_STREAM:
+        this.handleUserToggledStream(message.data);
+        break;
+      case EVENTS.USER_STARTED_SCREEN_SHARE:
+        this.handleUserStartedScreenShare(message.data);
+        break;
+      case EVENTS.USER_STOPPED_SCREEN_SHARE:
+        this.handleUserStoppedScreenShare(message.data);
         break;
 
       // Interaction events
@@ -182,7 +196,6 @@ class RoomManager {
     console.log("👤 User disconnected:", data);
     this.updateMemberConnectionStatus(data.userId, false);
 
-    // Close peer connection if the user was in a call
     if (this.p2pMeshManager) {
       const pc = this.p2pMeshManager.peerConnections.get(data.userId);
       if (pc) {
@@ -190,6 +203,7 @@ class RoomManager {
         this.p2pMeshManager.peerConnections.delete(data.userId);
         this.p2pMeshManager.isInitiator.delete(data.userId);
       }
+      this.p2pMeshManager.closeScreenShareConnection(data.userId);
     }
 
     // Remove any streams belonging to the disconnected user
@@ -229,15 +243,12 @@ class RoomManager {
   // Call event handlers
   handleUserJoinedCall(data) {
     console.log("📞 User joined call:", data);
-    // data is { userId: string, mediaHandles: Array }
     this.updateMemberCallStatus(data.userId, true);
-    
-    // Add media handles to remoteStreams
+
     if (data.mediaHandles && Array.isArray(data.mediaHandles)) {
       const { addRemoteStream } = useStore.getState();
-      
       data.mediaHandles.forEach(handle => {
-        const streamObj = {
+        addRemoteStream({
           id: handle.id,
           userId: handle.userId,
           roomId: handle.roomId,
@@ -248,12 +259,14 @@ class RoomManager {
           videoEnabled: handle.videoEnabled,
           handRaised: handle.handRaised,
           createdAt: handle.createdAt,
-          stream: null // Will be populated when we get the actual MediaStream from P2P connection
-        };
-        
-        addRemoteStream(streamObj);
-        console.log(`📊 Added remote stream for user ${handle.userId}:`, streamObj);
+          stream: null,
+        });
       });
+    }
+
+    // If we are currently screen sharing, open a screen share PC to the new user
+    if (this.p2pMeshManager?.screenShareStream) {
+      this.p2pMeshManager.initiateScreenShareConnection(data.userId);
     }
   }
 
@@ -261,7 +274,6 @@ class RoomManager {
     console.log("📞 User left call:", data);
     this.updateMemberCallStatus(data.userId, false);
 
-    // Close and remove peer connection for the user who left
     if (this.p2pMeshManager) {
       const pc = this.p2pMeshManager.peerConnections.get(data.userId);
       if (pc) {
@@ -269,11 +281,51 @@ class RoomManager {
         this.p2pMeshManager.peerConnections.delete(data.userId);
         this.p2pMeshManager.isInitiator.delete(data.userId);
       }
+      this.p2pMeshManager.closeScreenShareConnection(data.userId);
     }
 
     const { remoteStreams, setRemoteStreams } = useStore.getState();
     setRemoteStreams(remoteStreams.filter(s => s.userId !== data.userId));
     console.log(`📊 Removed remote streams for user ${data.userId}`);
+  }
+
+  handleUserToggledStream(data) {
+    // data is the full updated mediaHandle participant object
+    const { remoteStreams, updateRemoteStream } = useStore.getState();
+    const handle = remoteStreams.find(s => s.handleId === data.handleId || s.id === data.id);
+    if (handle) {
+      updateRemoteStream(handle.id, {
+        audioEnabled: data.audioEnabled,
+        videoEnabled: data.videoEnabled,
+      });
+    }
+    console.log(`🎛️ Stream toggled for user ${data.userId}: audio=${data.audioEnabled} video=${data.videoEnabled}`);
+  }
+
+  handleUserStartedScreenShare(data) {
+    // data is { userId, mediaHandle }
+    const { addRemoteStream } = useStore.getState();
+    addRemoteStream({
+      id: data.mediaHandle.id,
+      userId: data.mediaHandle.userId,
+      roomId: data.mediaHandle.roomId,
+      handleId: data.mediaHandle.handleId,
+      type: data.mediaHandle.type,
+      feedType: 'screenshare',
+      audioEnabled: data.mediaHandle.audioEnabled,
+      videoEnabled: data.mediaHandle.videoEnabled,
+      handRaised: false,
+      createdAt: data.mediaHandle.createdAt,
+      stream: null, // stream arrives automatically via replaceTrack on the existing video transceiver
+    });
+    console.log(`🖥️ User ${data.userId} started screen share`);
+  }
+
+  handleUserStoppedScreenShare(data) {
+    // data is { userId, streamId }
+    const { remoteStreams, setRemoteStreams } = useStore.getState();
+    setRemoteStreams(remoteStreams.filter(s => !(s.userId === data.userId && s.feedType === 'screenshare')));
+    console.log(`🛑 User ${data.userId} stopped screen share`);
   }
 
   // Interaction event handlers
@@ -477,6 +529,100 @@ class RoomManager {
     this.sendMessage(EVENTS.LEAVE_CALL, { roomId: user.roomId });
     if (this.p2pMeshManager) {
       this.p2pMeshManager.leaveCall();
+    }
+  }
+
+  toggleAudio() {
+    if (!this.p2pMeshManager) return;
+    const newEnabled = this.p2pMeshManager.toggleAudio();
+    if (newEnabled === null) return;
+
+    const { user, localStreams, updateCallState } = useStore.getState();
+    updateCallState({ isAudioEnabled: newEnabled });
+
+    const handle = localStreams.find(s => s.feedType === 'camera');
+    if (handle) {
+      const { isVideoEnabled } = useStore.getState().callState;
+      this.sendMessage(EVENTS.TOGGLE_STREAM, {
+        roomId: user.roomId,
+        streamId: handle.handleId,
+        audio: newEnabled,
+        video: isVideoEnabled,
+      });
+    }
+  }
+
+  toggleVideo() {
+    if (!this.p2pMeshManager) return;
+    const newEnabled = this.p2pMeshManager.toggleVideo();
+    if (newEnabled === null) return;
+
+    const { user, localStreams, updateCallState } = useStore.getState();
+    updateCallState({ isVideoEnabled: newEnabled });
+
+    const handle = localStreams.find(s => s.feedType === 'camera');
+    if (handle) {
+      const { isAudioEnabled } = useStore.getState().callState;
+      this.sendMessage(EVENTS.TOGGLE_STREAM, {
+        roomId: user.roomId,
+        streamId: handle.handleId,
+        audio: isAudioEnabled,
+        video: newEnabled,
+      });
+    }
+  }
+
+  async startScreenShare() {
+    if (!this.p2pMeshManager) return;
+    const { user, addLocalStream, setScreenShareStream } = useStore.getState();
+
+    const stream = await this.p2pMeshManager.startScreenShare();
+    const streamId = `${user.id}-screen-${Date.now()}`;
+
+    // Add a local stream entry for the screen share feed
+    addLocalStream({
+      id: `local-screen-${Date.now()}`,
+      userId: user.id,
+      roomId: user.roomId,
+      handleId: streamId,
+      type: 'p2p_mesh',
+      feedType: 'screenshare',
+      audioEnabled: false,
+      videoEnabled: true,
+      handRaised: false,
+      createdAt: new Date().toISOString(),
+      stream,
+    });
+    setScreenShareStream(stream);
+
+    this.sendMessage(EVENTS.START_SCREEN_SHARE, {
+      roomId: user.roomId,
+      streamId,
+      audio: false,
+      video: true,
+    });
+
+    // If the user stops via the browser's native "Stop sharing" button
+    stream.getVideoTracks()[0].onended = () => this.stopScreenShare();
+
+    return stream;
+  }
+
+  async stopScreenShare() {
+    if (!this.p2pMeshManager?.screenShareStream) return;
+    const { user, localStreams, setLocalStreams, setScreenShareStream } = useStore.getState();
+
+    const handle = localStreams.find(s => s.feedType === 'screenshare' && s.userId === user.id);
+
+    await this.p2pMeshManager.stopScreenShare();
+    setScreenShareStream(null);
+
+    if (handle) {
+      setLocalStreams(localStreams.filter(s => s.id !== handle.id));
+      this.sendMessage(EVENTS.STOP_SCREEN_SHARE, {
+        roomId: user.roomId,
+        streamId: handle.handleId,
+      });
     }
   }
 
