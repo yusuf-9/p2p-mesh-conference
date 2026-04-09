@@ -1,4 +1,4 @@
-import { rooms, users, apiKeys, mediaRooms, roomHostRelation } from "../schema.js";
+import { rooms, users, apiKeys, roomHostRelation } from "../schema.js";
 import { eq, or, and } from "drizzle-orm";
 import DatabaseService from "../index.js";
 

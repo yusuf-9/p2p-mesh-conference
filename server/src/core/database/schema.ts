@@ -3,6 +3,8 @@ import { relations } from "drizzle-orm";
 
 // Enums
 export const roomTypeEnum = pgEnum("room_type", ["one_to_one", "group"]);
+export const mediaHandleTypeEnum = pgEnum("media_handle_type", ["p2p_mesh"]);
+export const feedTypeEnum = pgEnum("feed_type", ["camera", "screenshare"]);
 
 // Tables
 export const admins = pgTable("admins", {
@@ -89,6 +91,23 @@ export const messages = pgTable("messages", {
     .$onUpdate(() => new Date()),
 });
 
+export const mediaHandles = pgTable("media_handles", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  userId: uuid("user_id")
+    .references(() => users.id, { onDelete: "cascade" })
+    .notNull(),
+  roomId: uuid("room_id")
+    .references(() => rooms.id, { onDelete: "cascade" })
+    .notNull(),
+  handleId: varchar("handle_id", { length: 255 }).unique().notNull(),
+  type: mediaHandleTypeEnum("type").default("p2p_mesh").notNull(),
+  feedType: feedTypeEnum("feed_type").default("camera").notNull(),
+  audioEnabled: boolean("audio_enabled").default(true).notNull(),
+  videoEnabled: boolean("video_enabled").default(true).notNull(),
+  handRaised: boolean("hand_raised").default(false).notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
 
 // Relations
 export const adminRelations = relations(admins, ({ many }) => ({
@@ -110,6 +129,7 @@ export const roomsRelations = relations(rooms, ({ one, many }) => ({
   }),
   users: many(users),
   messages: many(messages),
+  mediaHandles: many(mediaHandles),
 }));
 
 export const usersRelations = relations(users, ({ one, many }) => ({
@@ -118,6 +138,7 @@ export const usersRelations = relations(users, ({ one, many }) => ({
     references: [rooms.id],
   }),
   messages: many(messages),
+  mediaHandles: many(mediaHandles),
 }));
 
 export const messagesRelations = relations(messages, ({ one }) => ({
@@ -128,5 +149,16 @@ export const messagesRelations = relations(messages, ({ one }) => ({
   user: one(users, {
     fields: [messages.userId],
     references: [users.id],
+  }),
+}));
+
+export const mediaHandlesRelations = relations(mediaHandles, ({ one }) => ({
+  user: one(users, {
+    fields: [mediaHandles.userId],
+    references: [users.id],
+  }),
+  room: one(rooms, {
+    fields: [mediaHandles.roomId],
+    references: [rooms.id],
   }),
 }));

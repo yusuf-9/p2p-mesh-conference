@@ -1,1 +1,0 @@
-ALTER TABLE "users" ADD COLUMN "hand_raised" boolean DEFAULT false NOT NULL;

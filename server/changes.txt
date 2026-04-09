@@ -1,0 +1,27 @@
+index.ts ->
+    - remove the pubsub service. we dont need it anymore
+    - delete the file too. Remove it from the constructors of the other services
+
+server file
+    - remove the ws-docs route, and delete the public files if present
+    - remove the load test route, and delete the public files if present
+
+
+websocket - 
+    - change the events -
+        client to server events -
+            - send message
+            - disconnect
+            - ping
+            - join call
+            - leave call
+            - peer offer (send offer to peer)
+            - peer answer (send answer to peer)
+            - peer ice candidate (send ice candidate to peer)
+            - toggle media 
+            - send screenshot notification
+            - send reaction
+            - raise hand
+            - lower hand
+        server to client events (confirmation events)
+

@@ -3,7 +3,7 @@ import http from "http";
 import { WebSocketServer, WebSocket } from "ws";
 import { ZodError } from "zod";
 import AuthService from "../auth/index.js";
-import { AuthenticatedWebSocket, ServerToClientMessages, PubSubMessage, User, Message } from "./types.js";
+import { AuthenticatedWebSocket, ServerToClientMessage, PubSubRoomBroadcast, User, Message } from "./types.js";
 import {
   validateClientMessage,
   validatePubSubRoomBroadcast,
@@ -79,7 +79,7 @@ export default class P2PMeshServer {
       const message = JSON.stringify({
         type: validatedData.message.type,
         data: validatedData.message.data,
-      } as ServerToClientMessages["BASE"]);
+      } as ServerToClientMessage);
 
       console.log(`📢 Broadcasting to ${validatedData.onlyUsersInCall ? 'users in call' : 'connected users'} in room ${validatedData.roomId}:`, {
         targetCount: targetUsers.length,
@@ -132,9 +132,10 @@ export default class P2PMeshServer {
       ws.send(JSON.stringify({
         type: EVENTS.CONNECTED,
         data: { ...dbUser, connected: true },
-      } as ServerToClientMessages[typeof EVENTS.CONNECTED]));
+      } as ServerToClientMessage));
 
-      await this.broadcastToRoom(dbUser.roomId, EVENTS.USER_CONNECTED, dbUser, dbUser.id);
+      // Broadcast to other users that this user connected
+      await this.broadcastToRoom(dbUser.roomId, EVENTS.USER_CONNECTED, dbUser.id, dbUser.id);
     } catch (error) {
       console.error(`❌ Error during user connection:`, error);
       this.sendError(ws, error instanceof Error ? error.message : "Connection failed");
@@ -188,44 +189,72 @@ export default class P2PMeshServer {
           await this.handleSendMessage(ws, message.data);
           break;
         case EVENTS.DISCONNECT:
-          await this.handleLeaveRoom(ws);
+          this.handleDisconnect(ws);
           break;
         case EVENTS.PING:
           this.handlePing(ws);
           break;
         
-        // P2P Signaling Events
+        // Call Management
         case EVENTS.JOIN_CALL:
           await this.p2pHandlers.handleJoinCall(ws, message.data);
           break;
         case EVENTS.LEAVE_CALL:
-          await this.p2pHandlers.handleLeaveCall(ws);
-          break;
-        case EVENTS.PEER_OFFER:
-          await this.p2pHandlers.handlePeerOffer(ws, message.data);
-          break;
-        case EVENTS.PEER_ANSWER:
-          await this.p2pHandlers.handlePeerAnswer(ws, message.data);
-          break;
-        case EVENTS.PEER_ICE_CANDIDATE:
-          await this.p2pHandlers.handlePeerIceCandidate(ws, message.data);
-          break;
-        case EVENTS.TOGGLE_MEDIA:
-          await this.p2pHandlers.handleToggleMedia(ws, message.data);
+          await this.p2pHandlers.handleLeaveCall(ws, message.data);
           break;
         
-        // Basic interactions
+        // Video Call WebRTC Signaling (P2P Relay)
+        case EVENTS.SEND_WEBRTC_OFFER_FOR_VIDEO_CALL:
+          await this.p2pHandlers.handleVideoCallOffer(ws, message.data);
+          break;
+        case EVENTS.SEND_WEBRTC_ANSWER_FOR_VIDEO_CALL:
+          await this.p2pHandlers.handleVideoCallAnswer(ws, message.data);
+          break;
+        case EVENTS.SEND_WEBRTC_ICE_CANDIDATE_FOR_VIDEO_CALL:
+          await this.p2pHandlers.handleVideoCallIceCandidate(ws, message.data);
+          break;
+        
+        // Screen Sharing Management
+        case EVENTS.START_SCREEN_SHARE:
+          await this.p2pHandlers.handleStartScreenShare(ws, message.data);
+          break;
+        case EVENTS.STOP_SCREEN_SHARE:
+          await this.p2pHandlers.handleStopScreenShare(ws, message.data);
+          break;
+        
+        // Screen Share WebRTC Signaling (P2P Relay)
+        case EVENTS.SEND_WEBRTC_OFFER_FOR_SCREEN_SHARE:
+          await this.p2pHandlers.handleScreenShareOffer(ws, message.data);
+          break;
+        case EVENTS.SEND_WEBRTC_ANSWER_FOR_SCREEN_SHARE:
+          await this.p2pHandlers.handleScreenShareAnswer(ws, message.data);
+          break;
+        case EVENTS.SEND_WEBRTC_ICE_CANDIDATE_FOR_SCREEN_SHARE:
+          await this.p2pHandlers.handleScreenShareIceCandidate(ws, message.data);
+          break;
+        
+        // Media Stream Controls
+        case EVENTS.TOGGLE_STREAM:
+          await this.p2pHandlers.handleToggleStream(ws, message.data);
+          break;
+        
+        // Room Management
+        case EVENTS.LEAVE_ROOM:
+          await this.handleLeaveRoom(ws, message.data);
+          break;
+        
+        // Interactions
         case EVENTS.SEND_SCREENSHOT_NOTIFICATION:
-          await this.handleSendScreenshotNotification(ws);
+          await this.handleSendScreenshotNotification(ws, message.data);
           break;
         case EVENTS.SEND_REACTION:
           await this.handleSendReaction(ws, message.data);
           break;
         case EVENTS.RAISE_HAND:
-          await this.p2pHandlers.handleRaiseHand(ws, { raised: true });
+          await this.p2pHandlers.handleRaiseHand(ws, message.data);
           break;
         case EVENTS.LOWER_HAND:
-          await this.p2pHandlers.handleRaiseHand(ws, { raised: false });
+          await this.p2pHandlers.handleLowerHand(ws, message.data);
           break;
         
         default:
@@ -237,24 +266,38 @@ export default class P2PMeshServer {
     }
   }
 
-  private async handleSendMessage(ws: AuthenticatedWebSocket, message: string): Promise<void> {
+  private async handleLeaveRoom(ws: AuthenticatedWebSocket, data: { roomId: string }): Promise<void> {
+    console.log(`👋 User ${ws.userId} leaving room ${data.roomId}`);
+    
+    if (ws.roomId !== data.roomId) {
+      throw new Error("Room ID mismatch");
+    }
+    
+    await this.performUserLeave(ws.userId!, data.roomId);
+  }
+
+  private async handleSendMessage(ws: AuthenticatedWebSocket, data: { roomId: string; content: string }): Promise<void> {
+    if (ws.roomId !== data.roomId) {
+      throw new Error("Room ID mismatch");
+    }
+    
     const user = await this.dbService.userRepository.getUserById(ws.userId!);
     if (!user) {
       throw new Error("User not found");
     }
 
     console.log(`📝 Handling message from user ${ws.userId}:`, {
-      content: message.trim(),
-      roomId: ws.roomId,
+      content: data.content.trim(),
+      roomId: data.roomId,
     });
 
     const savedMessage = await this.dbService
       .getDb()
       .insert(messages)
       .values({
-        roomId: ws.roomId!,
+        roomId: data.roomId,
         userId: ws.userId!,
-        content: message.trim(),
+        content: data.content.trim(),
       })
       .returning();
 
@@ -263,32 +306,39 @@ export default class P2PMeshServer {
       userId: ws.userId,
     });
 
+    // Send confirmation to sender
     ws.send(JSON.stringify({
       type: EVENTS.MESSAGE_SENT,
-      data: savedMessage[0] as unknown,
-    } as ServerToClientMessages[typeof EVENTS.MESSAGE_SENT]));
+      data: {
+        ...savedMessage[0],
+        createdAt: savedMessage[0].createdAt.toISOString(),
+        updatedAt: savedMessage[0].updatedAt.toISOString(),
+      },
+    } as ServerToClientMessage));
 
-    await this.broadcastToRoom(ws.roomId!, EVENTS.MESSAGE_RECEIVED, savedMessage[0], ws.userId);
+    // Broadcast to other users in room (excluding sender)
+    await this.broadcastToRoom(data.roomId, EVENTS.RECEIVE_MESSAGE, savedMessage[0], ws.userId);
   }
 
-  private async handleLeaveRoom(ws: AuthenticatedWebSocket): Promise<void> {
-    console.log(`👋 User ${ws.userId} leaving room ${ws.roomId}`);
-    await this.performUserLeave(ws.userId!, ws.roomId!);
-  }
 
   private async performUserLeave(userId: string, roomId: string): Promise<void> {
     console.log(`🚪 Performing leave room for user ${userId} from room ${roomId}`);
 
     await this.dbService.userRepository.resetUserCallState(userId, true);
+    await this.dbService.mediaHandleRepository.deleteMediaHandlesForUser(userId, roomId);
     this.wsConnections.delete(userId);
 
-    await this.broadcastToRoom(roomId, EVENTS.USER_DISCONNECTED, userId, userId);
+    await this.broadcastToRoom(roomId, EVENTS.USER_LEFT, userId, userId);
 
     console.log(`🧹 Cleaned up call state for user ${userId}`);
   }
 
-  private async handleSendScreenshotNotification(ws: AuthenticatedWebSocket): Promise<void> {
-    console.log(`📷 User ${ws.userId} took a screenshot in room ${ws.roomId}`);
+  private async handleSendScreenshotNotification(ws: AuthenticatedWebSocket, data: { roomId: string }): Promise<void> {
+    console.log(`📷 User ${ws.userId} took a screenshot in room ${data.roomId}`);
+    
+    if (ws.roomId !== data.roomId) {
+      throw new Error("Room ID mismatch");
+    }
 
     const user = await this.dbService.userRepository.getUserById(ws.userId!);
     if (!user) {
@@ -299,23 +349,25 @@ export default class P2PMeshServer {
       throw new Error("User must be in call to send screenshot notification");
     }
 
-    ws.send(JSON.stringify({
-      type: EVENTS.SCREENSHOT_TAKEN,
-    } as ServerToClientMessages[typeof EVENTS.SCREENSHOT_TAKEN]));
-
     await this.broadcastToRoom(
-      ws.roomId!,
-      EVENTS.SCREENSHOT_TAKEN_BY_USER,
-      { userId: ws.userId! },
-      ws.userId,
-      true
+      data.roomId,
+      EVENTS.USER_TOOK_SCREENSHOT,
+      { 
+        userId: ws.userId!,
+        timestamp: Date.now()
+      },
+      ws.userId
     );
 
-    console.log(`📢 Screenshot notification broadcasted to users in call in room ${ws.roomId}`);
+    console.log(`📢 Screenshot notification broadcasted to room ${data.roomId}`);
   }
 
-  private async handleSendReaction(ws: AuthenticatedWebSocket, reaction: string): Promise<void> {
-    console.log(`😀 User ${ws.userId} sent reaction "${reaction}" in room ${ws.roomId}`);
+  private async handleSendReaction(ws: AuthenticatedWebSocket, data: { roomId: string; reaction: string }): Promise<void> {
+    console.log(`😀 User ${ws.userId} sent reaction "${data.reaction}" in room ${data.roomId}`);
+    
+    if (ws.roomId !== data.roomId) {
+      throw new Error("Room ID mismatch");
+    }
 
     const user = await this.dbService.userRepository.getUserById(ws.userId!);
     if (!user) {
@@ -326,29 +378,25 @@ export default class P2PMeshServer {
       throw new Error("User must be in call to send reactions");
     }
 
-    ws.send(JSON.stringify({
-      type: EVENTS.REACTION_SENT,
-    } as ServerToClientMessages[typeof EVENTS.REACTION_SENT]));
-
     await this.broadcastToRoom(
-      ws.roomId!,
-      EVENTS.REACTION_RECEIVED,
+      data.roomId,
+      EVENTS.RECEIVE_REACTION,
       {
         userId: ws.userId!,
-        reaction: reaction,
+        reaction: data.reaction,
+        timestamp: Date.now()
       },
-      ws.userId,
-      true
+      ws.userId
     );
 
-    console.log(`📢 Reaction "${reaction}" broadcasted to users in call in room ${ws.roomId}`);
+    console.log(`📢 Reaction "${data.reaction}" broadcasted to room ${data.roomId}`);
   }
 
   private handlePing(ws: AuthenticatedWebSocket): void {
     console.log(`🏓 Ping from user ${ws.userId}`);
     ws.send(JSON.stringify({
       type: EVENTS.PONG,
-    } as ServerToClientMessages[typeof EVENTS.PONG]));
+    } as ServerToClientMessage));
   }
 
   private handleSocketError(ws: AuthenticatedWebSocket, error: Error): void {
@@ -358,9 +406,21 @@ export default class P2PMeshServer {
 
   private handleDisconnect(ws: AuthenticatedWebSocket): void {
     console.log(`❌ User ${ws.userId} disconnected`);
-    this.performUserLeave(ws.userId!, ws.roomId!).catch(error => {
+    this.performUserDisconnect(ws.userId!, ws.roomId!).catch(error => {
       console.error(`❌ Error during disconnect cleanup for user ${ws.userId}:`, error);
     });
+  }
+
+  private async performUserDisconnect(userId: string, roomId: string): Promise<void> {
+    console.log(`🔌 Performing disconnect cleanup for user ${userId} from room ${roomId}`);
+
+    await this.dbService.userRepository.resetUserCallState(userId, true);
+    await this.dbService.mediaHandleRepository.deleteMediaHandlesForUser(userId, roomId);
+    this.wsConnections.delete(userId);
+
+    await this.broadcastToRoom(roomId, EVENTS.USER_DISCONNECTED, userId, userId);
+
+    console.log(`🧹 Cleaned up disconnect state for user ${userId}`);
   }
 
   private async broadcastToRoom(roomId: string, type: string, data: any, excludeUserId?: string, onlyUsersInCall: boolean = false): Promise<void> {
@@ -369,80 +429,106 @@ export default class P2PMeshServer {
       excludeUserId,
     });
 
-    let broadcastMessage: ServerToClientMessages[keyof ServerToClientMessages];
+    let broadcastMessage: ServerToClientMessage;
 
     switch (type) {
       case EVENTS.USER_CONNECTED:
         broadcastMessage = {
           type: EVENTS.USER_CONNECTED,
+          data: { userId: data as string },
+        } as ServerToClientMessage;
+        break;
+      case EVENTS.USER_JOINED:
+        broadcastMessage = {
+          type: EVENTS.USER_JOINED,
           data: data as User,
-        } as ServerToClientMessages[typeof EVENTS.USER_CONNECTED];
+        } as ServerToClientMessage;
+        break;
+      case EVENTS.USER_LEFT:
+        broadcastMessage = {
+          type: EVENTS.USER_LEFT,
+          data: { userId: data as string },
+        } as ServerToClientMessage;
         break;
       case EVENTS.USER_DISCONNECTED:
         broadcastMessage = {
           type: EVENTS.USER_DISCONNECTED,
-          data: data as string,
-        } as ServerToClientMessages[typeof EVENTS.USER_DISCONNECTED];
+          data: { userId: data as string },
+        } as ServerToClientMessage;
         break;
-      case EVENTS.MESSAGE_RECEIVED:
+      case EVENTS.RECEIVE_MESSAGE:
         broadcastMessage = {
-          type: EVENTS.MESSAGE_RECEIVED,
-          data: data as Message,
-        } as ServerToClientMessages[typeof EVENTS.MESSAGE_RECEIVED];
+          type: EVENTS.RECEIVE_MESSAGE,
+          data: {
+            ...(data as any),
+            createdAt: (data as any).createdAt instanceof Date ? (data as any).createdAt.toISOString() : (data as any).createdAt,
+            updatedAt: (data as any).updatedAt instanceof Date ? (data as any).updatedAt.toISOString() : (data as any).updatedAt,
+          },
+        } as ServerToClientMessage;
         break;
-      case EVENTS.USER_JOINED_ROOM:
+      case EVENTS.MESSAGE_SENT:
         broadcastMessage = {
-          type: EVENTS.USER_JOINED_ROOM,
-          data: data as User,
-        } as ServerToClientMessages[typeof EVENTS.USER_JOINED_ROOM];
+          type: EVENTS.MESSAGE_SENT,
+          data: {
+            ...(data as any),
+            createdAt: (data as any).createdAt instanceof Date ? (data as any).createdAt.toISOString() : (data as any).createdAt,
+            updatedAt: (data as any).updatedAt instanceof Date ? (data as any).updatedAt.toISOString() : (data as any).updatedAt,
+          },
+        } as ServerToClientMessage;
         break;
-      case EVENTS.USER_LEFT_ROOM:
+      case EVENTS.USER_JOINED_CALL:
         broadcastMessage = {
-          type: EVENTS.USER_LEFT_ROOM,
-          data: data as string,
-        } as ServerToClientMessages[typeof EVENTS.USER_LEFT_ROOM];
-        break;
-      case EVENTS.PEER_JOINED_CALL:
-        broadcastMessage = {
-          type: EVENTS.PEER_JOINED_CALL,
+          type: EVENTS.USER_JOINED_CALL,
           data: data
-        } as ServerToClientMessages[typeof EVENTS.PEER_JOINED_CALL];
+        } as ServerToClientMessage;
         break;
-      case EVENTS.PEER_LEFT_CALL:
+      case EVENTS.USER_LEFT_CALL:
         broadcastMessage = {
-          type: EVENTS.PEER_LEFT_CALL,
+          type: EVENTS.USER_LEFT_CALL,
           data: data
-        } as ServerToClientMessages[typeof EVENTS.PEER_LEFT_CALL];
+        } as ServerToClientMessage;
         break;
-      case EVENTS.PEER_MEDIA_TOGGLED:
+      case EVENTS.USER_STARTED_SCREEN_SHARE:
         broadcastMessage = {
-          type: EVENTS.PEER_MEDIA_TOGGLED,
+          type: EVENTS.USER_STARTED_SCREEN_SHARE,
           data: data
-        } as ServerToClientMessages[typeof EVENTS.PEER_MEDIA_TOGGLED];
+        } as ServerToClientMessage;
         break;
-      case EVENTS.SCREENSHOT_TAKEN_BY_USER:
+      case EVENTS.USER_STOPPED_SCREEN_SHARE:
         broadcastMessage = {
-          type: EVENTS.SCREENSHOT_TAKEN_BY_USER,
+          type: EVENTS.USER_STOPPED_SCREEN_SHARE,
           data: data
-        } as ServerToClientMessages[typeof EVENTS.SCREENSHOT_TAKEN_BY_USER];
+        } as ServerToClientMessage;
         break;
-      case EVENTS.REACTION_RECEIVED:
+      case EVENTS.USER_TOGGLED_STREAM:
         broadcastMessage = {
-          type: EVENTS.REACTION_RECEIVED,
+          type: EVENTS.USER_TOGGLED_STREAM,
           data: data
-        } as ServerToClientMessages[typeof EVENTS.REACTION_RECEIVED];
+        } as ServerToClientMessage;
         break;
-      case EVENTS.HAND_RAISED_BY_USER:
+      case EVENTS.USER_TOOK_SCREENSHOT:
         broadcastMessage = {
-          type: EVENTS.HAND_RAISED_BY_USER,
+          type: EVENTS.USER_TOOK_SCREENSHOT,
           data: data
-        } as ServerToClientMessages[typeof EVENTS.HAND_RAISED_BY_USER];
+        } as ServerToClientMessage;
         break;
-      case EVENTS.HAND_LOWERED_BY_USER:
+      case EVENTS.RECEIVE_REACTION:
         broadcastMessage = {
-          type: EVENTS.HAND_LOWERED_BY_USER,
+          type: EVENTS.RECEIVE_REACTION,
           data: data
-        } as ServerToClientMessages[typeof EVENTS.HAND_LOWERED_BY_USER];
+        } as ServerToClientMessage;
+        break;
+      case EVENTS.USER_RAISED_HAND:
+        broadcastMessage = {
+          type: EVENTS.USER_RAISED_HAND,
+          data: data
+        } as ServerToClientMessage;
+        break;
+      case EVENTS.USER_LOWERED_HAND:
+        broadcastMessage = {
+          type: EVENTS.USER_LOWERED_HAND,
+          data: data
+        } as ServerToClientMessage;
         break;
 
       default:
@@ -455,7 +541,7 @@ export default class P2PMeshServer {
       excludeId: excludeUserId,
       roomId,
       onlyUsersInCall,
-    } as PubSubMessage["ROOM_BROADCAST"]);
+    } as PubSubRoomBroadcast);
   }
 
   private sendError(ws: AuthenticatedWebSocket, errorMessage: string): void {
@@ -464,8 +550,10 @@ export default class P2PMeshServer {
       if (ws.readyState === WebSocket.OPEN) {
         ws.send(JSON.stringify({
           type: EVENTS.ERROR,
-          error: errorMessage,
-        } as ServerToClientMessages[typeof EVENTS.ERROR]));
+          data: {
+            message: errorMessage,
+          },
+        } as ServerToClientMessage));
       }
     } catch (err) {
       console.error("❌ Failed to send error message:", err);
@@ -528,10 +616,10 @@ export default class P2PMeshServer {
     });
   }
 
-  public async emitToRoom<T extends keyof ServerToClientMessages>(
+  public async emitToRoom(
     roomId: string,
-    eventName: T,
-    eventData?: ServerToClientMessages[T] extends { data: infer D } ? D : undefined,
+    eventName: string,
+    eventData?: unknown,
     excludeUserId?: string,
     onlyUsersInCall: boolean = false
   ): Promise<void> {

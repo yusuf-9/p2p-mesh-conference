@@ -7,9 +7,8 @@ import AdminRepository from './repositories/admin.js';
 import ApiKeyRepository from './repositories/apiKey.js';
 import RoomRepository from './repositories/room.js';
 import UserRepository from './repositories/users.js';
+import MediaHandleRepository from './repositories/media-handles.js';
 import { retryPromiseIfFails } from '../../utils/index.js';
-import TransactionRepository from './repositories/transactions.js';
-import MediaRoomRepository from './repositories/media-room.js';
 
 export default class DatabaseService {
   private client: postgres.Sql;
@@ -21,8 +20,7 @@ export default class DatabaseService {
   public apiKeyRepository: ApiKeyRepository;
   public roomRepository: RoomRepository;
   public userRepository: UserRepository;
-  public transactionRepository: TransactionRepository;
-  public mediaRoomRepository: MediaRoomRepository;
+  public mediaHandleRepository: MediaHandleRepository;
 
 
   constructor(config: Config) {
@@ -37,8 +35,7 @@ export default class DatabaseService {
     this.apiKeyRepository = new ApiKeyRepository(this);
     this.roomRepository = new RoomRepository(this);
     this.userRepository = new UserRepository(this);
-    this.transactionRepository = new TransactionRepository(this);
-    this.mediaRoomRepository = new MediaRoomRepository(this);
+    this.mediaHandleRepository = new MediaHandleRepository(this);
 
 
   }

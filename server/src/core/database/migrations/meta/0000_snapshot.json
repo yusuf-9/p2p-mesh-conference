@@ -1,5 +1,5 @@
 {
-  "id": "2f06bb60-5247-445d-839a-7c9a80dc55d6",
+  "id": "752333bb-cec6-429e-a573-855a2be7bef5",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "6",
   "dialect": "postgresql",
@@ -162,15 +162,15 @@
           "primaryKey": false,
           "notNull": true
         },
-        "media_room_id": {
-          "name": "media_room_id",
+        "room_id": {
+          "name": "room_id",
           "type": "uuid",
           "primaryKey": false,
           "notNull": true
         },
         "handle_id": {
           "name": "handle_id",
-          "type": "integer",
+          "type": "varchar(255)",
           "primaryKey": false,
           "notNull": true
         },
@@ -179,7 +179,37 @@
           "type": "media_handle_type",
           "typeSchema": "public",
           "primaryKey": false,
-          "notNull": true
+          "notNull": true,
+          "default": "'p2p_mesh'"
+        },
+        "feed_type": {
+          "name": "feed_type",
+          "type": "feed_type",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'camera'"
+        },
+        "audio_enabled": {
+          "name": "audio_enabled",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": true
+        },
+        "video_enabled": {
+          "name": "video_enabled",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": true
+        },
+        "hand_raised": {
+          "name": "hand_raised",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": false
         },
         "created_at": {
           "name": "created_at",
@@ -204,12 +234,12 @@
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
-        "media_handles_media_room_id_media_rooms_id_fk": {
-          "name": "media_handles_media_room_id_media_rooms_id_fk",
+        "media_handles_room_id_rooms_id_fk": {
+          "name": "media_handles_room_id_rooms_id_fk",
           "tableFrom": "media_handles",
-          "tableTo": "media_rooms",
+          "tableTo": "rooms",
           "columnsFrom": [
-            "media_room_id"
+            "room_id"
           ],
           "columnsTo": [
             "id"
@@ -225,122 +255,6 @@
           "nullsNotDistinct": false,
           "columns": [
             "handle_id"
-          ]
-        }
-      }
-    },
-    "public.media_rooms": {
-      "name": "media_rooms",
-      "schema": "",
-      "columns": {
-        "id": {
-          "name": "id",
-          "type": "uuid",
-          "primaryKey": true,
-          "notNull": true,
-          "default": "gen_random_uuid()"
-        },
-        "session_id": {
-          "name": "session_id",
-          "type": "uuid",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "janus_room_id": {
-          "name": "janus_room_id",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "created_at": {
-          "name": "created_at",
-          "type": "timestamp",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "now()"
-        }
-      },
-      "indexes": {},
-      "foreignKeys": {
-        "media_rooms_session_id_media_sessions_id_fk": {
-          "name": "media_rooms_session_id_media_sessions_id_fk",
-          "tableFrom": "media_rooms",
-          "tableTo": "media_sessions",
-          "columnsFrom": [
-            "session_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "cascade",
-          "onUpdate": "no action"
-        }
-      },
-      "compositePrimaryKeys": {},
-      "uniqueConstraints": {
-        "media_rooms_janus_room_id_unique": {
-          "name": "media_rooms_janus_room_id_unique",
-          "nullsNotDistinct": false,
-          "columns": [
-            "janus_room_id"
-          ]
-        }
-      }
-    },
-    "public.media_sessions": {
-      "name": "media_sessions",
-      "schema": "",
-      "columns": {
-        "id": {
-          "name": "id",
-          "type": "uuid",
-          "primaryKey": true,
-          "notNull": true,
-          "default": "gen_random_uuid()"
-        },
-        "room_id": {
-          "name": "room_id",
-          "type": "uuid",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "session_id": {
-          "name": "session_id",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "created_at": {
-          "name": "created_at",
-          "type": "timestamp",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "now()"
-        }
-      },
-      "indexes": {},
-      "foreignKeys": {
-        "media_sessions_room_id_rooms_id_fk": {
-          "name": "media_sessions_room_id_rooms_id_fk",
-          "tableFrom": "media_sessions",
-          "tableTo": "rooms",
-          "columnsFrom": [
-            "room_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "cascade",
-          "onUpdate": "no action"
-        }
-      },
-      "compositePrimaryKeys": {},
-      "uniqueConstraints": {
-        "media_sessions_session_id_unique": {
-          "name": "media_sessions_session_id_unique",
-          "nullsNotDistinct": false,
-          "columns": [
-            "session_id"
           ]
         }
       }
@@ -421,71 +335,6 @@
       "compositePrimaryKeys": {},
       "uniqueConstraints": {}
     },
-    "public.pending_transactions": {
-      "name": "pending_transactions",
-      "schema": "",
-      "columns": {
-        "id": {
-          "name": "id",
-          "type": "uuid",
-          "primaryKey": true,
-          "notNull": true,
-          "default": "gen_random_uuid()"
-        },
-        "user_id": {
-          "name": "user_id",
-          "type": "uuid",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "type": {
-          "name": "type",
-          "type": "transaction_type",
-          "typeSchema": "public",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "transaction_id": {
-          "name": "transaction_id",
-          "type": "varchar(255)",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "created_at": {
-          "name": "created_at",
-          "type": "timestamp",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "now()"
-        }
-      },
-      "indexes": {},
-      "foreignKeys": {
-        "pending_transactions_user_id_users_id_fk": {
-          "name": "pending_transactions_user_id_users_id_fk",
-          "tableFrom": "pending_transactions",
-          "tableTo": "users",
-          "columnsFrom": [
-            "user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "set null",
-          "onUpdate": "no action"
-        }
-      },
-      "compositePrimaryKeys": {},
-      "uniqueConstraints": {
-        "pending_transactions_transaction_id_unique": {
-          "name": "pending_transactions_transaction_id_unique",
-          "nullsNotDistinct": false,
-          "columns": [
-            "transaction_id"
-          ]
-        }
-      }
-    },
     "public.room_host_relation": {
       "name": "room_host_relation",
       "schema": "",
@@ -564,6 +413,14 @@
           "primaryKey": false,
           "notNull": false
         },
+        "type": {
+          "name": "type",
+          "type": "room_type",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'group'"
+        },
         "host_id": {
           "name": "host_id",
           "type": "uuid",
@@ -641,20 +498,6 @@
           "notNull": true,
           "default": false
         },
-        "audio_enabled": {
-          "name": "audio_enabled",
-          "type": "boolean",
-          "primaryKey": false,
-          "notNull": true,
-          "default": false
-        },
-        "video_enabled": {
-          "name": "video_enabled",
-          "type": "boolean",
-          "primaryKey": false,
-          "notNull": true,
-          "default": false
-        },
         "created_at": {
           "name": "created_at",
           "type": "timestamp",
@@ -691,27 +534,27 @@
     }
   },
   "enums": {
+    "public.feed_type": {
+      "name": "feed_type",
+      "schema": "public",
+      "values": [
+        "camera",
+        "screenshare"
+      ]
+    },
     "public.media_handle_type": {
       "name": "media_handle_type",
       "schema": "public",
       "values": [
-        "publisher",
-        "subscriber"
+        "p2p_mesh"
       ]
     },
-    "public.transaction_type": {
-      "name": "transaction_type",
+    "public.room_type": {
+      "name": "room_type",
       "schema": "public",
       "values": [
-        "join_as_publisher",
-        "subscribe_to_feed",
-        "send_offer_for_publishing",
-        "send_answer_for_subscribing",
-        "send_ice_candidates",
-        "send_ice_candidate_completed",
-        "toggle_media_stream",
-        "leave_conference",
-        "get_publisher_list"
+        "one_to_one",
+        "group"
       ]
     }
   },

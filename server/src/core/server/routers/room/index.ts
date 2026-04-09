@@ -9,7 +9,7 @@ import { ValidationErrorResponseType, ValidationErrorField } from "../../types/i
 import { createRoomSchema, updateRoomSchema, joinRoomSchema, roomIdParamSchema } from "./schemas.js";
 import PubSubService from "../../../pubsub/index.js";
 import { CHANNELS, EVENTS } from "../../../ws/constants.js";
-import { PubSubMessage } from "../../../ws/types.js";
+import { PubSubRoomBroadcast } from "../../../ws/types.js";
 
 export default class RoomRouter {
   private router: express.Router;
@@ -705,7 +705,7 @@ export default class RoomRouter {
 
       this.pubSubService.publishJSON(CHANNELS.ROOM_BROADCASTS_CHANNEL, {
         message: {
-          type: EVENTS.USER_JOINED_ROOM,
+          type: EVENTS.USER_JOINED,
           data: {
             id: newUser[0].id,
             name: newUser[0].name,
@@ -717,7 +717,7 @@ export default class RoomRouter {
         roomId,
         excludeId: newUser[0].id,
         onlyUsersInCall: false,
-      } as PubSubMessage["ROOM_BROADCAST"]);
+      } as PubSubRoomBroadcast);
 
       res.status(201).json({
         message: "Successfully joined room",
@@ -843,12 +843,12 @@ export default class RoomRouter {
 
       this.pubSubService.publishJSON(CHANNELS.ROOM_BROADCASTS_CHANNEL, {
         message: {
-          type: EVENTS.USER_LEFT_ROOM,
+          type: EVENTS.USER_LEFT,
           data: userId,
         },
         roomId,
         excludeId: userId,
-      } as PubSubMessage["ROOM_BROADCAST"]);
+      } as PubSubRoomBroadcast);
 
       res.status(200).json({
         message: "Successfully left room",

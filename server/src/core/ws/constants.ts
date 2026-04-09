@@ -1,63 +1,64 @@
 export const EVENTS = {
-  // client -> server
+  // Room Management
+  LEAVE_ROOM: "leave-room",
+  
+  // Basic Communication
   SEND_MESSAGE: "send-message",
+  MESSAGE_SENT: "message-sent",
+  RECEIVE_MESSAGE: "receive-message",
   DISCONNECT: "disconnect",
   PING: "ping",
-  
-  // P2P Signaling Events (client -> server)
-  JOIN_CALL: "join-call",
-  LEAVE_CALL: "leave-call",
-  PEER_OFFER: "peer-offer",
-  PEER_ANSWER: "peer-answer",
-  PEER_ICE_CANDIDATE: "peer-ice-candidate",
-  TOGGLE_MEDIA: "toggle-media",
-  
-  // Basic interactions
-  SEND_SCREENSHOT_NOTIFICATION: "send-screenshot-notification",
-  SEND_REACTION: "send-reaction",
-  RAISE_HAND: "raise-hand",
-  LOWER_HAND: "lower-hand",
-
-  // server -> client
-  CONNECTED: "connected",
-  MESSAGE_SENT: "message-sent",
   PONG: "pong",
   ERROR: "error",
-  
-  // P2P Signaling Events (server -> client)
-  CALL_JOINED: "call-joined",
-  CALL_LEFT: "call-left",
-  PEER_OFFER_RECEIVED: "peer-offer-received",
-  PEER_ANSWER_RECEIVED: "peer-answer-received",
-  PEER_ICE_CANDIDATE_RECEIVED: "peer-ice-candidate-received",
-  MEDIA_TOGGLED: "media-toggled",
-  
-  // Basic interaction responses
-  SCREENSHOT_TAKEN: "screenshot-taken",
-  REACTION_SENT: "reaction-sent",
-  HAND_RAISED: "hand-raised",
-  HAND_LOWERED: "hand-lowered",
+  CONNECTED: "connected",
 
-  // server -> room (broadcasts)
+  // User Events (broadcasts)
   USER_CONNECTED: "user-connected",
+  USER_JOINED: "user-joined",
+  USER_LEFT: "user-left",
   USER_DISCONNECTED: "user-disconnected",
-  MESSAGE_RECEIVED: "message-received",
-  USER_JOINED_ROOM: "user-joined-room",
-  USER_LEFT_ROOM: "user-left-room",
+
+  // P2P WebRTC Signaling - Video Call (Relay Pattern)
+  SEND_WEBRTC_OFFER_FOR_VIDEO_CALL: "send-webrtc-offer-for-video-call",
+  RECEIVE_WEBRTC_OFFER_FOR_VIDEO_CALL: "receive-webrtc-offer-for-video-call",
+  SEND_WEBRTC_ANSWER_FOR_VIDEO_CALL: "send-webrtc-answer-for-video-call", 
+  RECEIVE_WEBRTC_ANSWER_FOR_VIDEO_CALL: "receive-webrtc-answer-for-video-call",
+  SEND_WEBRTC_ICE_CANDIDATE_FOR_VIDEO_CALL: "send-webrtc-ice-candidate-for-video-call",
+  RECEIVE_WEBRTC_ICE_CANDIDATE_FOR_VIDEO_CALL: "receive-webrtc-ice-candidate-for-video-call",
+
+  // Call Management
+  JOIN_CALL: "join-call",
+  JOINED_CALL: "joined-call",
+  LEAVE_CALL: "leave-call",
+  USER_JOINED_CALL: "user-joined-call",
+  USER_LEFT_CALL: "user-left-call",
+
+  // Media Stream Controls
+  TOGGLE_STREAM: "toggle-stream",
+  USER_TOGGLED_STREAM: "user-toggled-stream",
+
+  // Screen Sharing (separate from video call)
+  SEND_WEBRTC_OFFER_FOR_SCREEN_SHARE: "send-webrtc-offer-for-screen-share",
+  RECEIVE_WEBRTC_OFFER_FOR_SCREEN_SHARE: "receive-webrtc-offer-for-screen-share",
+  SEND_WEBRTC_ANSWER_FOR_SCREEN_SHARE: "send-webrtc-answer-for-screen-share",
+  RECEIVE_WEBRTC_ANSWER_FOR_SCREEN_SHARE: "receive-webrtc-answer-for-screen-share", 
+  SEND_WEBRTC_ICE_CANDIDATE_FOR_SCREEN_SHARE: "send-webrtc-ice-candidate-for-screen-share",
+  RECEIVE_WEBRTC_ICE_CANDIDATE_FOR_SCREEN_SHARE: "receive-webrtc-ice-candidate-for-screen-share",
   
-  // P2P Call Events (broadcasts)
-  PEER_JOINED_CALL: "peer-joined-call",
-  PEER_LEFT_CALL: "peer-left-call",
-  PEER_OFFER_BROADCAST: "peer-offer-broadcast",
-  PEER_ANSWER_BROADCAST: "peer-answer-broadcast", 
-  PEER_ICE_CANDIDATE_BROADCAST: "peer-ice-candidate-broadcast",
-  PEER_MEDIA_TOGGLED: "peer-media-toggled",
-  
-  // Basic interaction broadcasts
-  SCREENSHOT_TAKEN_BY_USER: "screenshot-taken-by-user",
-  REACTION_RECEIVED: "reaction-received",
-  HAND_RAISED_BY_USER: "hand-raised-by-user",
-  HAND_LOWERED_BY_USER: "hand-lowered-by-user",
+  START_SCREEN_SHARE: "start-screen-share",
+  STOP_SCREEN_SHARE: "stop-screen-share",
+  USER_STARTED_SCREEN_SHARE: "user-started-screen-share", 
+  USER_STOPPED_SCREEN_SHARE: "user-stopped-screen-share",
+
+  // Interactions
+  SEND_REACTION: "send-reaction",
+  RECEIVE_REACTION: "receive-reaction",
+  RAISE_HAND: "raise-hand",
+  LOWER_HAND: "lower-hand",
+  USER_RAISED_HAND: "user-raised-hand",
+  USER_LOWERED_HAND: "user-lowered-hand",
+  SEND_SCREENSHOT_NOTIFICATION: "send-screenshot-notification",
+  USER_TOOK_SCREENSHOT: "user-took-screenshot",
 } as const;
 
 export const CHANNELS = {

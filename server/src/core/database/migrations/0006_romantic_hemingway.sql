@@ -1,1 +1,0 @@
-ALTER TABLE "media_handles" ADD COLUMN "feed_id" integer;

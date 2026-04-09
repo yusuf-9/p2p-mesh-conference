@@ -1,1 +1,0 @@
-ALTER TABLE "pending_transactions" ADD COLUMN "feed_id" integer;
