@@ -132,8 +132,17 @@ class VideoCallLoadTester {
   }
 
   async startLoadTest() {
-    const rawUrl = (await this.prompt('Room URL (with room_id and api_key): ')).trim();
-    const botCount = parseInt(await this.prompt('Number of bots: '), 10) || 1;
+    // Non-interactive mode: node src/index.js <url> [botCount]
+    // Falls back to interactive prompts when running locally.
+    let rawUrl = process.argv[2]?.trim();
+    let botCount;
+
+    if (rawUrl) {
+      botCount = parseInt(process.argv[3], 10) || 1;
+    } else {
+      rawUrl = (await this.prompt('Room URL (with room_id and api_key): ')).trim();
+      botCount = parseInt(await this.prompt('Number of bots: '), 10) || 1;
+    }
 
     // Validate that the URL has the required params
     const parsed = new URL(rawUrl);
