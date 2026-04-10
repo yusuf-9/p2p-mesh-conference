@@ -1,5 +1,51 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import useStore from "../../../../store";
+
+const useDummyFeed = new URLSearchParams(window.location.search).has('useDummyVideoFeed');
+
+/**
+ * Creates a MediaStream from a looping video file.
+ * The video element is kept off-DOM; a silent AudioContext track is added
+ * so the stream always has both video and audio tracks regardless of the
+ * source file's audio content.
+ */
+async function getDummyVideoStream() {
+  const video = document.createElement('video');
+  video.src = `${import.meta.env.BASE_URL}dummy-video.mp4`;
+  video.loop = true;
+  video.muted = true;   // mute speakers; captureStream still captures audio
+  video.playsInline = true;
+
+  await new Promise((resolve, reject) => {
+    video.addEventListener('canplay', resolve, { once: true });
+    video.addEventListener('error', reject, { once: true });
+    video.play().catch(reject);
+  });
+
+  const capturedStream = video.captureStream();
+
+  // Provide a silent audio track if the video file has no audio
+  let audioTrack;
+  if (capturedStream.getAudioTracks().length > 0) {
+    audioTrack = capturedStream.getAudioTracks()[0];
+  } else {
+    const audioCtx = new AudioContext();
+    const dest = audioCtx.createMediaStreamDestination();
+    audioTrack = dest.stream.getAudioTracks()[0];
+    // Keep audioCtx alive as long as the track is used
+    audioTrack._audioCtx = audioCtx;
+  }
+
+  const stream = new MediaStream([
+    ...capturedStream.getVideoTracks(),
+    audioTrack,
+  ]);
+
+  // Attach the video element to the stream so callers can stop it later
+  stream._sourceVideo = video;
+
+  return stream;
+}
 
 
 export function VideoChat({ joinCallAutomatically = false }) {
@@ -65,22 +111,23 @@ export function VideoChat({ joinCallAutomatically = false }) {
 
   const handleRequestCamera = async () => {
     try {
-      updateCallState({ 
-        joinRequestState: { isLoading: true, error: null } 
+      updateCallState({
+        joinRequestState: { isLoading: true, error: null }
       });
 
-      // Always request both audio and video permissions like containers/client
-      const stream = await navigator.mediaDevices.getUserMedia({
-        audio: {
-          echoCancellation: true,
-          noiseSuppression: true,
-          autoGainControl: true,
-        },
-        video: {
-          width: { ideal: 1280 },
-          height: { ideal: 720 }
-        }
-      });
+      const stream = useDummyFeed
+        ? await getDummyVideoStream()
+        : await navigator.mediaDevices.getUserMedia({
+            audio: {
+              echoCancellation: true,
+              noiseSuppression: true,
+              autoGainControl: true,
+            },
+            video: {
+              width: { ideal: 1280 },
+              height: { ideal: 720 },
+            },
+          });
 
       setLocalStream(stream);
       updateCallState({ 
@@ -132,6 +179,9 @@ export function VideoChat({ joinCallAutomatically = false }) {
     }
     // Stop the pre-join preview stream if still held
     if (localStream) {
+      localStream._sourceVideo?.pause();
+      localStream._sourceVideo?.removeAttribute('src');
+      localStream._audioCtx?.close();
       localStream.getTracks().forEach(t => t.stop());
       setLocalStream(null);
     }
