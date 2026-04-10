@@ -245,16 +245,16 @@ export default class P2PMeshServer {
         
         // Interactions
         case EVENTS.SEND_SCREENSHOT_NOTIFICATION:
-          await this.handleSendScreenshotNotification(ws, message.data);
+          await this.handleSendScreenshotNotification(ws, (message as any).data);
           break;
         case EVENTS.SEND_REACTION:
-          await this.handleSendReaction(ws, message.data);
+          await this.handleSendReaction(ws, (message as any).data);
           break;
         case EVENTS.RAISE_HAND:
-          await this.p2pHandlers.handleRaiseHand(ws, message.data);
+          await this.p2pHandlers.handleRaiseHand(ws, (message as any).data);
           break;
         case EVENTS.LOWER_HAND:
-          await this.p2pHandlers.handleLowerHand(ws, message.data);
+          await this.p2pHandlers.handleLowerHand(ws, (message as any).data);
           break;
         
         default:

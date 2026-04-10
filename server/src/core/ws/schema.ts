@@ -75,15 +75,6 @@ export const ClientToServerMessageSchemas = {
     type: z.literal(EVENTS.DISCONNECT),
   }),
 
-  // Room Management
-  JOIN_ROOM: z.object({
-    type: z.literal(EVENTS.JOIN_ROOM),
-    data: z.object({
-      roomId: z.string(),
-      userId: z.string(),
-    }),
-  }),
-
   LEAVE_ROOM: z.object({
     type: z.literal(EVENTS.LEAVE_ROOM),
     data: z.object({
@@ -254,16 +245,6 @@ export const ServerToClientMessageSchemas = {
     type: z.literal(EVENTS.PONG),
     data: z.object({
       timestamp: z.number(),
-    }),
-  }),
-
-  // Room Events
-  JOINED_ROOM: z.object({
-    type: z.literal(EVENTS.JOINED_ROOM),
-    data: z.object({
-      room: z.any(), // Room data
-      user: UserSchema,
-      participants: z.array(UserSchema),
     }),
   }),
 
