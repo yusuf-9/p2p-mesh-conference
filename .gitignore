@@ -33,3 +33,10 @@ yarn-error.log*
 # Temporary files
 .tmp/
 temp/
+
+# Terraform secrets — never commit
+infra/terraform.tfvars
+infra/.terraform/
+infra/*.tfstate
+infra/*.tfstate.backup
+infra/.terraform.lock.hcl
