@@ -739,6 +739,9 @@ class RoomManager {
     setRemoteStreams(remoteStreams);
     console.log("📊 Streams populated:", { localStreams, remoteStreams });
 
+    // Mark all existing remote users as in-call so MeshTopology shows them
+    remoteUserIds.forEach(userId => this.updateMemberCallStatus(userId, true));
+
     // Initiate peer connections to every user already in the call
     if (this.p2pMeshManager && remoteUserIds.size > 0) {
       this.p2pMeshManager.initiateCallConnections([...remoteUserIds]);

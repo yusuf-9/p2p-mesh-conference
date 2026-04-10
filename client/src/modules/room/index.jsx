@@ -1,6 +1,6 @@
 import { RoomLoader } from './components/RoomLoader';
 import useStore from '../../store';
-import { ChatMessages } from './components/chat-messages';
+import { MeshTopology } from './components/MeshTopology';
 import { VideoChat } from './components/video-chat';
 
 function Room({ roomParams }) {
@@ -170,9 +170,9 @@ function Room({ roomParams }) {
           {/* Divider */}
           <div className="w-px bg-gradient-to-b from-slate-500/60 via-slate-400/60 to-slate-500/60"></div>
 
-          {/* Right column - Chat messages */}
-          <div className="w-80 p-4 h-full">
-            <ChatMessages />
+          {/* Right column - Mesh topology */}
+          <div className="w-64 p-4 h-full overflow-hidden">
+            <MeshTopology />
           </div>
         </div>
       </div>

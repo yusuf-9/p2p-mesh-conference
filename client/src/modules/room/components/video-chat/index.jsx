@@ -1,5 +1,66 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, memo } from "react";
 import useStore from "../../../../store";
+
+const VideoTile = memo(({ stream, audioEnabled, videoEnabled, isLocal, feedType, userName }) => {
+  const videoRef = useRef(null);
+
+  useEffect(() => {
+    if (videoRef.current) {
+      videoRef.current.srcObject = stream ?? null;
+    }
+  }, [stream]);
+
+  return (
+    <div className="relative w-full h-full bg-slate-800 rounded-xl overflow-hidden shadow-lg min-h-0">
+      {stream ? (
+        <video
+          ref={videoRef}
+          autoPlay
+          playsInline
+          muted={isLocal}
+          className="w-full h-full object-cover"
+        />
+      ) : (
+        <div className="w-full h-full bg-gradient-to-br from-slate-900 to-black flex items-center justify-center">
+          <div className="text-center text-slate-300">
+            <div className="animate-spin h-8 w-8 border-2 border-violet-500 border-t-transparent rounded-full mx-auto mb-2" />
+            <p className="text-sm">Loading stream...</p>
+          </div>
+        </div>
+      )}
+
+      {/* Name label */}
+      <div className="absolute bottom-3 left-3 bg-black/60 text-white text-xs font-medium px-2 py-1 rounded backdrop-blur-sm">
+        {userName}{isLocal ? ' (You)' : ''}{feedType === 'screenshare' ? ' — Screen' : ''}
+      </div>
+
+      {/* Status indicators */}
+      <div className="absolute bottom-3 right-3 flex space-x-1">
+        {!audioEnabled && (
+          <div className="w-6 h-6 bg-red-600 rounded-full flex items-center justify-center" title="Muted">
+            <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5.586 15H4a1 1 0 01-1-1v-3a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15zM17 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2" />
+            </svg>
+          </div>
+        )}
+        {!videoEnabled && feedType !== 'screenshare' && (
+          <div className="w-6 h-6 bg-orange-500 rounded-full flex items-center justify-center" title="Camera off">
+            <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2zM18.364 5.636L5.636 18.364" />
+            </svg>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}, (prev, next) =>
+  prev.stream === next.stream &&
+  prev.audioEnabled === next.audioEnabled &&
+  prev.videoEnabled === next.videoEnabled &&
+  prev.isLocal === next.isLocal &&
+  prev.feedType === next.feedType &&
+  prev.userName === next.userName
+);
 
 const useDummyFeed = new URLSearchParams(window.location.search).has('useDummyVideoFeed');
 
@@ -56,6 +117,7 @@ export function VideoChat({ joinCallAutomatically = false }) {
     remoteStreams,
     roomManager,
     screenShareStream,
+    members,
     user,
   } = useStore();
 
@@ -203,68 +265,37 @@ export function VideoChat({ joinCallAutomatically = false }) {
 
     // Show streams
     const allStreams = [...localStreams, ...remoteStreams];
-    
+    const cols = allStreams.length <= 1 ? 1 : allStreams.length <= 4 ? 2 : 3;
+    const rows = Math.ceil(allStreams.length / cols);
+
     return (
-      <div className="h-full flex flex-col">
-        <div className="flex-1 p-4">
-          <div className="grid gap-4 h-full" style={{
-            gridTemplateColumns: allStreams.length === 1 ? '1fr' : 
-                                 allStreams.length === 2 ? 'repeat(2, 1fr)' :
-                                 allStreams.length <= 4 ? 'repeat(2, 1fr)' :
-                                 'repeat(3, 1fr)',
-            gridTemplateRows: allStreams.length <= 2 ? '1fr' :
-                             allStreams.length <= 4 ? 'repeat(2, 1fr)' :
-                             'repeat(auto-fit, minmax(200px, 1fr))'
-          }}>
-            {allStreams.map((streamObj) => (
-              <div key={streamObj.id} className="bg-slate-800 rounded-xl overflow-hidden shadow-lg flex flex-col">
-                <div className="flex-1 relative">
-                  {streamObj.stream ? (
-                    // Show actual video stream
-                    <video
-                      ref={(video) => {
-                        if (video && streamObj.stream) {
-                          video.srcObject = streamObj.stream;
-                        }
-                      }}
-                      autoPlay
-                      playsInline
-                      muted={streamObj.userId === user?.id} // Mute local streams
-                      className="w-full h-full object-cover"
-                    />
-                  ) : (
-                    // Show spinner for streams without actual MediaStream
-                    <div className="w-full h-full bg-gradient-to-br from-slate-900 to-black flex items-center justify-center">
-                      <div className="text-center text-slate-300">
-                        <div className="animate-spin h-8 w-8 border-2 border-violet-500 border-t-transparent rounded-full mx-auto mb-2"></div>
-                        <p className="text-sm">Loading stream...</p>
-                      </div>
-                    </div>
-                  )}
-                  
-                  {/* Stream info overlay */}
-                  <div className="absolute bottom-3 left-3 flex space-x-2">
-                    <div className={`px-2 py-1 rounded text-xs font-medium ${
-                      streamObj.audioEnabled ? 'bg-green-600 text-white' : 'bg-red-600 text-white'
-                    }`}>
-                      {streamObj.audioEnabled ? 'Mic On' : 'Mic Off'}
-                    </div>
-                    <div className={`px-2 py-1 rounded text-xs font-medium ${
-                      streamObj.videoEnabled ? 'bg-green-600 text-white' : 'bg-red-600 text-white'
-                    }`}>
-                      {streamObj.videoEnabled ? 'Camera On' : 'Camera Off'}
-                    </div>
-                    {streamObj.userId === user?.id && (
-                      <div className="px-2 py-1 rounded text-xs font-medium bg-blue-600 text-white">
-                        You
-                      </div>
-                    )}
-                  </div>
-                </div>
-              </div>
-            ))}
-            
-            {/* Show message if no streams */}
+      <div className="h-full flex flex-col min-h-0">
+        {/* min-h-0 on both the wrapper and the grid container prevents flex
+            children from growing past the available height */}
+        <div className="flex-1 min-h-0 p-4 overflow-hidden">
+          <div
+            className="grid gap-4 h-full"
+            style={{
+              gridTemplateColumns: `repeat(${cols}, minmax(0, 1fr))`,
+              gridTemplateRows: `repeat(${rows}, minmax(0, 1fr))`,
+            }}
+          >
+            {allStreams.map((streamObj) => {
+              const isLocal = streamObj.userId === user?.id;
+              const member = isLocal ? user : members.find(m => m.id === streamObj.userId);
+              return (
+                <VideoTile
+                  key={streamObj.id}
+                  stream={streamObj.stream}
+                  audioEnabled={streamObj.audioEnabled}
+                  videoEnabled={streamObj.videoEnabled}
+                  isLocal={isLocal}
+                  feedType={streamObj.feedType}
+                  userName={member?.name ?? 'Unknown'}
+                />
+              );
+            })}
+
             {allStreams.length === 0 && (
               <div className="col-span-full flex items-center justify-center h-full">
                 <div className="text-center space-y-4">
@@ -278,6 +309,7 @@ export function VideoChat({ joinCallAutomatically = false }) {
                 </div>
               </div>
             )}
+            
           </div>
         </div>
         

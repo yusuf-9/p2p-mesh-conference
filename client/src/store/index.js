@@ -26,6 +26,11 @@ const useStore = create((set, get) => ({
   localStreams: [], // Array of local stream objects
   remoteStreams: [], // Array of remote stream objects
   screenShareStream: null, // Local screen share MediaStream (when active)
+
+  // Peer connection states: { userId, feedType, connectionState }
+  // feedType: 'camera' | 'screenshare'
+  // connectionState: RTCPeerConnectionState string
+  peerConnectionStates: [],
   
   // Room loading/connecting state
   roomLoadingStatus: {
@@ -124,9 +129,36 @@ const useStore = create((set, get) => ({
     localStreams: [],
     remoteStreams: [],
     screenShareStream: null,
+    peerConnectionStates: [],
   }),
 
   setScreenShareStream: (stream) => set({ screenShareStream: stream }),
+
+  upsertPeerConnectionState: (userId, feedType, connectionState) => set((state) => {
+    const exists = state.peerConnectionStates.find(
+      p => p.userId === userId && p.feedType === feedType
+    );
+    if (exists) {
+      return {
+        peerConnectionStates: state.peerConnectionStates.map(p =>
+          p.userId === userId && p.feedType === feedType
+            ? { ...p, connectionState }
+            : p
+        ),
+      };
+    }
+    return {
+      peerConnectionStates: [...state.peerConnectionStates, { userId, feedType, connectionState }],
+    };
+  }),
+
+  removePeerConnectionState: (userId, feedType) => set((state) => ({
+    peerConnectionStates: state.peerConnectionStates.filter(
+      p => !(p.userId === userId && p.feedType === feedType)
+    ),
+  })),
+
+  clearPeerConnectionStates: () => set({ peerConnectionStates: [] }),
   
   
   // Helper functions
@@ -196,6 +228,7 @@ const useStore = create((set, get) => ({
     localStreams: [],
     remoteStreams: [],
     screenShareStream: null,
+    peerConnectionStates: [],
   })
 }))
 

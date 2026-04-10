@@ -102,6 +102,7 @@ class P2PMeshManager {
     const pc = new RTCPeerConnection(ICE_SERVERS);
     this.peerConnections.set(userId, pc);
     this.isInitiator.set(userId, true);
+    useStore.getState().upsertPeerConnectionState(userId, 'camera', 'new');
 
     this._setupCameraPcHandlers(pc, userId);
 
@@ -123,6 +124,7 @@ class P2PMeshManager {
     const pc = new RTCPeerConnection(ICE_SERVERS);
     this.peerConnections.set(from, pc);
     this.isInitiator.set(from, false);
+    useStore.getState().upsertPeerConnectionState(from, 'camera', 'new');
 
     this._setupCameraPcHandlers(pc, from);
 
@@ -209,7 +211,9 @@ class P2PMeshManager {
     };
 
     pc.onconnectionstatechange = () => {
-      if (pc.connectionState === 'failed') pc.restartIce();
+      const state = pc.connectionState;
+      useStore.getState().upsertPeerConnectionState(userId, 'camera', state);
+      if (state === 'failed') pc.restartIce();
     };
   }
 
@@ -245,6 +249,7 @@ class P2PMeshManager {
 
     const pc = new RTCPeerConnection(ICE_SERVERS);
     this.screenSharePeerConnections.set(userId, pc);
+    useStore.getState().upsertPeerConnectionState(userId, 'screenshare', 'new');
 
     this._setupScreenSharePcHandlers(pc, userId, true);
 
@@ -266,6 +271,7 @@ class P2PMeshManager {
 
     const pc = new RTCPeerConnection(ICE_SERVERS);
     this.screenSharePeerConnections.set(from, pc);
+    useStore.getState().upsertPeerConnectionState(from, 'screenshare', 'new');
 
     this._setupScreenSharePcHandlers(pc, from, false);
 
@@ -351,7 +357,9 @@ class P2PMeshManager {
     };
 
     pc.onconnectionstatechange = () => {
-      if (pc.connectionState === 'failed') pc.restartIce();
+      const state = pc.connectionState;
+      useStore.getState().upsertPeerConnectionState(userId, 'screenshare', state);
+      if (state === 'failed') pc.restartIce();
     };
   }
 
@@ -361,6 +369,7 @@ class P2PMeshManager {
     if (pc) {
       pc.close();
       this.screenSharePeerConnections.delete(userId);
+      useStore.getState().removePeerConnectionState(userId, 'screenshare');
     }
   }
 

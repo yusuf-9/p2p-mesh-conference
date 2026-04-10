@@ -1,0 +1,22 @@
+{
+  "name": "media-server-load-test",
+  "version": "1.0.0",
+  "description": "Load testing tool for media server video calls",
+  "main": "src/index.js",
+  "type": "module",
+  "scripts": {
+    "start": "node src/index.js",
+    "test": "node src/index.js"
+  },
+  "keywords": [
+    "load-test",
+    "puppeteer",
+    "video-call",
+    "media-server"
+  ],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "puppeteer": "^24.17.0"
+  }
+}
