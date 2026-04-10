@@ -33,7 +33,7 @@ resource "aws_instance" "server" {
 
   # Needs at least 20GB — Node build + Postgres + Chrome deps
   root_block_device {
-    volume_size = 20
+    volume_size = 30
   }
 
   user_data = templatefile("${path.module}/server_startup.sh", {

@@ -50,7 +50,7 @@ resource "aws_instance" "bot" {
   key_name               = "loadtest-server"
 
   root_block_device {
-    volume_size = 20
+    volume_size = 30
   }
 
   user_data = templatefile("${path.module}/startup.sh", {
