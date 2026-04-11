@@ -91,6 +91,13 @@ function RequestCamera({
     requestCameraAccess();
   }, [requestCameraAccess]);
 
+  // Auto-join as soon as the dummy stream is ready
+  useEffect(() => {
+    if (useDummyFeed && streamState.streamLoaded && videoRef.current?.srcObject) {
+      onJoin(videoRef.current.srcObject, audioEnabled, videoEnabled);
+    }
+  }, [useDummyFeed, streamState.streamLoaded]);
+
   return (
     <div className="h-full p-8">
       <div className="max-w-4xl mx-auto h-full flex flex-col items-center justify-center">
