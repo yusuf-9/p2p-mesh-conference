@@ -1,0 +1,1578 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>WebSocket API Documentation</title>
+  <link rel="stylesheet" href="/ws-client/ws-styles.css" />
+</head>
+
+<body>
+  <div class="header">
+    <div class="container">
+      <h1>WebSocket API Documentation</h1>
+      <p>Interactive documentation for WebSocket events, schemas, and real-time testing</p>
+    </div>
+  </div>
+
+  <div class="page-container">
+    <!-- Left Sidebar - Connection Panel -->
+    <div class="sidebar">
+      <div class="connection-panel">
+        <h3>WebSocket Connection</h3>
+        <div class="connection-status">
+          <div class="status-indicator" id="statusIndicator"></div>
+          <span id="connectionStatus">Disconnected</span>
+        </div>
+
+        <div class="form-group">
+          <label for="serverUrl">Server URL:</label>
+          <input type="text" id="serverUrl" value="" placeholder="ws://localhost/api/socket" />
+        </div>
+
+        <div class="form-group">
+          <label for="apiKey">API Key:</label>
+          <input type="text" id="apiKey" placeholder="Your API key" />
+        </div>
+
+        <div class="form-group">
+          <label for="authToken">Auth Token:</label>
+          <input type="text" id="authToken" placeholder="Bearer token" />
+        </div>
+
+        <button class="btn" id="connectBtn">
+          Connect
+        </button>
+        <button class="btn btn-danger" id="disconnectBtn" disabled>
+          Disconnect
+        </button>
+        <button class="btn clear-log" onclick="clearCachedValues()" title="Clear saved URL, API key, and token">
+          Clear Cache
+        </button>
+
+        <div class="response-section">
+          <h4>Connection Log:</h4>
+          <div class="response-content" id="connectionLog"></div>
+          <button class="btn clear-log" onclick="clearLog('connectionLog')">
+            Clear Log
+          </button>
+          
+          <!-- Simulcast Debug Controls -->
+          <div class="debug-controls" style="margin-top: 10px; padding-top: 10px; border-top: 1px solid #ddd;">
+            <h5>🎚️ Simulcast Debug Controls:</h5>
+            <div style="display: flex; gap: 5px; flex-wrap: wrap; margin-top: 5px;">
+              <button class="btn" onclick="debugSimulcast()" style="background: #007bff; color: white; font-size: 12px; padding: 4px 8px;">
+                Debug Info
+              </button>
+              <button class="btn" onclick="toggleGlobalSimulcast()" style="background: #28a745; color: white; font-size: 12px; padding: 4px 8px;">
+                Toggle Global
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Quick Navigation -->
+      <div class="toc">
+        <h3>Quick Navigation</h3>
+        <ul>
+          <li><a href="#client-to-server">Client → Server Events</a></li>
+          <li><a href="#server-to-client">Server → Client Events</a></li>
+          <li><a href="#error-handling">Error Handling</a></li>
+          <li><a href="#data-types">Data Types & Schemas</a></li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Right Column - Documentation Content -->
+    <div class="main-content">
+
+      <!-- Client to Server Events -->
+      <div class="section" id="client-to-server">
+        <div class="section-header">
+          <h2 class="section-title">Client → Server Events</h2>
+          <p class="section-description">Events that clients can send to the server</p>
+        </div>
+
+        <!-- PING -->
+        <div class="endpoint">
+          <div class="endpoint-header" onclick="toggleEndpoint(this)">
+            <div class="endpoint-info">
+              <span class="method-badge method-client">CLIENT</span>
+              <div>
+                <div class="endpoint-name">ping</div>
+                <div class="endpoint-description">Simple ping to test connection</div>
+              </div>
+            </div>
+            <span class="expand-icon">▼</span>
+          </div>
+          <div class="endpoint-details">
+            <div class="schema-section">
+              <div class="schema-title">Message Schema:</div>
+              <div class="schema-content">{ "type": "ping" }</div>
+            </div>
+            <div class="try-it-section">
+              <h4>Try it out:</h4>
+              <div class="try-it-form">
+                <button class="btn" onclick="sendMessage('ping', {})">
+                  Send Ping
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- SEND_MESSAGE -->
+        <div class="endpoint">
+          <div class="endpoint-header" onclick="toggleEndpoint(this)">
+            <div class="endpoint-info">
+              <span class="method-badge method-client">CLIENT</span>
+              <div>
+                <div class="endpoint-name">send-message</div>
+                <div class="endpoint-description">Send a text message to the room</div>
+              </div>
+            </div>
+            <span class="expand-icon">▼</span>
+          </div>
+          <div class="endpoint-details">
+            <div class="schema-section">
+              <div class="schema-title">Message Schema:</div>
+              <div class="schema-content">{ "type": "send-message", "data": "string (1-1000 characters)" }</div>
+              <div class="validation-rules">
+                <h4>Validation Rules:</h4>
+                <ul>
+                  <li>Message cannot be empty</li>
+                  <li>Maximum length: 1000 characters</li>
+                  <li>Message will be trimmed</li>
+                </ul>
+              </div>
+            </div>
+            <div class="try-it-section">
+              <h4>Try it out:</h4>
+              <div class="try-it-form">
+                <div class="form-group">
+                  <label>Message Content:</label>
+                  <textarea class="json-input" id="sendMessageData" placeholder="Enter your message here...">
+                    Hello, room!</textarea>
+                </div>
+                <button class="btn" onclick="sendMessageWithData('send-message', 'sendMessageData')">
+                  Send Message
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- JOIN_CONFERENCE_AS_PUBLISHER -->
+        <div class="endpoint">
+          <div class="endpoint-header" onclick="toggleEndpoint(this)">
+            <div class="endpoint-info">
+              <span class="method-badge method-client">CLIENT</span>
+              <div>
+                <div class="endpoint-name">join-conference-as-publisher</div>
+                <div class="endpoint-description">Join video conference as a publisher</div>
+              </div>
+            </div>
+            <span class="expand-icon">▼</span>
+          </div>
+          <div class="endpoint-details">
+            <div class="schema-section">
+              <div class="schema-title">Message Schema:</div>
+              <div class="schema-content">{
+                "type": "join-conference-as-publisher",
+                "data": {
+                "feedType": "camera" | "screenshare", // optional, defaults to "camera"
+                "audio": boolean, // optional, defaults to true
+                "video": boolean, // optional, defaults to true
+                "simulcast": boolean, // optional, defaults to false
+                "resolutions": ["h","m","l"] // optional, simulcast quality levels
+                }
+                }</div>
+            </div>
+            <div class="try-it-section">
+              <h4>Try it out:</h4>
+              <div class="try-it-form">
+                <div class="form-group">
+                  <label for="feedTypeSelect">Feed Type:</label>
+                  <select id="feedTypeSelect" class="form-control">
+                    <option value="camera">Camera</option>
+                    <option value="screenshare">Screen Share</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label>Initial Media State:</label>
+                  <div class="checkbox-group">
+                    <label class="checkbox-label">
+                      <input type="checkbox" id="audioEnabledJoin" checked>
+                      Audio Enabled
+                    </label>
+                    <label class="checkbox-label">
+                      <input type="checkbox" id="videoEnabledJoin" checked>
+                      Video Enabled
+                    </label>
+                  </div>
+                </div>
+                <div class="form-group">
+                  <label class="checkbox-label">
+                    <input type="checkbox" id="simulcastEnabledJoin">
+                    Enable Simulcast
+                  </label>
+                </div>
+                <div class="form-group">
+                  <label>Simulcast Resolutions (when enabled):</label>
+                  <div class="checkbox-group">
+                    <label class="checkbox-label">
+                      <input type="checkbox" id="resolutionHigh" checked>
+                      High (h)
+                    </label>
+                    <label class="checkbox-label">
+                      <input type="checkbox" id="resolutionMedium" checked>
+                      Medium (m)
+                    </label>
+                    <label class="checkbox-label">
+                      <input type="checkbox" id="resolutionLow" checked>
+                      Low (l)
+                    </label>
+                  </div>
+                </div>
+                <button class="btn" onclick="sendJoinConferenceAsPublisher()">
+                  Join Conference
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- SEND_OFFER_FOR_PUBLISHING -->
+        <div class="endpoint">
+          <div class="endpoint-header" onclick="toggleEndpoint(this)">
+            <div class="endpoint-info">
+              <span class="method-badge method-client">CLIENT</span>
+              <div>
+                <div class="endpoint-name">send-offer-for-publishing</div>
+                <div class="endpoint-description">Send WebRTC offer for publishing stream</div>
+              </div>
+            </div>
+            <span class="expand-icon">▼</span>
+          </div>
+          <div class="endpoint-details">
+            <div class="schema-section">
+              <div class="schema-title">Message Schema:</div>
+              <div class="schema-content">
+                { "type": "send-offer-for-publishing", "data": { "feedId": number, "jsep": { "type": "offer", "sdp":
+                "string" } } }
+              </div>
+              <div class="validation-rules">
+                <h4>Validation Rules:</h4>
+                <ul>
+                  <li>feedId must be a number (received from join-conference response)</li>
+                  <li>jsep must contain WebRTC offer with type and sdp</li>
+                </ul>
+              </div>
+            </div>
+            <div class="try-it-section">
+              <h4>Try it out:</h4>
+              <div class="try-it-form">
+                <div class="form-group">
+                  <label>Feed ID:</label>
+                  <input type="number" id="offerFeedId" placeholder="e.g., 1234567" />
+                </div>
+                <div class="form-group">
+                  <label for="publishFeedType">Feed Type:</label>
+                  <select id="publishFeedType" class="form-control">
+                    <option value="camera">Camera</option>
+                    <option value="screenshare">Screen Share</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label>Feed Access:</label>
+                  <button class="btn" onclick="startFeed()" id="startFeedBtn">
+                    Start Feed
+                  </button>
+                  <button class="btn" onclick="stopFeed()" id="stopFeedBtn" disabled>
+                    Stop Feed
+                  </button>
+                </div>
+                <div class="form-group">
+                  <video id="localVideo" autoplay muted
+                    style="width: 300px; height: 200px; background: #000; display: none;"></video>
+                </div>
+                <button class="btn" onclick="generateAndSendOffer()" id="generateOfferBtn" disabled>
+                  Generate & Send Offer
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- SUBSCRIBE_TO_USER_FEED -->
+        <div class="endpoint">
+          <div class="endpoint-header" onclick="toggleEndpoint(this)">
+            <div class="endpoint-info">
+              <span class="method-badge method-client">CLIENT</span>
+              <div>
+                <div class="endpoint-name">subscribe-to-user-feed</div>
+                <div class="endpoint-description">Subscribe to another user's video feed</div>
+              </div>
+            </div>
+            <span class="expand-icon">▼</span>
+          </div>
+          <div class="endpoint-details">
+            <div class="schema-section">
+              <div class="schema-title">Message Schema:</div>
+              <div class="schema-content">{ "type": "subscribe-to-user-feed", "data": { "feedId": number, "resolution": "h"|"m"|"l" (optional) } }</div>
+              <div class="validation-rules">
+                <h4>Validation Rules:</h4>
+                <ul>
+                  <li>feedId must be a number (from publisher list)</li>
+                  <li>resolution is optional and only affects simulcast-enabled feeds</li>
+                </ul>
+              </div>
+            </div>
+            <div class="try-it-section">
+              <h4>Try it out:</h4>
+              <div class="try-it-form">
+                <div class="form-group">
+                  <label>Feed ID:</label>
+                  <input type="number" id="subscribeFeedId" placeholder="e.g., 1234567" />
+                </div>
+                <div class="form-group">
+                  <label for="preferredResolution">Preferred Resolution (for simulcast feeds):</label>
+                  <select id="preferredResolution" class="form-control">
+                    <option value="">Auto (default)</option>
+                    <option value="h">High (h)</option>
+                    <option value="m">Medium (m)</option>
+                    <option value="l">Low (l)</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label>Remote Video (will show subscribed feed):</label>
+                  <video id="remoteVideo" autoplay
+                    style="width: 300px; height: 200px; background: #000; display: none;"></video>
+                </div>
+                <button class="btn" onclick="subscribeToFeed()">
+                  Subscribe to Feed
+                </button>
+                <button class="btn" onclick="generateAndSendAnswer()" id="generateAnswerBtn" disabled>
+                  Generate & Send Answer
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- SEND_ANSWER_FOR_SUBSCRIBING -->
+        <div class="endpoint">
+          <div class="endpoint-header" onclick="toggleEndpoint(this)">
+            <div class="endpoint-info">
+              <span class="method-badge method-client">CLIENT</span>
+              <div>
+                <div class="endpoint-name">send-answer-for-subscribing</div>
+                <div class="endpoint-description">Send WebRTC answer when subscribing to a feed</div>
+              </div>
+            </div>
+            <span class="expand-icon">▼</span>
+          </div>
+          <div class="endpoint-details">
+            <div class="schema-section">
+              <div class="schema-title">Message Schema:</div>
+              <div class="schema-content">
+                { "type": "send-answer-for-subscribing", "data": { "feedId": number, "jsep": { "type": "answer", "sdp":
+                "string" } } }
+              </div>
+              <div class="validation-rules">
+                <h4>Validation Rules:</h4>
+                <ul>
+                  <li>feedId must be a number (same as subscribed feed)</li>
+                  <li>jsep.type must be "answer"</li>
+                  <li>jsep.sdp must be a valid SDP string</li>
+                </ul>
+              </div>
+            </div>
+            <div class="try-it-section">
+              <h4>Try it out:</h4>
+              <div class="try-it-form">
+                <div class="form-group">
+                  <label>Feed ID (auto-filled from subscription):</label>
+                  <input type="number" id="answerFeedId" placeholder="Auto-filled when subscribing" readonly />
+                </div>
+                <button class="btn" onclick="generateAndSendAnswer()" id="generateAnswerBtn2" disabled>
+                  Generate & Send Answer
+                </button>
+                <div class="form-group">
+                  <label>Generated Answer (auto-filled):</label>
+                  <textarea id="generatedAnswer" placeholder="WebRTC answer will appear here" readonly
+                    rows="6"></textarea>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- TOGGLE_MEDIA_STREAM -->
+        <div class="endpoint">
+          <div class="endpoint-header" onclick="toggleEndpoint(this)">
+            <div class="endpoint-info">
+              <span class="method-badge method-client">CLIENT</span>
+              <div>
+                <div class="endpoint-name">toggle-media-stream</div>
+                <div class="endpoint-description">Toggle audio/video streams</div>
+              </div>
+            </div>
+            <span class="expand-icon">▼</span>
+          </div>
+          <div class="endpoint-details">
+            <div class="schema-section">
+              <div class="schema-title">Message Schema:</div>
+              <div class="schema-content">
+                { "type": "toggle-media-stream", "data": { "video": boolean, "audio": boolean, "feedId": number } }
+              </div>
+              <div class="validation-rules">
+                <h4>Validation Rules:</h4>
+                <ul>
+                  <li>feedId must be a number (publisher's feed ID)</li>
+                  <li>video and audio are boolean values</li>
+                </ul>
+              </div>
+            </div>
+            <div class="try-it-section">
+              <h4>Try it out:</h4>
+              <div class="try-it-form">
+                <div class="form-group">
+                  <label>Feed ID (auto-filled from publisher):</label>
+                  <input type="number" id="toggleFeedId" placeholder="Auto-filled when joining as publisher" readonly />
+                </div>
+                <div class="form-group">
+                  <label>
+                    <input type="checkbox" id="videoEnabled" checked />
+                    Video Enabled
+                  </label>
+                </div>
+                <div class="form-group">
+                  <label>
+                    <input type="checkbox" id="audioEnabled" checked />
+                    Audio Enabled
+                  </label>
+                </div>
+                <button class="btn" onclick="sendToggleMediaStream()" id="toggleMediaBtn" disabled>
+                  Toggle Media Stream
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- UNPUBLISH_FEED -->
+        <div class="endpoint">
+          <div class="endpoint-header" onclick="toggleEndpoint(this)">
+            <div class="endpoint-info">
+              <span class="method-badge method-client">CLIENT</span>
+              <div>
+                <div class="endpoint-name">unpublish-feed</div>
+                <div class="endpoint-description">Unpublish a specific feed while staying in call</div>
+              </div>
+            </div>
+            <span class="expand-icon">▼</span>
+          </div>
+          <div class="endpoint-details">
+            <div class="schema-section">
+              <div class="schema-title">Message Schema:</div>
+              <div class="schema-content">
+                { "type": "unpublish-feed", "data": { "feedId": number } }
+              </div>
+              <div class="validation-rules">
+                <h4>Validation Rules:</h4>
+                <ul>
+                  <li>feedId must be a number (publisher's feed ID)</li>
+                  <li>Feed must belong to the requesting user</li>
+                  <li>User must be in a call with an active publisher handle</li>
+                </ul>
+              </div>
+            </div>
+            <div class="try-it-section">
+              <h4>Try it out:</h4>
+              <div class="try-it-form">
+                <div class="form-group">
+                  <label>Feed ID to Unpublish:</label>
+                  <input type="number" id="unpublishFeedId" placeholder="Enter feed ID to unpublish" />
+                </div>
+                <button class="btn" onclick="sendUnpublishFeed()" id="unpublishFeedBtn">
+                  Unpublish Feed
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- SEND_ICE_CANDIDATES -->
+        <div class="endpoint">
+          <div class="endpoint-header" onclick="toggleEndpoint(this)">
+            <div class="endpoint-info">
+              <span class="method-badge method-client">CLIENT</span>
+              <div>
+                <div class="endpoint-name">send-ice-candidates</div>
+                <div class="endpoint-description">Send ICE candidates for WebRTC connection</div>
+              </div>
+            </div>
+            <span class="expand-icon">▼</span>
+          </div>
+          <div class="endpoint-details">
+            <div class="schema-section">
+              <div class="schema-title">Message Schema:</div>
+              <div class="schema-content">
+                { "type": "send-ice-candidates", "data": { "type": "publisher" | "subscriber", "feedId": number,
+                "candidates": [{ "candidate": "string", "sdpMid": "string", "sdpMLineIndex": number }] } }
+              </div>
+              <div class="validation-rules">
+                <h4>Validation Rules:</h4>
+                <ul>
+                  <li>type must be either "publisher" or "subscriber"</li>
+                  <li>feedId must be a number</li>
+                  <li>candidates must be an array of ICE candidate objects</li>
+                </ul>
+              </div>
+            </div>
+            <div class="try-it-section">
+              <h4>Try it out:</h4>
+              <div class="try-it-form">
+                <div class="form-group">
+                  <label>Type:</label>
+                  <select id="iceCandidateType">
+                    <option value="publisher">Publisher</option>
+                    <option value="subscriber">Subscriber</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label>Feed ID:</label>
+                  <input type="number" id="iceFeedId" placeholder="e.g., 1234567" />
+                </div>
+                <div class="form-group">
+                  <div id="iceCandidatesLog" class="response-content" style="max-height: 150px;">
+                    ICE candidates will appear here automatically...
+                  </div>
+                </div>
+                <button class="btn" onclick="sendCollectedIceCandidates()" id="sendIceCandidatesBtn" disabled>
+                  Send Collected ICE Candidates
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- SEND_ICE_CANDIDATE_COMPLETED -->
+        <div class="endpoint">
+          <div class="endpoint-header" onclick="toggleEndpoint(this)">
+            <div class="endpoint-info">
+              <span class="method-badge method-client">CLIENT</span>
+              <div>
+                <div class="endpoint-name">send-ice-candidate-completed</div>
+                <div class="endpoint-description">Signal ICE gathering completed</div>
+              </div>
+            </div>
+            <span class="expand-icon">▼</span>
+          </div>
+          <div class="endpoint-details">
+            <div class="schema-section">
+              <div class="schema-title">Message Schema:</div>
+              <div class="schema-content">
+                { "type": "send-ice-candidate-completed", "data": { "type": "publisher" | "subscriber", "feedId": number
+                } }
+              </div>
+              <div class="validation-rules">
+                <h4>Validation Rules:</h4>
+                <ul>
+                  <li>type must be either "publisher" or "subscriber"</li>
+                  <li>feedId must be a number</li>
+                </ul>
+              </div>
+            </div>
+            <div class="try-it-section">
+              <h4>Try it out:</h4>
+              <div class="try-it-form">
+                <div class="form-group">
+                  <label>Type:</label>
+                  <select id="iceCompletedType">
+                    <option value="publisher">Publisher</option>
+                    <option value="subscriber">Subscriber</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label>Feed ID:</label>
+                  <input type="number" id="iceCompletedFeedId" placeholder="e.g., 1234567" />
+                </div>
+                <button class="btn" onclick="sendIceCandidateCompleted()">
+                  Send ICE Completed
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- GET_PUBLISHER_LIST -->
+        <div class="endpoint">
+          <div class="endpoint-header" onclick="toggleEndpoint(this)">
+            <div class="endpoint-info">
+              <span class="method-badge method-client">CLIENT</span>
+              <div>
+                <div class="endpoint-name">get-publisher-list</div>
+                <div class="endpoint-description">Get list of active publishers in the room</div>
+              </div>
+            </div>
+            <span class="expand-icon">▼</span>
+          </div>
+          <div class="endpoint-details">
+            <div class="schema-section">
+              <div class="schema-title">Message Schema:</div>
+              <div class="schema-content">{ "type": "get-publisher-list" }</div>
+            </div>
+            <div class="try-it-section">
+              <h4>Try it out:</h4>
+              <div class="try-it-form">
+                <button class="btn" onclick="sendGetPublisherList()">
+                  Get Publisher List
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- LEAVE_CONFERENCE -->
+        <div class="endpoint">
+          <div class="endpoint-header" onclick="toggleEndpoint(this)">
+            <div class="endpoint-info">
+              <span class="method-badge method-client">CLIENT</span>
+              <div>
+                <div class="endpoint-name">leave-conference</div>
+                <div class="endpoint-description">Leave video conference</div>
+              </div>
+            </div>
+            <span class="expand-icon">▼</span>
+          </div>
+          <div class="endpoint-details">
+            <div class="schema-section">
+              <div class="schema-title">Message Schema:</div>
+              <div class="schema-content">{ "type": "leave-conference" }</div>
+            </div>
+            <div class="try-it-section">
+              <h4>Try it out:</h4>
+              <div class="try-it-form">
+                <button class="btn" onclick="sendLeaveConference()">
+                  Leave Conference
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- SEND_SCREENSHOT_NOTIFICATION -->
+        <div class="endpoint">
+          <div class="endpoint-header" onclick="toggleEndpoint(this)">
+            <div class="endpoint-info">
+              <span class="method-badge method-client">CLIENT</span>
+              <div>
+                <div class="endpoint-name">send-screenshot-notification</div>
+                <div class="endpoint-description">Notify other users that you took a screenshot</div>
+              </div>
+            </div>
+            <span class="expand-icon">▼</span>
+          </div>
+          <div class="endpoint-details">
+            <div class="schema-section">
+              <div class="schema-title">Message Schema:</div>
+              <div class="schema-content">{ "type": "send-screenshot-notification" }</div>
+              <div class="validation-rules">
+                <h4>Requirements:</h4>
+                <ul>
+                  <li>User must be in a call (joinedCall: true)</li>
+                  <li>Notification is only sent to other users in the call</li>
+                  <li>No additional data required</li>
+                </ul>
+              </div>
+            </div>
+            <div class="try-it-section">
+              <h4>Try it out:</h4>
+              <div class="try-it-form">
+                <button class="btn" onclick="sendScreenshotNotification()">
+                  Send Screenshot Notification
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- SEND_REACTION -->
+        <div class="endpoint">
+          <div class="endpoint-header" onclick="toggleEndpoint(this)">
+            <div class="endpoint-info">
+              <span class="method-badge method-client">CLIENT</span>
+              <div>
+                <div class="endpoint-name">send-reaction</div>
+                <div class="endpoint-description">Send a reaction to other users in the call</div>
+              </div>
+            </div>
+            <span class="expand-icon">▼</span>
+          </div>
+          <div class="endpoint-details">
+            <div class="schema-section">
+              <div class="schema-title">Message Schema:</div>
+              <div class="schema-content">{ "type": "send-reaction", "data": "string (1-50 characters)" }</div>
+              <div class="validation-rules">
+                <h4>Validation Rules:</h4>
+                <ul>
+                  <li>Reaction cannot be empty</li>
+                  <li>Maximum length: 50 characters</li>
+                  <li>User must be in a call (joinedCall: true)</li>
+                  <li>Reaction is only sent to other users in the call</li>
+                </ul>
+              </div>
+            </div>
+            <div class="try-it-section">
+              <h4>Try it out:</h4>
+              <div class="try-it-form">
+                <div class="form-group">
+                  <label>Reaction:</label>
+                  <input type="text" id="reactionData" placeholder="😀 👍 ❤️" maxlength="50" />
+                </div>
+                <button class="btn" onclick="sendReaction()">
+                  Send Reaction
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- RAISE_HAND -->
+        <div class="endpoint">
+          <div class="endpoint-header" onclick="toggleEndpoint(this)">
+            <div class="endpoint-info">
+              <span class="method-badge method-client">CLIENT</span>
+              <div>
+                <div class="endpoint-name">raise-hand</div>
+                <div class="endpoint-description">Raise your hand to get attention during the call</div>
+              </div>
+            </div>
+            <span class="expand-icon">▼</span>
+          </div>
+          <div class="endpoint-details">
+            <div class="schema-section">
+              <div class="schema-title">Message Schema:</div>
+              <div class="schema-content">{ "type": "raise-hand", "data": { "feedId": number } }</div>
+              <div class="validation-rules">
+                <h4>Requirements:</h4>
+                <ul>
+                  <li>User must be in a call (joinedCall: true)</li>
+                  <li>feedId must belong to the requesting user</li>
+                  <li>feedId must be a publisher media handle</li>
+                  <li>Notification is only sent to other users in the call</li>
+                </ul>
+              </div>
+            </div>
+            <div class="try-it-section">
+              <h4>Try it out:</h4>
+              <div class="try-it-form">
+                <div class="form-group">
+                  <label for="handRaiseFeedId">Feed ID:</label>
+                  <input type="number" id="handRaiseFeedId" placeholder="Enter feed ID" />
+                </div>
+                <button class="btn" onclick="sendRaiseHand()">
+                  Raise Hand
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- LOWER_HAND -->
+        <div class="endpoint">
+          <div class="endpoint-header" onclick="toggleEndpoint(this)">
+            <div class="endpoint-info">
+              <span class="method-badge method-client">CLIENT</span>
+              <div>
+                <div class="endpoint-name">lower-hand</div>
+                <div class="endpoint-description">Lower your raised hand during the call</div>
+              </div>
+            </div>
+            <span class="expand-icon">▼</span>
+          </div>
+          <div class="endpoint-details">
+            <div class="schema-section">
+              <div class="schema-title">Message Schema:</div>
+              <div class="schema-content">{ "type": "lower-hand", "data": { "feedId": number } }</div>
+              <div class="validation-rules">
+                <h4>Requirements:</h4>
+                <ul>
+                  <li>User must be in a call (joinedCall: true)</li>
+                  <li>feedId must belong to the requesting user</li>
+                  <li>feedId must be a publisher media handle</li>
+                  <li>Notification is only sent to other users in the call</li>
+                </ul>
+              </div>
+            </div>
+            <div class="try-it-section">
+              <h4>Try it out:</h4>
+              <div class="try-it-form">
+                <div class="form-group">
+                  <label>Feed ID: (use same as above)</label>
+                  <small>Uses the same feed ID from the Raise Hand section</small>
+                </div>
+                <button class="btn" onclick="sendLowerHand()">
+                  Lower Hand
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- MODERATE_FEED -->
+        <div class="endpoint">
+          <div class="endpoint-header" onclick="toggleEndpoint(this)">
+            <div class="endpoint-info">
+              <span class="method-badge method-client">CLIENT</span>
+              <div>
+                <div class="endpoint-name">moderate-feed</div>
+                <div class="endpoint-description">Moderate (unpublish) a specific feed - only available to room hosts</div>
+              </div>
+            </div>
+            <span class="expand-icon">▼</span>
+          </div>
+          <div class="endpoint-details">
+            <div class="schema-section">
+              <div class="schema-title">Message Schema:</div>
+              <div class="schema-content">
+                { "type": "moderate-feed", "data": { "feedId": number } }
+              </div>
+              <div class="validation-rules">
+                <h4>Requirements:</h4>
+                <ul>
+                  <li>User must be a host of the room</li>
+                  <li>feedId must be a valid publisher feed ID</li>
+                  <li>Cannot moderate your own feed</li>
+                </ul>
+              </div>
+            </div>
+            <div class="try-it-section">
+              <h4>Try it out:</h4>
+              <div class="try-it-form">
+                <button class="btn" onclick="sendModerateFeed()">
+                  Moderate Feed (Host Only)
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- CONFIGURE_FEED -->
+        <div class="endpoint">
+          <div class="endpoint-header" onclick="toggleEndpoint(this)">
+            <div class="endpoint-info">
+              <span class="method-badge method-client">CLIENT</span>
+              <div>
+                <div class="endpoint-name">configure-feed</div>
+                <div class="endpoint-description">Configure simulcast settings for an existing feed</div>
+              </div>
+            </div>
+            <span class="expand-icon">▼</span>
+          </div>
+          <div class="endpoint-details">
+            <div class="schema-section">
+              <div class="schema-title">Message Schema:</div>
+              <div class="schema-content">
+                { "type": "configure-feed", "data": { "feedId": number, "simulcast": boolean, "resolutions": ["h","m","l"] } }
+              </div>
+              <div class="validation-rules">
+                <h4>Requirements:</h4>
+                <ul>
+                  <li>feedId must belong to the requesting user</li>
+                  <li>resolutions array required when simulcast is true</li>
+                  <li>Must be a publisher feed</li>
+                </ul>
+              </div>
+            </div>
+            <div class="try-it-section">
+              <h4>Try it out:</h4>
+              <div class="try-it-form">
+                <div class="form-group">
+                  <label>Feed ID:</label>
+                  <input type="number" id="configureFeedId" placeholder="Enter your feed ID" />
+                </div>
+                <div class="form-group">
+                  <label class="checkbox-label">
+                    <input type="checkbox" id="configureSimulcastEnabled">
+                    Enable Simulcast
+                  </label>
+                </div>
+                <div class="form-group">
+                  <label>Simulcast Resolutions (when enabled):</label>
+                  <div class="checkbox-group">
+                    <label class="checkbox-label">
+                      <input type="checkbox" id="configureResolutionHigh" checked>
+                      High (h)
+                    </label>
+                    <label class="checkbox-label">
+                      <input type="checkbox" id="configureResolutionMedium" checked>
+                      Medium (m)
+                    </label>
+                    <label class="checkbox-label">
+                      <input type="checkbox" id="configureResolutionLow" checked>
+                      Low (l)
+                    </label>
+                  </div>
+                </div>
+                <button class="btn" onclick="sendConfigureFeed()">
+                  Configure Feed
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- CONFIGURE_FEED_SUBSCRIPTION -->
+        <div class="endpoint">
+          <div class="endpoint-header" onclick="toggleEndpoint(this)">
+            <div class="endpoint-info">
+              <span class="method-badge method-client">CLIENT</span>
+              <div>
+                <div class="endpoint-name">configure-feed-subscription</div>
+                <div class="endpoint-description">Configure resolution preference for a subscribed feed</div>
+              </div>
+            </div>
+            <span class="expand-icon">▼</span>
+          </div>
+          <div class="endpoint-details">
+            <div class="schema-section">
+              <div class="schema-title">Message Schema:</div>
+              <div class="schema-content">
+                { "type": "configure-feed-subscription", "data": { "feedId": number, "resolution": "h"|"m"|"l" } }
+              </div>
+              <div class="validation-rules">
+                <h4>Requirements:</h4>
+                <ul>
+                  <li>Must be subscribed to the feed</li>
+                  <li>Feed must have simulcast enabled</li>
+                  <li>Resolution must be available from publisher</li>
+                </ul>
+              </div>
+            </div>
+            <div class="try-it-section">
+              <h4>Try it out:</h4>
+              <div class="try-it-form">
+                <div class="form-group">
+                  <label>Subscribed Feed ID:</label>
+                  <input type="number" id="configureSubscriptionFeedId" placeholder="Enter subscribed feed ID" />
+                </div>
+                <div class="form-group">
+                  <label for="configureSubscriptionResolution">New Resolution Preference:</label>
+                  <select id="configureSubscriptionResolution" class="form-control">
+                    <option value="h">High (h)</option>
+                    <option value="m" selected>Medium (m)</option>
+                    <option value="l">Low (l)</option>
+                  </select>
+                </div>
+                <button class="btn" onclick="sendConfigureFeedSubscription()">
+                  Configure Subscription
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Server to Client Events -->
+      <div class="section" id="server-to-client">
+        <div class="section-header">
+          <h2 class="section-title">Server → Client Events</h2>
+          <p class="section-description">Events that the server sends to clients</p>
+        </div>
+
+        <!-- CONNECTED -->
+        <div class="endpoint">
+          <div class="endpoint-header" onclick="toggleEndpoint(this)">
+            <div class="endpoint-info">
+              <span class="method-badge method-server">SERVER</span>
+              <div>
+                <div class="endpoint-name">connected</div>
+                <div class="endpoint-description">Connection confirmation with user data</div>
+              </div>
+            </div>
+            <span class="expand-icon">▼</span>
+          </div>
+          <div class="endpoint-details">
+            <div class="schema-section">
+              <div class="schema-title">Response Schema:</div>
+              <div class="schema-content">
+                { "type": "connected", "data": { "id": "string", "name": "string", "roomId": "string", "connected":
+                boolean, "joinedCall": boolean } }
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- PONG -->
+        <div class="endpoint">
+          <div class="endpoint-header" onclick="toggleEndpoint(this)">
+            <div class="endpoint-info">
+              <span class="method-badge method-server">SERVER</span>
+              <div>
+                <div class="endpoint-name">pong</div>
+                <div class="endpoint-description">Response to ping message</div>
+              </div>
+            </div>
+            <span class="expand-icon">▼</span>
+          </div>
+          <div class="endpoint-details">
+            <div class="schema-section">
+              <div class="schema-title">Response Schema:</div>
+              <div class="schema-content">{ "type": "pong" }</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- MESSAGE_SENT -->
+        <div class="endpoint">
+          <div class="endpoint-header" onclick="toggleEndpoint(this)">
+            <div class="endpoint-info">
+              <span class="method-badge method-server">SERVER</span>
+              <div>
+                <div class="endpoint-name">message-sent</div>
+                <div class="endpoint-description">Confirmation that message was sent</div>
+              </div>
+            </div>
+            <span class="expand-icon">▼</span>
+          </div>
+          <div class="endpoint-details">
+            <div class="schema-section">
+              <div class="schema-title">Response Schema:</div>
+              <div class="schema-content">
+                { "type": "message-sent", "data": { "id": "string", "roomId": "string", "userId": "string", "content":
+                "string" } }
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- MESSAGE_RECEIVED -->
+        <div class="endpoint">
+          <div class="endpoint-header" onclick="toggleEndpoint(this)">
+            <div class="endpoint-info">
+              <span class="method-badge method-server">SERVER</span>
+              <div>
+                <div class="endpoint-name">message-received</div>
+                <div class="endpoint-description">Broadcast when a message is received in the room</div>
+              </div>
+            </div>
+            <span class="expand-icon">▼</span>
+          </div>
+          <div class="endpoint-details">
+            <div class="schema-section">
+              <div class="schema-title">Response Schema:</div>
+              <div class="schema-content">
+                { "type": "message-received", "data": { "id": "string", "roomId": "string", "userId": "string",
+                "content": "string" } }
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- USER_CONNECTED -->
+        <div class="endpoint">
+          <div class="endpoint-header" onclick="toggleEndpoint(this)">
+            <div class="endpoint-info">
+              <span class="method-badge method-server">SERVER</span>
+              <div>
+                <div class="endpoint-name">user-connected</div>
+                <div class="endpoint-description">Broadcast when a user connects to the room</div>
+              </div>
+            </div>
+            <span class="expand-icon">▼</span>
+          </div>
+          <div class="endpoint-details">
+            <div class="schema-section">
+              <div class="schema-title">Response Schema:</div>
+              <div class="schema-content">
+                { "type": "user-connected", "data": { "id": "string", "name": "string", "roomId": "string", "connected":
+                boolean, "joinedCall": boolean } }
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- USER_DISCONNECTED -->
+        <div class="endpoint">
+          <div class="endpoint-header" onclick="toggleEndpoint(this)">
+            <div class="endpoint-info">
+              <span class="method-badge method-server">SERVER</span>
+              <div>
+                <div class="endpoint-name">user-disconnected</div>
+                <div class="endpoint-description">Broadcast when a user disconnects from the room</div>
+              </div>
+            </div>
+            <span class="expand-icon">▼</span>
+          </div>
+          <div class="endpoint-details">
+            <div class="schema-section">
+              <div class="schema-title">Response Schema:</div>
+              <div class="schema-content">{ "type": "user-disconnected", "data": "string" // User ID }</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- JOINED_CONFERENCE_AS_PUBLISHER -->
+        <div class="endpoint">
+          <div class="endpoint-header" onclick="toggleEndpoint(this)">
+            <div class="endpoint-info">
+              <span class="method-badge method-server">SERVER</span>
+              <div>
+                <div class="endpoint-name">joined-conference-as-publisher</div>
+                <div class="endpoint-description">Response when successfully joined conference as publisher</div>
+              </div>
+            </div>
+            <span class="expand-icon">▼</span>
+          </div>
+          <div class="endpoint-details">
+            <div class="schema-section">
+              <div class="schema-title">Response Schema:</div>
+              <div class="schema-content">
+                { "type": "joined-conference-as-publisher", "data": { "room": number, "feed": StandardizedPublisher, "publishers": StandardizedPublisher[] } }
+              </div>
+              <div class="validation-rules">
+                <h4>StandardizedPublisher Object:</h4>
+                <ul>
+                  <li>id: number (feed ID)</li>
+                  <li>feedType: "camera" | "screenshare"</li>
+                  <li>userId: string</li>
+                  <li>audio: boolean</li>
+                  <li>video: boolean</li>
+                  <li>talking: boolean</li>
+                  <li>publisher: boolean</li>
+                  <li>handRaised: boolean</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- RECEIVE_ANSWER_FOR_PUBLISHING -->
+        <div class="endpoint">
+          <div class="endpoint-header" onclick="toggleEndpoint(this)">
+            <div class="endpoint-info">
+              <span class="method-badge method-server">SERVER</span>
+              <div>
+                <div class="endpoint-name">receive-answer-for-publishing</div>
+                <div class="endpoint-description">WebRTC answer from server for publishing stream</div>
+              </div>
+            </div>
+            <span class="expand-icon">▼</span>
+          </div>
+          <div class="endpoint-details">
+            <div class="schema-section">
+              <div class="schema-title">Response Schema:</div>
+              <div class="schema-content">
+                { "type": "receive-answer-for-publishing", "data": { "configured": "ok", "audio_codec": "string",
+                "video_codec": "string", "streams": array, "jsep": { "type": "answer", "sdp": "string" } } }
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- SUBSCRIBED_TO_USER_FEED -->
+        <div class="endpoint">
+          <div class="endpoint-header" onclick="toggleEndpoint(this)">
+            <div class="endpoint-info">
+              <span class="method-badge method-server">SERVER</span>
+              <div>
+                <div class="endpoint-name">subscribed-to-user-feed</div>
+                <div class="endpoint-description">WebRTC offer from server when subscribed to a user feed</div>
+              </div>
+            </div>
+            <span class="expand-icon">▼</span>
+          </div>
+          <div class="endpoint-details">
+            <div class="schema-section">
+              <div class="schema-title">Response Schema:</div>
+              <div class="schema-content">
+                { "type": "subscribed-to-user-feed", "data": { "room": number, "streams": [{ "mid": "string", "type":
+                "audio" | "video" | "data", "feed_id": number }], "jsep": { "type": "offer", "sdp": "string" } } }
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- PUBLISHER_LIST -->
+        <div class="endpoint">
+          <div class="endpoint-header" onclick="toggleEndpoint(this)">
+            <div class="endpoint-info">
+              <span class="method-badge method-server">SERVER</span>
+              <div>
+                <div class="endpoint-name">publisher-list</div>
+                <div class="endpoint-description">List of active publishers in the room</div>
+              </div>
+            </div>
+            <span class="expand-icon">▼</span>
+          </div>
+          <div class="endpoint-details">
+            <div class="schema-section">
+              <div class="schema-title">Response Schema:</div>
+              <div class="schema-content">
+                { "type": "publisher-list", "data": any[] }
+              </div>
+              <div class="validation-rules">
+                <h4>Typical Publisher Object Structure:</h4>
+                <ul>
+                  <li>{ "id": number, "display": "string", "audio_codec": "string", "video_codec": "string" }</li>
+                  <li>Note: Actual structure depends on Janus VideoRoom plugin response</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- MEDIA_STREAM_TOGGLED -->
+        <div class="endpoint">
+          <div class="endpoint-header" onclick="toggleEndpoint(this)">
+            <div class="endpoint-info">
+              <span class="method-badge method-server">SERVER</span>
+              <div>
+                <div class="endpoint-name">media-stream-toggled</div>
+                <div class="endpoint-description">Confirmation that media stream was toggled</div>
+              </div>
+            </div>
+            <span class="expand-icon">▼</span>
+          </div>
+          <div class="endpoint-details">
+            <div class="schema-section">
+              <div class="schema-title">Response Schema:</div>
+              <div class="schema-content">
+                { "type": "media-stream-toggled", "data": { "video": boolean, "audio": boolean } }
+              </div>
+              <div class="validation-rules">
+                <h4>Note:</h4>
+                <ul>
+                  <li>This event confirms the media stream toggle was processed</li>
+                  <li>Sent in response to toggle-media-stream client message</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- FEED_UNPUBLISHED -->
+        <div class="endpoint">
+          <div class="endpoint-header" onclick="toggleEndpoint(this)">
+            <div class="endpoint-info">
+              <span class="method-badge method-server">SERVER</span>
+              <div>
+                <div class="endpoint-name">feed-unpublished</div>
+                <div class="endpoint-description">Confirmation that feed was unpublished</div>
+              </div>
+            </div>
+            <span class="expand-icon">▼</span>
+          </div>
+          <div class="endpoint-details">
+            <div class="schema-section">
+              <div class="schema-title">Response Schema:</div>
+              <div class="schema-content">
+                { "type": "feed-unpublished", "data": { "feedId": number } }
+              </div>
+              <div class="validation-rules">
+                <h4>Note:</h4>
+                <ul>
+                  <li>This event confirms the feed unpublish was processed</li>
+                  <li>Sent in response to unpublish-feed client message</li>
+                  <li>The feed is now removed from the conference</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- PUBLISHER_UNPUBLISHED_FEED -->
+        <div class="endpoint">
+          <div class="endpoint-header" onclick="toggleEndpoint(this)">
+            <div class="endpoint-info">
+              <span class="method-badge method-server">SERVER</span>
+              <div>
+                <div class="endpoint-name">publisher-unpublished-feed</div>
+                <div class="endpoint-description">Broadcast when a publisher unpublishes a feed</div>
+              </div>
+            </div>
+            <span class="expand-icon">▼</span>
+          </div>
+          <div class="endpoint-details">
+            <div class="schema-section">
+              <div class="schema-title">Response Schema:</div>
+              <div class="schema-content">
+                { "type": "publisher-unpublished-feed", "data": { "userId": "string", "feedId": number } }
+              </div>
+              <div class="validation-rules">
+                <h4>Note:</h4>
+                <ul>
+                  <li>This event is broadcast to all users in the call</li>
+                  <li>Indicates that a publisher has stopped sharing a specific feed</li>
+                  <li>Subscribers should handle feed removal from UI</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- SCREENSHOT_RECEIVED -->
+        <div class="endpoint">
+          <div class="endpoint-header" onclick="toggleEndpoint(this)">
+            <div class="endpoint-info">
+              <span class="method-badge method-server">SERVER</span>
+              <div>
+                <div class="endpoint-name">screenshot-received</div>
+                <div class="endpoint-description">Broadcast when a user takes a screenshot during the call</div>
+              </div>
+            </div>
+            <span class="expand-icon">▼</span>
+          </div>
+          <div class="endpoint-details">
+            <div class="schema-section">
+              <div class="schema-title">Response Schema:</div>
+              <div class="schema-content">
+                { "type": "screenshot-received", "data": { "userId": "string", "userName": "string" } }
+              </div>
+              <div class="validation-rules">
+                <h4>Note:</h4>
+                <ul>
+                  <li>This event is broadcast only to users in the call</li>
+                  <li>Triggered when a user sends a screenshot notification</li>
+                  <li>Contains the user ID and name of who took the screenshot</li>
+                  <li>Can be used to show notifications or update UI</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- REACTION_RECEIVED -->
+        <div class="endpoint">
+          <div class="endpoint-header" onclick="toggleEndpoint(this)">
+            <div class="endpoint-info">
+              <span class="method-badge method-server">SERVER</span>
+              <div>
+                <div class="endpoint-name">reaction-received</div>
+                <div class="endpoint-description">Broadcast when a user sends a reaction in the call</div>
+              </div>
+            </div>
+            <span class="expand-icon">▼</span>
+          </div>
+          <div class="endpoint-details">
+            <div class="schema-section">
+              <div class="schema-title">Response Schema:</div>
+              <div class="schema-content">
+                { "type": "reaction-received", "data": { "userId": "string", "userName": "string", "reaction": "string"
+                } }
+              </div>
+              <div class="validation-rules">
+                <h4>Note:</h4>
+                <ul>
+                  <li>This event is broadcast only to users in the call</li>
+                  <li>Contains the user ID, name, and the reaction sent</li>
+                  <li>Reactions are limited to 50 characters</li>
+                  <li>Can be used to display reactions in the UI temporarily</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- HAND_RAISED -->
+        <div class="endpoint">
+          <div class="endpoint-header" onclick="toggleEndpoint(this)">
+            <div class="endpoint-info">
+              <span class="method-badge method-server">SERVER</span>
+              <div>
+                <div class="endpoint-name">hand-raised</div>
+                <div class="endpoint-description">Broadcast when a user raises their hand during the call</div>
+              </div>
+            </div>
+            <span class="expand-icon">▼</span>
+          </div>
+          <div class="endpoint-details">
+            <div class="schema-section">
+              <div class="schema-title">Response Schema:</div>
+              <div class="schema-content">
+                { "type": "hand-raised-by-user", "data": { "userId": "string", "feedId": number } }
+              </div>
+              <div class="validation-rules">
+                <h4>Note:</h4>
+                <ul>
+                  <li>This event is broadcast only to users in the call</li>
+                  <li>Contains the user ID and feed ID of who raised their hand</li>
+                  <li>Can be used to show a hand raised indicator in the UI</li>
+                  <li>Triggered when a user sends a raise-hand message</li>
+                  <li>feedId identifies which specific media handle raised the hand</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- HAND_LOWERED -->
+        <div class="endpoint">
+          <div class="endpoint-header" onclick="toggleEndpoint(this)">
+            <div class="endpoint-info">
+              <span class="method-badge method-server">SERVER</span>
+              <div>
+                <div class="endpoint-name">hand-lowered</div>
+                <div class="endpoint-description">Broadcast when a user lowers their raised hand during the call</div>
+              </div>
+            </div>
+            <span class="expand-icon">▼</span>
+          </div>
+          <div class="endpoint-details">
+            <div class="schema-section">
+              <div class="schema-title">Response Schema:</div>
+              <div class="schema-content">
+                { "type": "hand-lowered-by-user", "data": { "userId": "string", "feedId": number } }
+              </div>
+              <div class="validation-rules">
+                <h4>Note:</h4>
+                <ul>
+                  <li>This event is broadcast only to users in the call</li>
+                  <li>Contains the user ID and feed ID of who lowered their hand</li>
+                  <li>Can be used to remove the hand raised indicator in the UI</li>
+                  <li>Triggered when a user sends a lower-hand message</li>
+                  <li>feedId identifies which specific media handle lowered the hand</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Error Handling -->
+      <div class="section" id="error-handling">
+        <div class="section-header">
+          <h2 class="section-title">Error Handling</h2>
+          <p class="section-description">Error responses and validation failures</p>
+        </div>
+
+        <div class="endpoint">
+          <div class="endpoint-header" onclick="toggleEndpoint(this)">
+            <div class="endpoint-info">
+              <span class="method-badge method-error">ERROR</span>
+              <div>
+                <div class="endpoint-name">error</div>
+                <div class="endpoint-description">Error message from server</div>
+              </div>
+            </div>
+            <span class="expand-icon">▼</span>
+          </div>
+          <div class="endpoint-details">
+            <div class="schema-section">
+              <div class="schema-title">Error Schema:</div>
+              <div class="schema-content">{ "type": "error", "error": "string" // Human-readable error message }</div>
+            </div>
+            <div class="schema-section">
+              <div class="schema-title">Common Error Types:</div>
+              <div class="validation-rules">
+                <h4>Validation Errors:</h4>
+                <ul>
+                  <li><strong>Missing fields:</strong> "Missing required field: fieldName"</li>
+                  <li><strong>Type mismatch:</strong> "Field 'fieldName' expected string, but received number"</li>
+                  <li><strong>String length:</strong> "Field 'fieldName' must be at least X characters long"</li>
+                  <li><strong>Invalid UUID:</strong> "Field 'fieldName' must be a valid UUID"</li>
+                  <li><strong>JSON parsing:</strong> "Invalid JSON format"</li>
+                </ul>
+                <h4>Connection Errors:</h4>
+                <ul>
+                  <li>"User not authenticated"</li>
+                  <li>"User not found in this room"</li>
+                  <li>"Invalid credentials"</li>
+                  <li>"Connection failed"</li>
+                </ul>
+                <h4>Message Errors:</h4>
+                <ul>
+                  <li>"Unknown message type"</li>
+                  <li>"User not found"</li>
+                  <li>"Socket error occurred"</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Data Types -->
+      <div class="section" id="data-types">
+        <div class="section-header">
+          <h2 class="section-title">Data Types & Schemas</h2>
+          <p class="section-description">TypeScript interfaces and Zod validation schemas</p>
+        </div>
+
+        <div class="endpoint">
+          <div class="endpoint-header" onclick="toggleEndpoint(this)">
+            <div class="endpoint-info">
+              <span class="method-badge method-server">SCHEMA</span>
+              <div>
+                <div class="endpoint-name">User</div>
+                <div class="endpoint-description">User entity schema</div>
+              </div>
+            </div>
+            <span class="expand-icon">▼</span>
+          </div>
+          <div class="endpoint-details">
+            <div class="schema-section">
+              <div class="schema-title">TypeScript Interface:</div>
+              <div class="schema-content">
+                interface User { id: string; name: string; roomId: string; connected: boolean; joinedCall: boolean; }
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="endpoint">
+          <div class="endpoint-header" onclick="toggleEndpoint(this)">
+            <div class="endpoint-info">
+              <span class="method-badge method-server">SCHEMA</span>
+              <div>
+                <div class="endpoint-name">Message</div>
+                <div class="endpoint-description">Message entity schema</div>
+              </div>
+            </div>
+            <span class="expand-icon">▼</span>
+          </div>
+          <div class="endpoint-details">
+            <div class="schema-section">
+              <div class="schema-title">TypeScript Interface:</div>
+              <div class="schema-content">
+                interface Message { id: string; roomId: string; userId: string; content: string; }
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="endpoint">
+          <div class="endpoint-header" onclick="toggleEndpoint(this)">
+            <div class="endpoint-info">
+              <span class="method-badge method-server">SCHEMA</span>
+              <div>
+                <div class="endpoint-name">RTCIceCandidate</div>
+                <div class="endpoint-description">WebRTC ICE candidate data</div>
+              </div>
+            </div>
+            <span class="expand-icon">▼</span>
+          </div>
+          <div class="endpoint-details">
+            <div class="schema-section">
+              <div class="schema-title">TypeScript Interface:</div>
+              <div class="schema-content">
+                interface RTCIceandidateData { candidate?: string; sdpMid?: string; sdpMLineIndex?: number;
+                usernameFragment?: string; }
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div> <!-- End main-content -->
+  </div> <!-- End page-container -->
+
+  <script type="module" src="/ws-client/ws-js.js"></script>
+</body>
+
+</html>

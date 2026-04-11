@@ -1,0 +1,17 @@
+general: {
+  nat_1_1_mapping = "13.61.235.198";
+  keep_private_host = false;
+};
+
+media: {
+  rtp_port_range = "10000-10200";
+};
+
+nat: {
+  stun_server = "stun.l.google.com";
+  stun_port = 19302;
+  nice_debug = false;
+  ice_lite = false;
+  ice_tcp = false;
+};
+

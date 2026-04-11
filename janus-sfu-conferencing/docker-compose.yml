@@ -1,0 +1,44 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:15-alpine
+    container_name: postgres
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_DB=mediaserver_dev
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=mediaserver2024
+    volumes:
+      - postgres_data_dev:/var/lib/postgresql/data
+    networks:
+      - app-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  # Janus Gateway for WebRTC
+  janus-gateway:
+    image: canyan/janus-gateway:latest
+    container_name: janus-gateway
+    ports:
+      - "8088:8088"
+      - "8188:8188"
+      - "10000-10200:10000-10200/udp"
+    volumes:
+      - "./janus/janus.dev.jcfg:/usr/local/etc/janus/janus.jcfg"
+    networks:
+      - app-network
+    restart: unless-stopped
+
+volumes:
+  postgres_data_dev:
+
+networks:
+  app-network:
+    driver: bridge 

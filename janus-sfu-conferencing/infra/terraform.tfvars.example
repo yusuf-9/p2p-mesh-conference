@@ -1,0 +1,9 @@
+# Copy this to terraform.tfvars and fill in real values.
+# terraform.tfvars is gitignored — never commit it.
+
+postgres_password      = "choose-a-strong-password"
+jwt_super_admin_secret = "a-long-random-string-1"
+jwt_admin_secret       = "a-long-random-string-2"
+jwt_user_secret        = "a-long-random-string-3"
+domain                 = "your-domain.duckdns.org"
+repo_url               = "https://github.com/yusuf-9/p2p-mesh-conference.git"

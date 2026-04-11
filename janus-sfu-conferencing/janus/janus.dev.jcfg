@@ -1,0 +1,4 @@
+media: {
+  rtp_port_range = "10000-10200";
+};
+

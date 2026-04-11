@@ -1,7 +1,6 @@
 # Dependencies
 node_modules/
 */node_modules/
-**/node_modules/
 
 # Build outputs
 dist/
@@ -36,8 +35,8 @@ yarn-error.log*
 temp/
 
 # Terraform secrets — never commit
-**/infra/terraform.tfvars
-**/infra/.terraform/
-**/infra/*.tfstate
-**/infra/*.tfstate.backup
-**/infra/.terraform.lock.hcl
+infra/terraform.tfvars
+infra/.terraform/
+infra/*.tfstate
+infra/*.tfstate.backup
+infra/.terraform.lock.hcl

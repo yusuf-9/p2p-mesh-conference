@@ -1,0 +1,1 @@
+ALTER TABLE "pending_transactions" DROP COLUMN IF EXISTS "metadata";
