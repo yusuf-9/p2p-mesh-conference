@@ -1,5 +1,6 @@
 variable "domain" {
   description = "Domain name for the server (e.g. janussfu.duckdns.org)"
+  default     = "janus-sfu.duckdns.org"
 }
 
 variable "repo_url" {
@@ -11,23 +12,23 @@ variable "repo_url" {
 variable "postgres_password" {
   description = "PostgreSQL password for the app DB user"
   sensitive   = true
-  default     = ""
+  default     = "sfupass2024xkqz"
 }
 
 variable "jwt_super_admin_secret" {
   description = "JWT secret for super admin tokens"
   sensitive   = true
-  default     = ""
+  default     = "superadmin-jwt-secret-sfu-xkqz9"
 }
 
 variable "jwt_admin_secret" {
   description = "JWT secret for admin tokens"
   sensitive   = true
-  default     = ""
+  default     = "admin-jwt-secret-sfu-xkqz9"
 }
 
 variable "jwt_user_secret" {
   description = "JWT secret for user tokens"
   sensitive   = true
-  default     = ""
+  default     = "user-jwt-secret-sfu-xkqz9"
 }
