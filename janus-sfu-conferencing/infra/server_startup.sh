@@ -203,7 +203,7 @@ echo "Generating super-admin token..."
 SUPER_ADMIN_TOKEN=$(cd /app/janus-sfu-conferencing/server/scripts && node create-super-admin-token.js | sed -n '2p' | xargs)
 
 ADMIN_EMAIL="admin@loadtest.local"
-ADMIN_PASSWORD=$(openssl rand -hex 16)
+ADMIN_PASSWORD="123456habodabo"
 
 echo "Creating admin user ($ADMIN_EMAIL)..."
 curl -sf -X POST http://localhost:3000/api/super-admin/register \
@@ -211,18 +211,6 @@ curl -sf -X POST http://localhost:3000/api/super-admin/register \
   -H "Authorization: Bearer $SUPER_ADMIN_TOKEN" \
   -d "{\"email\":\"$ADMIN_EMAIL\",\"password\":\"$ADMIN_PASSWORD\"}"
 
-echo "Logging in as admin..."
-LOGIN_RESPONSE=$(curl -sf -X POST http://localhost:3000/api/admin/login \
-  -H "Content-Type: application/json" \
-  -d "{\"email\":\"$ADMIN_EMAIL\",\"password\":\"$ADMIN_PASSWORD\"}")
-ADMIN_TOKEN=$(echo "$LOGIN_RESPONSE" | python3 -c "import sys,json; print(json.load(sys.stdin)['data']['token'])")
-
-echo "Creating API key..."
-API_KEY_RESPONSE=$(curl -sf -X POST http://localhost:3000/api/api-keys \
-  -H "Content-Type: application/json" \
-  -H "Authorization: Bearer $ADMIN_TOKEN" \
-  -d '{"name":"default"}')
-API_KEY=$(echo "$API_KEY_RESPONSE" | python3 -c "import sys,json; print(json.load(sys.stdin)['data']['apiKey']['value'])")
 
 echo ""
 echo "========================================"

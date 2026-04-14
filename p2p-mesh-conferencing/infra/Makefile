@@ -1,5 +1,6 @@
 ROOM_URL ?= placeholder
 BOT_COUNT ?= 1
+REGION ?= us-east-1
 
 # ── Server ────────────────────────────────────────────────────────────────────
 
@@ -20,9 +21,7 @@ bots-start:
 	@bash run-bots.sh
 
 bots-stop:
-	terraform destroy -target=aws_instance.bot \
-		-var="bot_count=$(BOT_COUNT)" \
-		-var="room_url=placeholder"
+	@bash stop-bots.sh
 
 # ── Everything ────────────────────────────────────────────────────────────────
 

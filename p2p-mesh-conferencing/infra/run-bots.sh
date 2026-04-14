@@ -1,19 +1,38 @@
 #!/bin/bash
 
+# ── Predefined regions ────────────────────────────────────────────────────────
+REGIONS=("us-east-1" "us-west-2" "eu-west-1")
+# ─────────────────────────────────────────────────────────────────────────────
+
 echo "================================"
 echo "   P2P Mesh Load Test Launcher  "
 echo "================================"
 echo ""
+echo "Regions: ${REGIONS[*]}"
+echo ""
 
 read -p "Room URL: " ROOM_URL
-read -p "Number of bots: " BOT_COUNT
+read -p "Bots per region: " BOTS_PER_REGION
 
+TOTAL=$(( ${#REGIONS[@]} * BOTS_PER_REGION ))
 echo ""
-echo "Launching $BOT_COUNT bot(s)..."
+echo "Launching $BOTS_PER_REGION bot(s) × ${#REGIONS[@]} regions = $TOTAL bots total..."
 echo ""
 
-terraform apply \
-  -target=aws_instance.bot \
-  -target=aws_security_group.bot \
-  -var="bot_count=$BOT_COUNT" \
-  -var="room_url=$ROOM_URL"
+for REGION in "${REGIONS[@]}"; do
+  echo "--- Launching in $REGION ---"
+  terraform workspace select "$REGION" 2>/dev/null || terraform workspace new "$REGION"
+  terraform apply -auto-approve \
+    -target=aws_instance.bot \
+    -target=aws_security_group.bot \
+    -var="bot_count=$BOTS_PER_REGION" \
+    -var="room_url=$ROOM_URL" \
+    -var="region=$REGION"
+  echo ""
+done
+
+terraform workspace select default
+
+echo "================================"
+echo "  $TOTAL bots launched!"
+echo "================================"

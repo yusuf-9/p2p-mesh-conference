@@ -8,7 +8,7 @@ terraform {
 }
 
 provider "aws" {
-  region = "us-east-1"
+  region = var.region
 }
 
 data "aws_ami" "al2023" {
@@ -22,7 +22,7 @@ data "aws_ami" "al2023" {
 }
 
 resource "aws_security_group" "bot" {
-  name        = "loadtest-bot"
+  name        = "loadtest-bot-${terraform.workspace}"
   description = "Load test bots - outbound only"
 
   ingress {
@@ -66,4 +66,9 @@ resource "aws_instance" "bot" {
 
 output "instance_ids" {
   value = aws_instance.bot[*].id
+}
+
+output "bot_ips" {
+  value       = aws_instance.bot[*].public_ip
+  description = "Public IPs of the bot instances"
 }

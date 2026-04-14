@@ -19,7 +19,7 @@ dnf install -y \
 
 # Pull the load test code
 git clone https://github.com/yusuf-9/p2p-mesh-conference.git /app
-cd /app/load-test
+cd /app/p2p-mesh-conferencing/load-test
 
 npm install
 npx puppeteer browsers install chrome
