@@ -8,7 +8,6 @@ DOMAIN="${domain}"
 REPO_URL="${repo_url}"
 PG_PASSWORD="${postgres_password}"
 JWT_SA="${jwt_super_admin_secret}"
-JWT_ADMIN="${jwt_admin_secret}"
 JWT_USER="${jwt_user_secret}"
 
 echo "=== [1/10] Server setup starting — IP: $PUBLIC_IP, Domain: $DOMAIN ==="
@@ -98,7 +97,6 @@ POSTGRES_DB=sfudb
 POSTGRES_USER=sfuuser
 POSTGRES_PASSWORD=$PG_PASSWORD
 JWT_SUPER_ADMIN_SECRET=$JWT_SA
-JWT_ADMIN_SECRET=$JWT_ADMIN
 JWT_USER_SECRET=$JWT_USER
 JWT_EXPIRES_IN=24h
 SERVER_PORT=3000
@@ -184,41 +182,10 @@ cp -r dist/* /usr/share/nginx/html/client/
 
 systemctl reload nginx
 
-echo "=== Done. App live at https://$DOMAIN/client/ ==="
-
-# ── Seed: create admin + API key ──────────────────────────────────────────────
-echo "=== Seeding admin user and API key ==="
-
-echo "Waiting for server to be ready..."
-for i in $(seq 1 30); do
-  if curl -sf http://localhost:3000/api/health > /dev/null 2>&1; then
-    echo "Server is ready."
-    break
-  fi
-  echo "  attempt $i/30..."
-  sleep 3
-done
-
-echo "Generating super-admin token..."
-SUPER_ADMIN_TOKEN=$(cd /app/janus-sfu-conferencing/server/scripts && node create-super-admin-token.js | sed -n '2p' | xargs)
-
-ADMIN_EMAIL="admin@loadtest.local"
-ADMIN_PASSWORD="123456habodabo"
-
-echo "Creating admin user ($ADMIN_EMAIL)..."
-curl -sf -X POST http://localhost:3000/api/super-admin/register \
-  -H "Content-Type: application/json" \
-  -H "Authorization: Bearer $SUPER_ADMIN_TOKEN" \
-  -d "{\"email\":\"$ADMIN_EMAIL\",\"password\":\"$ADMIN_PASSWORD\"}"
-
-
 echo ""
 echo "========================================"
 echo "  SERVER READY"
 echo "========================================"
-echo "  Public IP   : $PUBLIC_IP"
-echo "  Domain      : https://$DOMAIN"
-echo "  Admin email : $ADMIN_EMAIL"
-echo "  Admin pass  : $ADMIN_PASSWORD"
-echo "  API key     : $API_KEY"
+echo "  Public IP : $PUBLIC_IP"
+echo "  Domain    : https://$DOMAIN"
 echo "========================================"

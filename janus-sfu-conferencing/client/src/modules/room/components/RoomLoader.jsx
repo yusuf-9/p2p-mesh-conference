@@ -26,7 +26,6 @@ export function RoomLoader({ roomParams }) {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "x-api-key": roomParams.apiKey,
       },
       body: JSON.stringify({
         name: roomParams.roomName,
@@ -37,31 +36,19 @@ export function RoomLoader({ roomParams }) {
 
     const data = await response.json();
     if (!response.ok) {
-      if (response.status === 401) {
-        throw new Error("Invalid API key. Please check your API key and try again.");
-      }
       throw new Error(data.error || "Failed to create room");
     }
 
     return data.data.id;
-  }, [roomParams.roomName, roomParams.userName, roomParams.apiKey]);
+  }, [roomParams.roomName, roomParams.userName]);
 
   const getRoomData = useCallback(async (roomId) => {
     const response = await fetch(`${import.meta.env.VITE_API_URL}/room/${roomId}`, {
       method: "GET",
-      headers: {
-        "x-api-key": roomParams.apiKey,
-      },
     });
 
     const data = await response.json();
     if (!response.ok) {
-      if (response.status === 401) {
-        throw new Error("Invalid API key. Please check your API key and try again.");
-      }
-      if (response.status === 403) {
-        throw new Error("Access denied. This room does not belong to your API key.");
-      }
       if (response.status === 404) {
         throw new Error("Room not found. Please check the room ID and try again.");
       }
@@ -69,26 +56,19 @@ export function RoomLoader({ roomParams }) {
     }
 
     return data.data;
-  }, [roomParams.apiKey]);
+  }, []);
 
   const joinRoom = useCallback(async (roomId) => {
     const response = await fetch(`${import.meta.env.VITE_API_URL}/room/${roomId}/join`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "x-api-key": roomParams.apiKey,
       },
       body: JSON.stringify({ name: roomParams.userName }),
     });
 
     const data = await response.json();
     if (!response.ok) {
-      if (response.status === 401) {
-        throw new Error("Invalid API key. Please check your API key and try again.");
-      }
-      if (response.status === 403) {
-        throw new Error("Access denied. This room does not belong to your API key.");
-      }
       if (response.status === 404) {
         throw new Error("Room not found. Please check the room ID and try again.");
       }
@@ -112,7 +92,7 @@ export function RoomLoader({ roomParams }) {
       token: data.data.token,
       isHost: data.data.isHost
     };
-  }, [roomParams.userName, roomParams.apiKey]);
+  }, [roomParams.userName]);
 
   const joinRoomAndConnectToSocket = useCallback(async () => {
     try {
@@ -198,10 +178,9 @@ export function RoomLoader({ roomParams }) {
           roomId,
           userId: joinResponse.user.id,
           hasToken: !!joinResponse.token,
-          hasApiKey: !!roomParams.apiKey
         });
 
-        await roomManager.connectToWebSocket(joinResponse.token, roomParams.apiKey);
+        await roomManager.connectToWebSocket(joinResponse.token);
         console.log("✅ WebSocket connection successful");
       } else {
         throw new Error("Missing user token or user data for WebSocket connection");

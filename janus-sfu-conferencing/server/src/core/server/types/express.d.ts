@@ -3,8 +3,6 @@ declare global {
   namespace Express {
     interface Request {
       userId?: string;
-      adminId?: string;
-      apiKeyId?: string;
       superAdminId?: string;
     }
   }

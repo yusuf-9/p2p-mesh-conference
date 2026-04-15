@@ -41,7 +41,6 @@ resource "aws_instance" "server" {
     repo_url               = var.repo_url
     postgres_password      = var.postgres_password
     jwt_super_admin_secret = var.jwt_super_admin_secret
-    jwt_admin_secret       = var.jwt_admin_secret
     jwt_user_secret        = var.jwt_user_secret
   })
 

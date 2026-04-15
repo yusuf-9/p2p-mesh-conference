@@ -3,8 +3,6 @@ import postgres from 'postgres';
 import * as schema from './schema.js';
 import { rooms } from './schema.js';
 import Config from '../config/index.js';
-import AdminRepository from './repositories/admin.js';
-import ApiKeyRepository from './repositories/apiKey.js';
 import RoomRepository from './repositories/room.js';
 import UserRepository from './repositories/users.js';
 import { retryPromiseIfFails } from '../../utils/index.js';
@@ -17,8 +15,6 @@ export default class DatabaseService {
   private config: Config;
 
   // Repository instances
-  public adminRepository: AdminRepository;
-  public apiKeyRepository: ApiKeyRepository;
   public roomRepository: RoomRepository;
   public userRepository: UserRepository;
   public transactionRepository: TransactionRepository;
@@ -33,8 +29,6 @@ export default class DatabaseService {
     this.db = drizzle(this.client, { schema });
 
     // Initialize repositories
-    this.adminRepository = new AdminRepository(this);
-    this.apiKeyRepository = new ApiKeyRepository(this);
     this.roomRepository = new RoomRepository(this);
     this.userRepository = new UserRepository(this);
     this.transactionRepository = new TransactionRepository(this);

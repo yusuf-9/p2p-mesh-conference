@@ -2,7 +2,7 @@ import express, { Request, Response, NextFunction } from "express";
 import { eq, and } from "drizzle-orm";
 import { z } from "zod";
 import DatabaseService from "../../../database/index.js";
-import { rooms, users, messages, apiKeys } from "../../../database/schema.js";
+import { rooms, users, messages } from "../../../database/schema.js";
 import AuthService from "../../../auth/index.js";
 import CustomError from "../../../../utility-types/error.js";
 import { ValidationErrorResponseType, ValidationErrorField } from "../../types/index.js";
@@ -26,46 +26,15 @@ export default class RoomRouter {
     this.setupRoutes();
   }
 
-  private applyMiddleware(): void {
-    // Apply API key validation to all routes
-    this.router.use(this.validateApiKeyMiddleware.bind(this));
-  }
+  private applyMiddleware(): void {}
 
   private setupRoutes(): void {
-    // POST /room/create - Create a new room (requires API key)
     this.router.post("/create", this.createRoom.bind(this));
-
-    // PUT /room/:roomId/update - Update room (requires API key + room ownership + user token + host check)
-    this.router.put(
-      "/:roomId",
-      this.validateRoomOwnershipMiddleware.bind(this),
-      this.validateUserMiddleware.bind(this),
-      this.validateHostMiddleware.bind(this),
-      this.updateRoom.bind(this)
-    );
-
-    // DELETE /room/:roomId/delete - Delete room (requires API key + room ownership + user token + host check)
-    this.router.delete(
-      "/:roomId",
-      this.validateRoomOwnershipMiddleware.bind(this),
-      this.validateUserMiddleware.bind(this),
-      this.validateHostMiddleware.bind(this),
-      this.deleteRoom.bind(this)
-    );
-
-    // POST /room/:roomId/join - Join room (requires API key + room ownership)
-    this.router.post("/:roomId/join", this.validateRoomOwnershipMiddleware.bind(this), this.joinRoom.bind(this));
-
-    // POST /room/leave - Leave room (requires API key + user token)
-    this.router.post(
-      "/:roomId/leave",
-      this.validateRoomOwnershipMiddleware.bind(this),
-      this.validateUserMiddleware.bind(this),
-      this.leaveRoom.bind(this)
-    );
-
-    // GET /room/:roomId - Get room data (requires API key + room ownership)
-    this.router.get("/:roomId", this.validateRoomOwnershipMiddleware.bind(this), this.getRoomData.bind(this));
+    this.router.put("/:roomId", this.validateUserMiddleware.bind(this), this.validateHostMiddleware.bind(this), this.updateRoom.bind(this));
+    this.router.delete("/:roomId", this.validateUserMiddleware.bind(this), this.validateHostMiddleware.bind(this), this.deleteRoom.bind(this));
+    this.router.post("/:roomId/join", this.joinRoom.bind(this));
+    this.router.post("/:roomId/leave", this.validateUserMiddleware.bind(this), this.leaveRoom.bind(this));
+    this.router.get("/:roomId", this.getRoomData.bind(this));
   }
 
   private createValidationError(zodError: z.ZodError): ValidationErrorResponseType {
@@ -84,51 +53,12 @@ export default class RoomRouter {
     };
   }
 
-  private async validateApiKeyMiddleware(req: Request, res: Response, next: NextFunction): Promise<void> {
-    try {
-      const apiKeyId = await this.authService.validateApiKey(req);
-      req.apiKeyId = apiKeyId;
-      next();
-    } catch (error) {
-      next(error);
-    }
-  }
-
   private async validateUserMiddleware(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       const token = this.authService.validateUserAccess(req);
       req.userId = token.userId;
       next();
     } catch (error) {
-      next(error);
-    }
-  }
-
-  private async validateRoomOwnershipMiddleware(req: Request, res: Response, next: NextFunction): Promise<void> {
-    try {
-      // Validate params with zod
-      const validatedParams = roomIdParamSchema.parse(req.params);
-      const { roomId } = validatedParams;
-      const apiKeyId = req.apiKeyId!;
-
-      // Check if room exists and belongs to the API key
-      const room = await this.dbService.roomRepository.getById(roomId);
-
-      if (!room) {
-        throw new CustomError(404, "Room not found");
-      }
-
-      if (room.apiKeyId !== apiKeyId) {
-        throw new CustomError(403, "Room does not belong to your API key");
-      }
-
-      next();
-    } catch (error) {
-      if (error instanceof z.ZodError) {
-        const validationError = this.createValidationError(error);
-        res.status(400).json(validationError);
-        return;
-      }
       next(error);
     }
   }
@@ -167,10 +97,8 @@ export default class RoomRouter {
    * /api/room/create:
    *   post:
    *     summary: Create a new room
-   *     description: Creates a new video conferencing room. Requires a valid API key.
+   *     description: Creates a new video conferencing room. No authentication required.
    *     tags: [Rooms]
-   *     security:
-   *       - ApiKey: []
    *     requestBody:
    *       required: true
    *       content:
@@ -214,7 +142,7 @@ export default class RoomRouter {
    *             schema:
    *               $ref: '#/components/schemas/ValidationError'
    *       401:
-   *         description: API key authentication required
+   *         description: Authentication required
    *         content:
    *           application/json:
    *             schema:
@@ -231,10 +159,9 @@ export default class RoomRouter {
       // Validate input with zod
       const validatedData = createRoomSchema.parse(req.body);
       const { name, description, type } = validatedData;
-      const apiKeyId = req.apiKeyId!; // We know this exists due to middleware
 
       // Create new room using repository
-      const newRoom = await this.dbService.roomRepository.create(apiKeyId, name, description || null, type);
+      const newRoom = await this.dbService.roomRepository.create(name, description || null, type);
 
       res.status(201).json({
         message: "Room created successfully",
@@ -255,10 +182,9 @@ export default class RoomRouter {
    * /api/room/{roomId}:
    *   put:
    *     summary: Update room details
-   *     description: Updates room name and/or description. Requires API key, room ownership verification, user token, and host privileges.
+   *     description: Updates room name and/or description. Requires user token and host privileges.
    *     tags: [Rooms]
    *     security:
-   *       - ApiKey: []
    *       - UserToken: []
    *     parameters:
    *       - in: path
@@ -304,7 +230,7 @@ export default class RoomRouter {
    *             schema:
    *               $ref: '#/components/schemas/ValidationError'
    *       401:
-   *         description: Authentication required (API key or user token)
+   *         description: Authentication required (user token)
    *         content:
    *           application/json:
    *             schema:
@@ -369,10 +295,9 @@ export default class RoomRouter {
    * /api/room/{roomId}:
    *   delete:
    *     summary: Delete room
-   *     description: Permanently deletes a room and all associated data. Requires API key, room ownership verification, user token, and host privileges.
+   *     description: Permanently deletes a room and all associated data. Requires user token and host privileges.
    *     tags: [Rooms]
    *     security:
-   *       - ApiKey: []
    *       - UserToken: []
    *     parameters:
    *       - in: path
@@ -396,7 +321,7 @@ export default class RoomRouter {
    *             schema:
    *               $ref: '#/components/schemas/ValidationError'
    *       401:
-   *         description: Authentication required (API key or user token)
+   *         description: Authentication required (user token)
    *         content:
    *           application/json:
    *             schema:
@@ -448,10 +373,9 @@ export default class RoomRouter {
    * /api/room/{roomId}:
    *   get:
    *     summary: Get room data
-   *     description: Retrieves comprehensive room information including room details, users, and messages. Requires API key and room ownership verification.
+   *     description: Retrieves comprehensive room information including room details, users, and messages. No authentication required.
    *     tags: [Rooms]
    *     security:
-   *       - ApiKey: []
    *     parameters:
    *       - in: path
    *         name: roomId
@@ -490,13 +414,13 @@ export default class RoomRouter {
    *             schema:
    *               $ref: '#/components/schemas/ValidationError'
    *       401:
-   *         description: API key authentication required
+   *         description: Authentication required
    *         content:
    *           application/json:
    *             schema:
    *               $ref: '#/components/schemas/Error'
    *       403:
-   *         description: Room does not belong to your API key
+   *         description: Access denied
    *         content:
    *           application/json:
    *             schema:
@@ -533,12 +457,10 @@ export default class RoomRouter {
       const db = this.dbService.getDb();
       const roomMessages = await db.select().from(messages).where(eq(messages.roomId, roomId));
 
-      const { apiKeyId, ...roomData } = room;
-
       res.status(200).json({
         message: "Room data retrieved successfully",
         data: {
-          room: roomData,
+          room,
           users: roomUsers,
           messages: roomMessages,
         },
@@ -561,7 +483,6 @@ export default class RoomRouter {
    *     description: Allows a user to join a room with a specified name. Returns user information and a user-level JWT token for subsequent operations. If the room has no host, the first user becomes the host.
    *     tags: [Rooms]
    *     security:
-   *       - ApiKey: []
    *     parameters:
    *       - in: path
    *         name: roomId
@@ -614,13 +535,13 @@ export default class RoomRouter {
    *             schema:
    *               $ref: '#/components/schemas/ValidationError'
    *       401:
-   *         description: API key authentication required
+   *         description: Authentication required
    *         content:
    *           application/json:
    *             schema:
    *               $ref: '#/components/schemas/Error'
    *       403:
-   *         description: Room does not belong to your API key
+   *         description: Access denied
    *         content:
    *           application/json:
    *             schema:
@@ -745,7 +666,6 @@ export default class RoomRouter {
    *     description: Removes the authenticated user from the specified room. If the user is the host, host privileges are transferred to another connected user or set to null if no users remain.
    *     tags: [Rooms]
    *     security:
-   *       - ApiKey: []
    *       - UserToken: []
    *     parameters:
    *       - in: path
@@ -769,13 +689,13 @@ export default class RoomRouter {
    *             schema:
    *               $ref: '#/components/schemas/ValidationError'
    *       401:
-   *         description: Authentication required (API key or user token)
+   *         description: Authentication required (user token)
    *         content:
    *           application/json:
    *             schema:
    *               $ref: '#/components/schemas/Error'
    *       403:
-   *         description: Room does not belong to your API key
+   *         description: Access denied
    *         content:
    *           application/json:
    *             schema:

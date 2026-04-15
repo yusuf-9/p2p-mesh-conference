@@ -1,5 +1,6 @@
 import { EVENTS } from '../constants';
 import useStore from '../../../store';
+import { WebRTCStats } from '@peermetrics/webrtc-stats';
 
 class RoomManager {
   constructor() {
@@ -18,16 +19,21 @@ class RoomManager {
     this.simulcastMonitors = new Map(); // Track simulcast monitoring intervals
     this.videoTransceiver = null; // Store reference to video transceiver for simulcast control
     this.simulcastDebugMode = false; // Enable/disable detailed simulcast logging
+
+    this.webrtcStats = new WebRTCStats({ getStatsInterval: 1000 });
+    this.webrtcStats.on('stats', (event) => {
+      console.log(`[webrtc-stats] peer=${event.peerId}`, event.data);
+    });
   }
 
-  async connectToWebSocket(userToken, apiKey) {
+  async connectToWebSocket(userToken) {
     return new Promise((resolve, reject) => {
       try {
         // Construct WebSocket URL with query parameters for authentication
         const baseUrl = import.meta.env.VITE_WS_URL.replace(/^http/, 'ws');
-        const wsUrl = `${baseUrl}/api/socket/?api_key=${encodeURIComponent(apiKey)}&access_token=${encodeURIComponent(userToken)}`;
+        const wsUrl = `${baseUrl}/api/socket/?access_token=${encodeURIComponent(userToken)}`;
 
-        console.log("🔌 Connecting to WebSocket:", wsUrl.replace(/api_key=[^&]+/, 'api_key=***').replace(/access_token=[^&]+/, 'access_token=***'));
+        console.log("🔌 Connecting to WebSocket:", wsUrl.replace(/access_token=[^&]+/, 'access_token=***'));
 
         const ws = new WebSocket(wsUrl);
 
@@ -1196,6 +1202,7 @@ class RoomManager {
         console.error("Error creating publisher offer:", error);
       });
 
+    this.webrtcStats.addConnection({ pc: peerConnection, peerId: `pub-${feedId}` });
     console.log("📡 Created publisher peer connection for feedId:", feedId);
   }
 
@@ -1958,6 +1965,7 @@ class RoomManager {
       }
     };
 
+    this.webrtcStats.addConnection({ pc: peerConnection, peerId: `sub-${feedId}` });
     console.log("📡 Created subscriber peer connection for feedId:", feedId);
     return peerConnection;
   }
@@ -2254,7 +2262,7 @@ class RoomManager {
   }
 
   // Leave room method
-  async leaveRoom(roomId, apiKey, userToken) {
+  async leaveRoom(roomId, userToken) {
     try {
       console.log("🚪 Leaving room:", roomId);
 
@@ -2262,7 +2270,6 @@ class RoomManager {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "x-api-key": apiKey,
           "Authorization": `Bearer ${userToken}`
         }
       });

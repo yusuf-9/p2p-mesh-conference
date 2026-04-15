@@ -3,10 +3,8 @@ import DatabaseService from '../database/index.js';
 import jwt from 'jsonwebtoken'
 import CustomError from '../../utility-types/error.js';
 import { Request } from 'express';
-import { eq, and } from 'drizzle-orm';
-import { apiKeys } from '../database/schema.js';
 
-export type TokenType = 'super-admin' | 'admin' | 'user';
+export type TokenType = 'super-admin' | 'user';
 
 export type TokenPayload = {
     type: TokenType,
@@ -27,7 +25,6 @@ export default class AuthService {
 
         this.secretKeys = {
             'super-admin': config.jwt.superAdminSecret,
-            'admin': config.jwt.adminSecret,
             'user': config.jwt.userSecret
         };
 
@@ -111,53 +108,5 @@ export default class AuthService {
         return this.validateToken(token, 'user');
     }
 
-    /**
-     * Validates that the request has a valid admin token
-     */
-    public validateAdminAccess(req: Request): TokenPayload {
-        const token = this.getTokenFromHeaders(req);
-        return this.validateToken(token, 'admin');
-    }
+}
 
-    /**
-     * Gets the API key from request headers and validates it exists
-     */
-    public getApiKeyFromHeaders(req: Request): string {
-        const apiKey = req.headers['x-api-key'] as string;
-        if (!apiKey) {
-            throw new CustomError(401, 'API key header missing from request');
-        }
-        return apiKey;
-    }
-
-    /**
-     * Validates that the provided API key is valid and active
-     */
-    public async validateApiKey(req: Request): Promise<string> {
-        const apiKey = this.getApiKeyFromHeaders(req);
-        const db = this.dbService.getDb();
-
-        const result = await db
-            .select()
-            .from(apiKeys)
-            .where(
-                and(
-                    eq(apiKeys.value, apiKey),
-                    eq(apiKeys.isActive, true)
-                )
-            );
-
-        if (result.length === 0) {
-            throw new CustomError(401, 'Invalid or inactive API key');
-        }
-
-        const apiKeyRecord = result[0];
-
-        // Check if API key has expired
-        if (apiKeyRecord.expiresAt && new Date() > apiKeyRecord.expiresAt) {
-            throw new CustomError(401, 'API key has expired');
-        }
-
-        return apiKeyRecord.id;
-    }
-} 

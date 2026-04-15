@@ -1,4 +1,4 @@
-import { rooms, users, apiKeys, mediaRooms, roomHostRelation } from "../schema.js";
+import { rooms, users, mediaRooms, roomHostRelation } from "../schema.js";
 import { eq, or, and } from "drizzle-orm";
 import DatabaseService from "../index.js";
 
@@ -14,12 +14,11 @@ export default class RoomRepository {
     return room?.[0] ?? null;
   }
 
-  public async create(apiKeyId: string, name: string, description: string | null, type?: "one_to_one" | "group") {
+  public async create(name: string, description: string | null, type?: "one_to_one" | "group") {
     const newRoom = await this.dbService
       .getDb()
       .insert(rooms)
       .values({
-        apiKeyId,
         name,
         description,
         type: type || "group",
@@ -56,54 +55,6 @@ export default class RoomRepository {
 
   public async delete(id: string) {
     await this.dbService.getDb().delete(rooms).where(eq(rooms.id, id));
-  }
-
-  public async getAdminRooms(adminId: string) {
-    const results = await this.dbService
-      .getDb()
-      .select({
-        id: rooms.id,
-        name: rooms.name,
-        description: rooms.description,
-        type: rooms.type,
-        hostId: rooms.hostId,
-        createdAt: rooms.createdAt,
-        updatedAt: rooms.updatedAt,
-        user: {
-          id: users.id,
-          name: users.name,
-          createdAt: users.createdAt,
-          updatedAt: users.updatedAt,
-        },
-      })
-      .from(rooms)
-      .innerJoin(apiKeys, eq(rooms.apiKeyId, apiKeys.id))
-      .leftJoin(users, eq(rooms.id, users.roomId))
-      .where(eq(apiKeys.adminId, adminId));
-
-    // Group users by room
-    const roomsMap = results.reduce((acc, row) => {
-      if (!acc[row.id]) {
-        acc[row.id] = {
-          id: row.id,
-          name: row.name,
-          description: row.description,
-          type: row.type,
-          hostId: row.hostId,
-          createdAt: row.createdAt,
-          updatedAt: row.updatedAt,
-          users: [],
-        };
-      }
-
-      if (row.user?.id) {
-        acc[row.id].users.push(row.user);
-      }
-
-      return acc;
-    }, {} as Record<string, any>);
-
-    return Object.values(roomsMap);
   }
 
   public async isUserRoomHost(roomId: string, userId: string): Promise<boolean> {

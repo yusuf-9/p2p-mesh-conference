@@ -954,26 +954,18 @@ export default class SocketServer {
     try {
       // Get credentials from query params
       const url = new URLSearchParams(req.url.split("?")[1]);
-      const apiKey = url.get("api_key");
       const accessToken = url.get("access_token");
 
       console.log(`🔑 Handling WebSocket upgrade request:`, {
         url: req.url,
-        hasApiKey: !!apiKey,
         hasAccessToken: !!accessToken,
       });
 
-      if (typeof apiKey !== "string" || typeof accessToken !== "string") {
+      if (typeof accessToken !== "string") {
         throw new Error("Invalid credentials");
       }
 
       const token = accessToken.replace(/^Bearer\s+/i, "");
-      await this.authService.validateApiKey({
-        headers: {
-          "x-api-key": apiKey,
-          authorization: `Bearer ${token}`,
-        },
-      } as any);
       const tokenPayload = this.authService.validateToken(token, "user");
 
       // Get user using repository

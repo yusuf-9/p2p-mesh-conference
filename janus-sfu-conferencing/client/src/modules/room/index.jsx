@@ -24,7 +24,7 @@ function Room({ roomParams }) {
       }
 
       console.log("🚪 Leaving room...");
-      await roomManager.leaveRoom(room.id, roomParams.apiKey, userToken);
+      await roomManager.leaveRoom(room.id, userToken);
       
       // Redirect to root path and refresh
       window.location.href = '/';
@@ -108,7 +108,7 @@ function Room({ roomParams }) {
             </button>
             <button
               onClick={() => {
-                const shareUrl = `${window.location.origin}${window.location.pathname}?room_id=${room.id}&api_key=${roomParams.apiKey}`;
+                const shareUrl = `${window.location.origin}${window.location.pathname}?room_id=${room.id}`;
                 navigator.clipboard.writeText(shareUrl);
                 // Could add toast notification here
                 console.log("🔗 Room link copied to clipboard:", shareUrl);

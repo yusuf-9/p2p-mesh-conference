@@ -141,6 +141,13 @@
       "when": 1758200162167,
       "tag": "0019_burly_wendell_vaughn",
       "breakpoints": true
+    },
+    {
+      "idx": 20,
+      "version": "6",
+      "when": 1776265705553,
+      "tag": "0020_sour_starfox",
+      "breakpoints": true
     }
   ]
 }

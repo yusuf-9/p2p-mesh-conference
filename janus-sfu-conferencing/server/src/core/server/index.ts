@@ -3,10 +3,7 @@ import { v4 as uuidv4 } from "uuid";
 import cors from "cors";
 import swaggerUi from 'swagger-ui-express';
 import DatabaseService from "../database/index.js";
-import AdminRouter from "./routers/admin/index.js";
-import ApiKeyRouter from "./routers/api-keys/index.js";
 import HealthRouter from "./routers/health/index.js";
-import SuperAdminRouter from "./routers/super-admin/index.js";
 import Config from "../config/index.js";
 import AuthService from "../auth/index.js";
 import { ErrorResponseType } from "./types/index.js";
@@ -46,7 +43,7 @@ export default class Server {
       origin: this.config.server.corsOrigin,
       credentials: true,
       methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-      allowedHeaders: ['Content-Type', 'Authorization', 'x-api-key']
+      allowedHeaders: ['Content-Type', 'Authorization']
     }));
 
     // Parse JSON requests
@@ -101,16 +98,10 @@ export default class Server {
 
     // Router setup
     const healthRouter = new HealthRouter(this.dbService, this.serverId);
-    const adminRouter = new AdminRouter(this.dbService, this.authService);
-    const apiKeyRouter = new ApiKeyRouter(this.dbService, this.authService);
-    const superAdminRouter = new SuperAdminRouter(this.dbService, this.authService);
     const roomRouter = new RoomRouter(this.dbService, this.authService, this.pubSubService);
 
     // Mount routers
     this.app.use("/api/health", healthRouter.getRouter());
-    this.app.use("/api/admin", adminRouter.getRouter());
-    this.app.use("/api/api-keys", apiKeyRouter.getRouter());
-    this.app.use("/api/super-admin", superAdminRouter.getRouter());
     this.app.use("/api/room", roomRouter.getRouter());
 
     // 404 handler for unmatched routes

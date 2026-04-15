@@ -11,7 +11,6 @@ export interface DatabaseConfig {
 
 export interface JwtConfig {
   superAdminSecret: string;
-  adminSecret: string;
   userSecret: string;
   expiresIn: string;
 }
@@ -99,15 +98,11 @@ export default class Config {
 
   private validateJwtConfig(): JwtConfig {
     const superAdminSecret = process.env.JWT_SUPER_ADMIN_SECRET;
-    const adminSecret = process.env.JWT_ADMIN_SECRET;
     const userSecret = process.env.JWT_USER_SECRET;
     const expiresIn = process.env.JWT_EXPIRES_IN || "24h";
 
     if (!superAdminSecret) {
       throw new Error("JWT_SUPER_ADMIN_SECRET environment variable is required");
-    }
-    if (!adminSecret) {
-      throw new Error("JWT_ADMIN_SECRET environment variable is required");
     }
     if (!userSecret) {
       throw new Error("JWT_USER_SECRET environment variable is required");
@@ -115,7 +110,6 @@ export default class Config {
 
     return {
       superAdminSecret,
-      adminSecret,
       userSecret,
       expiresIn,
     };
@@ -162,17 +156,14 @@ export default class Config {
           title: "Media Server API",
           version: "1.0.0",
           description: `
-            Media Server API provides endpoints for managing video conferencing rooms, user authentication, and real-time communication.
-            
+            Media Server API provides endpoints for managing video conferencing rooms and real-time communication.
+
             ## 📡 Real-time Communication
             For real-time features like chat, video conferencing, and live updates, see the **[WebSocket API Documentation](/api/ws-docs)**.
-            
+
             ## Authentication Flow
-            1. **Super Admin Token**: Generated using a script, used to create admin users
-            2. **Admin Login**: Admin users login to get admin access tokens
-            3. **API Key Creation**: Admin users create API keys using their access tokens
-            4. **Room Operations**: API keys are used to create and manage rooms
-            5. **User Access**: Users joining rooms receive user-level access tokens for room operations and WebSocket upgrades
+            1. **Create or join a room** — no API key required
+            2. **User token** — returned on join, used for room operations and WebSocket upgrades
           `,
           contact: {
             name: "Media Server API Support",
@@ -186,29 +177,11 @@ export default class Config {
         ],
         components: {
           securitySchemes: {
-            SuperAdminToken: {
-              type: "http",
-              scheme: "bearer",
-              bearerFormat: "JWT",
-              description: "Super admin JWT token for admin management operations",
-            },
-            AdminToken: {
-              type: "http",
-              scheme: "bearer",
-              bearerFormat: "JWT",
-              description: "Admin JWT token for admin-level operations",
-            },
             UserToken: {
               type: "http",
               scheme: "bearer",
               bearerFormat: "JWT",
-              description: "User JWT token for room-level operations",
-            },
-            ApiKey: {
-              type: "apiKey",
-              in: "header",
-              name: "x-api-key",
-              description: "API key required for room operations",
+              description: "User JWT token returned on room join, required for room-level operations and WebSocket upgrades",
             },
           },
           schemas: {
@@ -360,64 +333,6 @@ export default class Config {
                 },
               ],
             },
-            Admin: {
-              type: "object",
-              properties: {
-                id: {
-                  type: "string",
-                  format: "uuid",
-                },
-                email: {
-                  type: "string",
-                  format: "email",
-                },
-                createdAt: {
-                  type: "string",
-                  format: "date-time",
-                },
-                updatedAt: {
-                  type: "string",
-                  format: "date-time",
-                },
-              },
-              required: ["id", "email", "createdAt", "updatedAt"],
-            },
-            ApiKey: {
-              type: "object",
-              properties: {
-                id: {
-                  type: "string",
-                  format: "uuid",
-                },
-                name: {
-                  type: "string",
-                },
-                value: {
-                  type: "string",
-                },
-                isActive: {
-                  type: "boolean",
-                },
-                expiresAt: {
-                  type: "string",
-                  format: "date-time",
-                  nullable: true,
-                },
-                createdAt: {
-                  type: "string",
-                  format: "date-time",
-                },
-                updatedAt: {
-                  type: "string",
-                  format: "date-time",
-                },
-                adminId: {
-                  type: "string",
-                  format: "uuid",
-                },
-              },
-              required: ["id", "name", "value", "isActive", "createdAt", "updatedAt", "adminId"],
-            },
             Room: {
               type: "object",
               properties: {
@@ -445,12 +360,8 @@ export default class Config {
                   type: "string",
                   format: "date-time",
                 },
-                adminId: {
-                  type: "string",
-                  format: "uuid",
-                },
               },
-              required: ["id", "name", "type", "createdAt", "updatedAt", "adminId"],
+              required: ["id", "name", "type", "createdAt", "updatedAt"],
             },
             User: {
               type: "object",
@@ -508,18 +419,6 @@ export default class Config {
           {
             name: "Health",
             description: "Health check endpoints",
-          },
-          {
-            name: "Super Admin",
-            description: "Super admin operations for managing admin users",
-          },
-          {
-            name: "Admin",
-            description: "Admin authentication and management",
-          },
-          {
-            name: "API Keys",
-            description: "API key management for room operations",
           },
           {
             name: "Rooms",

@@ -9,18 +9,16 @@ function App() {
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
     const roomId = urlParams.get('room_id');
-    const apiKey = urlParams.get('api_key');
-    
-    if (roomId && apiKey) {
+
+    if (roomId) {
       // Generate random username for URL-based joins
       const randomSuffix = Math.random().toString(36).substring(2, 8).toUpperCase();
       const guestUsername = `Guest_${randomSuffix}`;
-      
+
       // Auto-join with URL parameters
       const autoJoinData = {
         roomId,
         userName: guestUsername,
-        apiKey,
         mode: 'join',
         joinCallAutomatically: true
       };

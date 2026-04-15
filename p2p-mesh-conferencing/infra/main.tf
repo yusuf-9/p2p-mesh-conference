@@ -62,6 +62,10 @@ resource "aws_instance" "bot" {
     Name    = "loadtest-bot-${count.index + 1}"
     Purpose = "loadtest"
   }
+
+  timeouts {
+    create = "3m"
+  }
 }
 
 output "instance_ids" {

@@ -6,7 +6,6 @@ export function RoomForm({ onSubmit }) {
     roomName: localStorage.getItem('roomForm_roomName') || '',
     roomId: localStorage.getItem('roomForm_roomId') || '',
     userName: localStorage.getItem('roomForm_userName') || '',
-    apiKey: localStorage.getItem('roomForm_apiKey') || '',
     roomType: localStorage.getItem('roomForm_roomType') || 'group'
   }));
 
@@ -14,18 +13,16 @@ export function RoomForm({ onSubmit }) {
     roomName: '',
     roomId: '',
     userName: '',
-    apiKey: ''
   });
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    
+
     // Validate
     const newErrors = {
       roomName: '',
       roomId: '',
       userName: '',
-      apiKey: ''
     };
 
     if (mode === 'create' && !formData.roomName.trim()) {
@@ -40,20 +37,14 @@ export function RoomForm({ onSubmit }) {
       newErrors.userName = 'User name is required';
     }
 
-    if (!formData.apiKey.trim()) {
-      newErrors.apiKey = 'API key is required';
-    }
-
     setErrors(newErrors);
 
     const hasErrors = Object.values(newErrors).some(error => error !== '');
     if (!hasErrors) {
-      // Form is valid, handle submission
       onSubmit({
         roomName: mode === 'create' ? formData.roomName : undefined,
         roomId: mode === 'join' ? formData.roomId : undefined,
         userName: formData.userName,
-        apiKey: formData.apiKey,
         roomType: mode === 'create' ? formData.roomType : undefined,
         mode
       });
@@ -178,26 +169,7 @@ export function RoomForm({ onSubmit }) {
         )}
       </div>
 
-      {/* API Key */}
-      <div>
-        <label htmlFor="apiKey" className="block text-sm font-medium text-gray-300 mb-1">
-          API Key
-        </label>
-        <input
-          type="text"
-          id="apiKey"
-          name="apiKey"
-          value={formData.apiKey}
-          onChange={handleChange}
-          className="w-full bg-gray-700 text-white rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-          placeholder="Enter API key"
-        />
-        {errors.apiKey && (
-          <p className="text-red-400 text-sm mt-1">{errors.apiKey}</p>
-        )}
-      </div>
-
-      <button 
+      <button
         type="submit"
         className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
       >
