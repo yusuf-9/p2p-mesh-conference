@@ -160,6 +160,7 @@ NGINXEOF
 rm -f /etc/nginx/conf.d/default.conf
 systemctl enable nginx
 systemctl start nginx
+sleep 5  # give nginx time to fully start before certbot attempts HTTP-01 challenge
 
 # ── Let's Encrypt certificate ─────────────────────────────────────────────────
 echo "=== [9/10] Obtaining SSL certificate ==="

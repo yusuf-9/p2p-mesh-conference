@@ -95,7 +95,7 @@ class VideoCallLoadTester {
     page.on('pageerror', err => console.error(`[Bot ${botId}] Page error: ${err.message}`));
 
     try {
-      // Navigate — the URL already has room_id, api_key, and useDummyVideoFeed,
+      // Navigate — the URL already has room_id and useDummyVideoFeed,
       // so the app will auto-request the dummy stream and auto-join the call.
       await page.goto(botUrl, { waitUntil: 'networkidle0', timeout: 30000 });
 
@@ -140,14 +140,14 @@ class VideoCallLoadTester {
     if (rawUrl) {
       botCount = parseInt(process.argv[3], 10) || 1;
     } else {
-      rawUrl = (await this.prompt('Room URL (with room_id and api_key): ')).trim();
+      rawUrl = (await this.prompt('Room URL (with room_id): ')).trim();
       botCount = parseInt(await this.prompt('Number of bots: '), 10) || 1;
     }
 
     // Validate that the URL has the required params
     const parsed = new URL(rawUrl);
-    if (!parsed.searchParams.get('room_id') || !parsed.searchParams.get('api_key')) {
-      console.error('❌ URL must include room_id and api_key query parameters.');
+    if (!parsed.searchParams.get('room_id')) {
+      console.error('❌ URL must include a room_id query parameter.');
       this.rl.close();
       return;
     }
