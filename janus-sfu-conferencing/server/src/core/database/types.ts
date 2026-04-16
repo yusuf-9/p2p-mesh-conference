@@ -1,22 +1,14 @@
-import { 
-  admins, 
-  apiKeys, 
-  rooms, 
-  users, 
-  messages, 
-  mediaRooms, 
-  mediaSessions, 
+import {
+  rooms,
+  users,
+  messages,
+  mediaRooms,
+  mediaSessions,
   mediaHandles,
   pendingTransactions
 } from './schema.js';
 
 // Infer types from schema
-export type Admin = typeof admins.$inferSelect;
-export type NewAdmin = typeof admins.$inferInsert;
-
-export type ApiKey = typeof apiKeys.$inferSelect;
-export type NewApiKey = typeof apiKeys.$inferInsert;
-
 export type Room = typeof rooms.$inferSelect;
 export type NewRoom = typeof rooms.$inferInsert;
 
