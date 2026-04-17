@@ -9,6 +9,11 @@ server-start:
 		-target=aws_security_group.server \
 		-target=aws_eip.server \
 		-target=aws_eip_association.server
+	@echo "Waiting for SSH to become available..."
+	@sleep 30
+	@IP=$$(terraform output -raw server_ip) && \
+	 ssh -i ~/.ssh/loadtest-server.pem -o StrictHostKeyChecking=no ec2-user@$$IP \
+	   "tail -f /var/log/server-startup.log"
 
 server-stop:
 	terraform destroy -target=aws_instance.server \

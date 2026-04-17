@@ -47,7 +47,7 @@ git clone https://github.com/yusuf-9/p2p-mesh-conference.git /app
 
 # ── Server build ──────────────────────────────────────────────────────────────
 echo "=== [5/9] Building server ==="
-cd /app/server
+cd /app/p2p-mesh-conferencing/server
 
 cat > .env << ENVEOF
 POSTGRES_HOST=127.0.0.1
@@ -123,7 +123,7 @@ certbot --nginx -d $DOMAIN --non-interactive --agree-tos --register-unsafely-wit
 
 # ── Client build (with HTTPS URLs) ───────────────────────────────────────────
 echo "=== [8/9] Building client ==="
-cd /app/client
+cd /app/p2p-mesh-conferencing/client
 
 cat > .env.production << ENVEOF
 VITE_WS_URL=https://$DOMAIN
@@ -154,7 +154,7 @@ for i in $(seq 1 30); do
 done
 
 echo "Generating super-admin token..."
-SUPER_ADMIN_TOKEN=$(cd /app/server/scripts && node create-super-admin-token.js | sed -n '2p' | xargs)
+SUPER_ADMIN_TOKEN=$(cd /app/p2p-mesh-conferencing/server/scripts && node create-super-admin-token.js | sed -n '2p' | xargs)
 
 ADMIN_EMAIL="admin@loadtest.local"
 ADMIN_PASSWORD=$(openssl rand -hex 16)

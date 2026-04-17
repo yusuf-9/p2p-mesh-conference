@@ -1,6 +1,6 @@
 import { EVENTS } from '../constants';
 import useStore from '../../../store';
-import { WebRTCStats } from '@peermetrics/webrtc-stats';
+import { PeerMetrics } from '@peermetrics/sdk';
 
 class RoomManager {
   constructor() {
@@ -20,10 +20,29 @@ class RoomManager {
     this.videoTransceiver = null; // Store reference to video transceiver for simulcast control
     this.simulcastDebugMode = false; // Enable/disable detailed simulcast logging
 
-    this.webrtcStats = new WebRTCStats({ getStatsInterval: 1000 });
-    this.webrtcStats.on('stats', (event) => {
-      console.log(`[webrtc-stats] peer=${event.peerId}`, event.data);
+    this.peerMetrics = null;
+    this.peerMetricsReady = null;
+  }
+
+  async initializePeerMetrics(userId, conferenceId) {
+    if (this.peerMetrics) return;
+    this.peerMetrics = new PeerMetrics({
+      apiKey: import.meta.env.VITE_PEERMETRICS_API_KEY,
+      userId: String(userId),
+      conferenceId: String(conferenceId),
+      apiRoot: import.meta.env.VITE_PEERMETRICS_API_ROOT || 'http://localhost:8081/v1',
     });
+    this.peerMetricsReady = this.peerMetrics.initialize();
+    return this.peerMetricsReady;
+  }
+
+  async _addPeerMetricsConnection(pc, peerId) {
+    try {
+      await this.peerMetricsReady;
+      await this.peerMetrics?.addConnection({ pc, peerId });
+    } catch (e) {
+      console.warn('[peermetrics] addConnection failed:', e);
+    }
   }
 
   async connectToWebSocket(userToken) {
@@ -475,6 +494,10 @@ class RoomManager {
 
     const store = useStore.getState();
 
+    this.peerMetrics?.endCall();
+    this.peerMetrics = null;
+    this.peerMetricsReady = null;
+
     // Clean up simulcast monitoring
     this.cleanupSimulcastMonitoring();
 
@@ -913,6 +936,7 @@ class RoomManager {
     console.log("🎥 Joined conference as publisher:", data);
 
     const store = useStore.getState();
+    this.initializePeerMetrics(store.user?.id, store.room?.id);
 
     // Set joinedConference to true
     store.updateConferenceState({ joinedConference: true });
@@ -1202,7 +1226,7 @@ class RoomManager {
         console.error("Error creating publisher offer:", error);
       });
 
-    this.webrtcStats.addConnection({ pc: peerConnection, peerId: `pub-${feedId}` });
+    this._addPeerMetricsConnection(peerConnection, `pub-${feedId}`);
     console.log("📡 Created publisher peer connection for feedId:", feedId);
   }
 
@@ -1965,7 +1989,7 @@ class RoomManager {
       }
     };
 
-    this.webrtcStats.addConnection({ pc: peerConnection, peerId: `sub-${feedId}` });
+    this._addPeerMetricsConnection(peerConnection, `sub-${feedId}`);
     console.log("📡 Created subscriber peer connection for feedId:", feedId);
     return peerConnection;
   }

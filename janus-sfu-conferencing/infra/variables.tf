@@ -1,6 +1,6 @@
 variable "domain" {
   description = "Domain name for the server (e.g. janussfu.duckdns.org)"
-  default     = "janus-sfu.duckdns.org"
+  default     = "janus-sfu.yusufahmed.site"
 }
 
 variable "repo_url" {
