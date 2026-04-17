@@ -363,6 +363,19 @@ export function VideoChat({ joinCallAutomatically = false }) {
 
   const allFeeds = [...localFeeds, ...remoteFeeds];
   const totalParticipants = allFeeds.length;
+  const isCompact = totalParticipants > 6;
+
+  const getGridClass = (count) => {
+    if (count <= 1)  return "h-full grid-cols-1";
+    if (count <= 2)  return "h-full grid-cols-2";
+    if (count <= 4)  return "h-full grid-cols-2";
+    if (count <= 6)  return "h-full grid-cols-3";
+    // Compact scrollable grid — no fixed rows, tiles use aspect-video
+    if (count <= 12) return "content-start grid-cols-4";
+    if (count <= 20) return "content-start grid-cols-5";
+    if (count <= 30) return "content-start grid-cols-6";
+    return           "content-start grid-cols-7";
+  };
 
   return (
     <div className="h-full flex flex-col">
@@ -370,19 +383,10 @@ export function VideoChat({ joinCallAutomatically = false }) {
       <Notifications />
 
       {/* Video Grid */}
-      <div className="flex-1 min-h-0 relative">
+      <div className={`flex-1 min-h-0 relative ${isCompact ? "overflow-y-auto" : ""}`}>
         {/* Main video area */}
         <div
-          className={`h-full grid gap-3 p-2 ${totalParticipants === 0 || totalParticipants === 1
-            ? "grid-cols-1"
-            : totalParticipants === 2
-              ? "grid-cols-2"
-              : totalParticipants <= 4
-                ? "grid-cols-2 grid-rows-2"
-                : totalParticipants <= 6
-                  ? "grid-cols-3 grid-rows-2"
-                  : "grid-cols-3 grid-rows-3"
-            }`}
+          className={`grid p-2 ${isCompact ? "gap-1" : "gap-3 h-full"} ${getGridClass(totalParticipants)}`}
         >
           {/* Render all feeds */}
           {allFeeds.map((feed) => (
@@ -395,7 +399,7 @@ export function VideoChat({ joinCallAutomatically = false }) {
               isLocal={feed.isLocal}
               handRaised={feed.handRaised}
               feedType={feed.feedType}
-              isCompact={totalParticipants > 4}
+              isCompact={isCompact}
               feedId={feed.feedId}
               userId={feed.userId}
               isHost={isHost}

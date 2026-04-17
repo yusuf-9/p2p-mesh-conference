@@ -3,13 +3,14 @@ import FeedReactions from "./FeedReactions";
 import StreamStats from "./StreamStats";
 import useStore from "../../../../../store";
 
-const VideoFeed = memo(({ 
-  videoEnabled, 
-  audioEnabled, 
-  videoStream, 
-  userName, 
-  isLocal = false, 
+const VideoFeed = memo(({
+  videoEnabled,
+  audioEnabled,
+  videoStream,
+  userName,
+  isLocal = false,
   handRaised = false,
+  isCompact = false,
   feedId = null,
   userId = null,
   isHost = false,
@@ -99,7 +100,7 @@ const VideoFeed = memo(({
   };
 
   return (
-    <div className="relative bg-gradient-to-br from-slate-800 to-slate-900 border-2 border-slate-700/50 shadow-xl overflow-hidden group hover:border-violet-500/70 transition-all duration-300 rounded-xl min-h-0">
+    <div className={`relative bg-gradient-to-br from-slate-800 to-slate-900 border border-slate-700/50 shadow-xl overflow-hidden group hover:border-violet-500/70 transition-all duration-300 rounded-lg min-h-0 ${isCompact ? "aspect-video" : "border-2 rounded-xl"}`}>
       {!videoStream ? (
         <div className="w-full h-full flex items-center justify-center bg-slate-800">
           <div className="text-center">
@@ -149,70 +150,52 @@ const VideoFeed = memo(({
       )}
 
       {/* User label */}
-      <div className="absolute bottom-3 left-3 bg-black/70 text-white px-3 py-1.5 rounded-lg text-sm font-medium backdrop-blur-sm">
-        {userName}
-      </div>
+      {isCompact ? (
+        <div className="absolute bottom-1 left-1 right-1 flex items-center justify-between gap-1">
+          <span className="bg-black/70 text-white px-1.5 py-0.5 rounded text-xs font-medium truncate max-w-[70%] backdrop-blur-sm">
+            {userName}
+          </span>
+          <div className="flex gap-0.5 flex-shrink-0">
+            {handRaised && <span className="text-xs">✋</span>}
+            {!audioEnabled && <span className="text-xs bg-red-500 rounded px-0.5">M</span>}
+            {!videoEnabled && <span className="text-xs bg-orange-500 rounded px-0.5">V</span>}
+          </div>
+        </div>
+      ) : (
+        <>
+          <div className="absolute bottom-3 left-3 bg-black/70 text-white px-3 py-1.5 rounded-lg text-sm font-medium backdrop-blur-sm">
+            {userName}
+          </div>
 
-      {/* Status indicators */}
-      <div className="absolute bottom-3 right-3 flex gap-2">
-        {/* Hand raised indicator */}
-        {handRaised && (
-          <div className="w-10 h-10 bg-yellow-500 rounded-full flex items-center justify-center shadow-lg border-2 border-yellow-400 animate-pulse">
-            <span className="text-white text-lg">✋</span>
+          {/* Status indicators */}
+          <div className="absolute bottom-3 right-3 flex gap-2">
+            {handRaised && (
+              <div className="w-10 h-10 bg-yellow-500 rounded-full flex items-center justify-center shadow-lg border-2 border-yellow-400 animate-pulse">
+                <span className="text-white text-lg">✋</span>
+              </div>
+            )}
+            {!videoEnabled && (
+              <div className="w-10 h-10 bg-orange-500 rounded-full flex items-center justify-center shadow-lg border-2 border-orange-400">
+                <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18.364 18.364L5.636 5.636" />
+                </svg>
+              </div>
+            )}
+            {!audioEnabled && (
+              <div className="w-10 h-10 bg-red-500 rounded-full flex items-center justify-center shadow-lg border-2 border-red-400">
+                <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2" />
+                </svg>
+              </div>
+            )}
           </div>
-        )}
-        {/* Video disabled indicator */}
-        {!videoEnabled && (
-          <div className="w-10 h-10 bg-orange-500 rounded-full flex items-center justify-center shadow-lg border-2 border-orange-400">
-            <svg
-              className="w-5 h-5 text-white"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"
-              />
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M18.364 18.364L5.636 5.636"
-              />
-            </svg>
-          </div>
-        )}
-        {/* Muted indicator */}
-        {!audioEnabled && (
-          <div className="w-10 h-10 bg-red-500 rounded-full flex items-center justify-center shadow-lg border-2 border-red-400">
-            <svg
-              className="w-5 h-5 text-white"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z"
-              />
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M17 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2"
-              />
-            </svg>
-          </div>
-        )}
-      </div>
+        </>
+      )}
 
-      {/* 3-dot dropdown menu (only for remote feeds and if user is host or for screenshots) */}
-      {(!isLocal || (onTakeScreenshot && isLocal)) && (
+      {/* 3-dot dropdown menu — hidden in compact mode */}
+      {!isCompact && (!isLocal || (onTakeScreenshot && isLocal)) && (
         <div className="absolute top-3 right-3">
           <div className="relative">
             <button
@@ -407,8 +390,8 @@ const VideoFeed = memo(({
       {/* Reactions for this feed */}
       <FeedReactions feedId={feedId} />
 
-      {/* Stream Statistics Overlay */}
-      {feedId && (
+      {/* Stream Statistics Overlay — hidden by default, toggled via 3-dot menu */}
+      {feedId && statsVisibility.get(feedId) && (
         <StreamStats
           feedId={feedId}
           stats={streamStats.get(feedId)}
