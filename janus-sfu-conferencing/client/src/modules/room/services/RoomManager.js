@@ -721,7 +721,6 @@ class RoomManager {
     console.log("📺 Feed subscription configured:", data);
     // data: { feedId: number, resolution: "h"|"m"|"l" }
     const { feedId, resolution } = data;
-    const store = useStore.getState();
     
     // Update subscription state - this could be stored in a separate subscription map
     // For now, we'll just log the confirmation
@@ -1956,6 +1955,18 @@ class RoomManager {
         currentStore.updateRemoteFeed(feedId, { stream: remoteStream });
         console.log("✅ Updated remote feed stream for feedId:", feedId);
       }
+    };
+
+    peerConnection.oniceconnectionstatechange = (event) => {
+      console.log(`📡 ICE connection state changed for feedId: ${feedId}`, event);
+    };
+
+    peerConnection.onsignalingstatechange = (event) => {
+      console.log(`📡 Signaling state changed for feedId: ${feedId}`, event);
+    };
+
+    peerConnection.onconnectionstatechange = (event) => {
+      console.log(`📡 Connection state changed for feedId: ${feedId}`, event);
     };
 
     // Handle ICE candidates

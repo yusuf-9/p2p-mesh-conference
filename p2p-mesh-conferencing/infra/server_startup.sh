@@ -78,10 +78,10 @@ After=network.target docker.service
 [Service]
 Type=simple
 User=root
-WorkingDirectory=/app/server
+WorkingDirectory=/app/p2p-mesh-conferencing/server
 ExecStart=/usr/bin/node dist/index.js
 Restart=always
-EnvironmentFile=/app/server/.env
+EnvironmentFile=/app/p2p-mesh-conferencing/server/.env
 
 [Install]
 WantedBy=multi-user.target

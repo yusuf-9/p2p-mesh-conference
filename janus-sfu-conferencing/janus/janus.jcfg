@@ -4,7 +4,7 @@ general: {
 };
 
 media: {
-  rtp_port_range = "10000-10200";
+  rtp_port_range = "10000-60000";
 };
 
 nat: {

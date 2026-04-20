@@ -56,7 +56,7 @@ general: {
 };
 
 media: {
-  rtp_port_range = "10000-10200";
+  rtp_port_range = "10000-60000";
 };
 
 nat: {
@@ -67,6 +67,8 @@ nat: {
   ice_tcp = false;
 };
 JANUSEOF
+
+echo "Write Janus config with the correct public IP for NAT mapping"
 
 # Run Janus with host networking so RTP ports bind directly to the instance
 docker run -d \
