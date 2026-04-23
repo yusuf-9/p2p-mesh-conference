@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # ── Predefined regions (must match run-bots.sh) ───────────────────────────────
-REGIONS=("us-east-1" "us-west-2" "eu-west-1")
+REGIONS=("ap-south-1" "ap-south-2" "ap-southeast-1")
 # ─────────────────────────────────────────────────────────────────────────────
 
 echo "Stopping all bots across ${#REGIONS[@]} regions..."

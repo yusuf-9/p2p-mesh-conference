@@ -1,8 +1,7 @@
 # ── Bot variables ────────────────────────────────────────────────────────────
 
 variable "region" {
-  description = "AWS region to deploy bots in (e.g. us-east-1, us-west-2, eu-west-1)"
-  default     = "us-east-1"
+  default = "ap-south-1"
 }
 
 variable "bot_count" {

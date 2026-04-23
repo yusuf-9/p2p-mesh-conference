@@ -1,6 +1,6 @@
 ROOM_URL ?= placeholder
 BOT_COUNT ?= 1
-REGION ?= us-east-1
+REGION ?= ap-south-1
 
 # ── Server ────────────────────────────────────────────────────────────────────
 
