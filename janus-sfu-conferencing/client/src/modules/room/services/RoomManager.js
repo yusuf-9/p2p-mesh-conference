@@ -22,6 +22,8 @@ class RoomManager {
 
     this.peerMetrics = null;
     this.peerMetricsReady = null;
+    this.forceRelayIce = window.location.search.includes('forceRelayIce');
+    console.log('🔌 Relay ICE:', this.forceRelayIce);
   }
 
   async initializePeerMetrics(userId, conferenceId) {
@@ -1162,7 +1164,8 @@ class RoomManager {
     }
 
     const peerConnection = new RTCPeerConnection({
-      iceServers: [{ urls: 'stun:stun.l.google.com:19302' }]
+      iceServers: [{ urls: 'stun:stun.l.google.com:19302' }],
+      iceTransportPolicy: this.forceRelayIce ? 'relay' : 'all',
     });
 
     // Add local stream tracks (with or without simulcast based on configuration)
@@ -1930,7 +1933,8 @@ class RoomManager {
 
   createSubscriberPeerConnection(feedId) {
     const peerConnection = new RTCPeerConnection({
-      iceServers: [{ urls: 'stun:stun.l.google.com:19302' }]
+      iceServers: [{ urls: 'stun:stun.l.google.com:19302' }],
+      iceTransportPolicy: this.forceRelayIce ? 'relay' : 'all',
     });
 
     const store = useStore.getState();
