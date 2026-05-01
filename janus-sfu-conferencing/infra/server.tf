@@ -42,6 +42,7 @@ resource "aws_instance" "server" {
     postgres_password      = var.postgres_password
     jwt_super_admin_secret = var.jwt_super_admin_secret
     jwt_user_secret        = var.jwt_user_secret
+    turn_secret            = var.turn_secret
   })
 
   tags = {

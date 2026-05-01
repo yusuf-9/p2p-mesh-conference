@@ -9,6 +9,7 @@ REPO_URL="${repo_url}"
 PG_PASSWORD="${postgres_password}"
 JWT_SA="${jwt_super_admin_secret}"
 JWT_USER="${jwt_user_secret}"
+TURN_SECRET="${turn_secret}"
 
 echo "=== [1/10] Server setup starting — IP: $PUBLIC_IP, Domain: $DOMAIN ==="
 
@@ -108,6 +109,9 @@ API_BASE_URL=https://$DOMAIN
 SFU_WS_URI=ws://localhost:8188
 MAX_ROOMS=100
 MAX_PARTICIPANTS_PER_ROOM=10
+TURN_SECRET=$TURN_SECRET
+TURN_SERVER_URL=turn.$DOMAIN
+TURN_SERVER_PORT=3478
 ENVEOF
 
 npm install

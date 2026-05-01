@@ -26,3 +26,14 @@ variable "jwt_user_secret" {
   sensitive   = true
   default     = "user-jwt-secret-sfu-xkqz9"
 }
+
+variable "turn_secret" {
+  description = "Coturn TURN secret for authentication"
+  sensitive   = true
+  default     = "turn-secret-sfu-xkqz9"
+}
+
+variable "turn_tls_secret" {
+  description = "Coturn TLS certificate path (optional - leave empty for no TLS)"
+  default     = ""
+}
