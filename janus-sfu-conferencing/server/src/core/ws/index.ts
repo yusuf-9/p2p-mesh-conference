@@ -2,6 +2,7 @@ import express from "express";
 import http from "http";
 import { WebSocketServer, WebSocket } from "ws";
 import { ZodError } from "zod";
+import crypto from "crypto";
 import AuthService from "../auth/index.js";
 import { AuthenticatedWebSocket, ServerToClientMessages, PubSubMessage, User, Message } from "./types.js";
 import {
@@ -51,7 +52,8 @@ export default class SocketServer {
       this.pubSubService,
       this.configService,
       this.emitSfuEvent.bind(this),
-      this.emitToRoom.bind(this)
+      this.emitToRoom.bind(this),
+      this.getIceConfig.bind(this)
     );
   }
 
@@ -1010,5 +1012,42 @@ export default class SocketServer {
     console.log(`🛑 Stopping WebSocket server`);
     await this.pubSubService.disconnect();
     this.httpServer.close();
+  }
+
+  public generateTurnCredentials(): { username: string; password: string } {
+    const ttl = 86400; // 24 hours
+    const timestamp = Math.floor(Date.now() / 1000) + ttl;
+    const username = `${timestamp}`;
+    
+    const hmac = crypto.createHmac('sha1', this.configService.turn.secret);
+    hmac.update(username);
+    const password = hmac.digest('base64');
+
+    return { username, password };
+  }
+
+  public getIceConfig(): { iceServers: Array<{ urls: string | string[]; username?: string; credential?: string }> } {
+    console.log('🔧 Getting ICE config, turn config:', this.configService.turn);
+    const { username, password } = this.generateTurnCredentials();
+    const host = this.configService.turn.serverUrl;
+    const port = this.configService.turn.serverPort;
+
+    const iceConfig = {
+      iceServers: [
+        {
+          urls: `stun:${host}:${port}`
+        },
+        {
+          urls: [
+            `turn:${host}:${port}?transport=udp`,
+            `turn:${host}:${port}?transport=tcp`,
+          ],
+          username,
+          credential: password
+        }
+      ]
+    };
+    console.log('🔧 Generated ICE config:', iceConfig);
+    return iceConfig;
   }
 }

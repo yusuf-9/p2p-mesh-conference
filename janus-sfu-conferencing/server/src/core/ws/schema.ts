@@ -251,7 +251,14 @@ export const ServerToClientMessageSchemas = {
       room: z.number(),
       feed: StandardizedPublisherSchema,
       publishers: z.array(StandardizedPublisherSchema),
-    }),
+      iceServers: z.object({
+        iceServers: z.array(z.object({
+          urls: z.union([z.string(), z.array(z.string())]),
+          username: z.string().optional(),
+          credential: z.string().optional()
+        }))
+      })
+    })
   }),
 
   PUBLISHER_WEBRTC_CONNECTION_ESTABLISHED: z.object({
@@ -299,6 +306,13 @@ export const ServerToClientMessageSchemas = {
       jsep: z.object({
         type: z.literal("offer"),
         sdp: z.string(),
+      }),
+      iceServers: z.object({
+        iceServers: z.array(z.object({
+          urls: z.union([z.string(), z.array(z.string())]),
+          username: z.string().optional(),
+          credential: z.string().optional()
+        }))
       }),
       feedId: z.number()
     }),

@@ -12,7 +12,8 @@
     "db:migrate": "tsx src/core/database/migrate.ts",
     "db:push": "drizzle-kit push",
     "db:studio": "drizzle-kit studio",
-    "ws:docs": "node scripts/generate-ws-schema.js"
+    "ws:docs": "node scripts/generate-ws-schema.js",
+    "typecheck": "tsc -b --noEmit"
   },
   "keywords": [
     "janus",

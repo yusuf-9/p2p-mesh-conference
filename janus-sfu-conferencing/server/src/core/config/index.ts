@@ -34,12 +34,19 @@ export interface SfuConfig {
   uri: string;
 }
 
+export interface TurnConfig {
+  serverUrl: string;
+  serverPort: string;
+  secret: string;
+}
+
 export default class Config {
   public readonly database: DatabaseConfig;
   public readonly jwt: JwtConfig;
   public readonly server: ServerConfig;
   public readonly app: AppConfig;
   public readonly sfu: SfuConfig;
+  public readonly turn: TurnConfig;
   public readonly swagger: ReturnType<typeof swaggerJSDoc>;
 
   constructor() {
@@ -49,7 +56,8 @@ export default class Config {
     this.server = this.validateServerConfig();
     this.app = this.validateAppConfig();
     this.swagger = this.validateSwaggerConfig();
-    this.sfu = this.validateSfuConfig()
+    this.sfu = this.validateSfuConfig();
+    this.turn = this.validateTurnConfig();
   }
 
   private validateDatabaseConfig(): DatabaseConfig {
@@ -94,6 +102,22 @@ export default class Config {
     return {
       uri: sfuWebsocketUri
     }
+  }
+
+  private validateTurnConfig(): TurnConfig {
+    const serverUrl = process.env.TURN_SERVER_URL || "localhost";
+    const serverPort = process.env.TURN_SERVER_PORT || "3478";
+    const secret = process.env.TURN_SECRET;
+
+    if (!secret) {
+      throw new Error("TURN_SECRET environment variable is required");
+    }
+
+    return {
+      serverUrl,
+      serverPort,
+      secret
+    };
   }
 
   private validateJwtConfig(): JwtConfig {

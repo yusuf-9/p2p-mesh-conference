@@ -24,6 +24,7 @@ class RoomManager {
     this.peerMetricsReady = null;
     this.forceRelayIce = window.location.search.includes('forceRelayIce');
     console.log('🔌 Relay ICE:', this.forceRelayIce);
+    this.iceServers = null;
   }
 
   async initializePeerMetrics(userId, conferenceId) {
@@ -368,6 +369,12 @@ class RoomManager {
 
   handleSubscribedToUserFeed(data) {
     console.log("📺 Subscribed to user feed:", data);
+
+    // Store iceServers from subscription event (may be refreshed)
+    if (data.iceServers) {
+      this.iceServers = data.iceServers;
+      console.log('📡 Stored ICE servers from subscription:', this.iceServers);
+    }
 
     const store = useStore.getState();
     const feedId = data.feedId;
@@ -943,7 +950,14 @@ class RoomManager {
     store.updateConferenceState({ joinedConference: true });
 
     // Extract feed info from new schema format
-    const { feed, publishers } = data;
+    const { feed, publishers, iceServers } = data;
+
+    // Store iceServers for use in peer connections
+    if (iceServers) {
+      this.iceServers = iceServers;
+      console.log('📡 Stored ICE servers:', this.iceServers);
+    }
+
     const feedId = feed.id;
     const feedType = feed.feedType;
 
@@ -1163,8 +1177,10 @@ class RoomManager {
       return;
     }
 
+    const iceServers = this.iceServers?.iceServers;
+    console.log('📡 Creating publisher peer connection with ICE servers:', iceServers);
     const peerConnection = new RTCPeerConnection({
-      iceServers: [{ urls: 'stun:stun.l.google.com:19302' }],
+      iceServers,
       iceTransportPolicy: this.forceRelayIce ? 'relay' : 'all',
     });
 
@@ -1932,8 +1948,10 @@ class RoomManager {
   }
 
   createSubscriberPeerConnection(feedId) {
+    const iceServers = this.iceServers?.iceServers;
+    console.log('📡 Creating subscriber peer connection with ICE servers:', iceServers);
     const peerConnection = new RTCPeerConnection({
-      iceServers: [{ urls: 'stun:stun.l.google.com:19302' }],
+      iceServers,
       iceTransportPolicy: this.forceRelayIce ? 'relay' : 'all',
     });
 

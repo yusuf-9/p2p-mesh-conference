@@ -1,7 +1,5 @@
 version: '3.8'
-
 services:
-  # PostgreSQL Database
   postgres:
     image: postgres:15-alpine
     container_name: postgres
@@ -22,7 +20,6 @@ services:
       timeout: 3s
       retries: 5
 
-  # Janus Gateway for WebRTC
   janus-gateway:
     image: canyan/janus-gateway:latest
     container_name: janus-gateway
@@ -36,9 +33,18 @@ services:
       - app-network
     restart: unless-stopped
 
+  coturn:
+    image: coturn/coturn:latest
+    container_name: coturn
+    network_mode: host
+    volumes:
+      - ./coturn/turnserver.dev.conf:/etc/coturn/turnserver.conf
+    restart: unless-stopped
+    # intentionally NOT on app-network — host mode is incompatible with bridge networks
+
 volumes:
   postgres_data_dev:
 
 networks:
   app-network:
-    driver: bridge 
+    driver: bridge

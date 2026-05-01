@@ -24,6 +24,7 @@ export default class SfuManager {
   private sfuClients: Map<string, { client: SfuClient; ready: boolean }> = new Map();
   private emitSfuEvent: SocketServer["emitSfuEvent"];
   private emitToRoom: SocketServer["emitToRoom"];
+  private getIceConfig: SocketServer["getIceConfig"];
 
   constructor(
     authService: AuthService,
@@ -31,7 +32,8 @@ export default class SfuManager {
     pubSubService: PubSubService,
     configService: ConfigService,
     emitSfuEvent: SocketServer["emitSfuEvent"],
-    emitToRoom: SocketServer["emitToRoom"]
+    emitToRoom: SocketServer["emitToRoom"],
+    getIceConfig: SocketServer["getIceConfig"]
   ) {
     this.authService = authService;
     this.dbService = dbService;
@@ -40,6 +42,7 @@ export default class SfuManager {
     this.sfuClients = new Map();
     this.emitSfuEvent = emitSfuEvent;
     this.emitToRoom = emitToRoom;
+    this.getIceConfig = getIceConfig;
 
     this.initializeSfuClients();
   }
@@ -197,11 +200,13 @@ export default class SfuManager {
               joinedEvent.plugindata?.data?.publishers || []
             );
 
-            await this.emitSfuEvent(userId, EVENTS.JOINED_CONFERENCE_AS_PUBLISHER, {
+await this.emitSfuEvent(userId, EVENTS.JOINED_CONFERENCE_AS_PUBLISHER, {
               room: joinedEvent.plugindata.data.room,
               feed: userFeed,
               publishers: standardizedPublishers,
+              iceServers: this.getIceConfig(),
             });
+            console.log('📤 Sent JOINED_CONFERENCE_AS_PUBLISHER with iceServers');
 
             console.log(`User ${userId} joined call as publisher with feedId ${joinedEvent.plugindata.data.id}, feedType: ${userFeed.feedType}`);
           });
@@ -225,12 +230,14 @@ export default class SfuManager {
           console.log("subscriber attached event", eventPayload);
           const subscriberAttachedEvent = eventPayload as VideoroomSubscriberAttachedEvent;
           await this.linkEventToTransaction(subscriberAttachedEvent.transaction, async (userId: string, feedId?: number) => {
-            await this.emitSfuEvent(userId, EVENTS.SUBSCRIBED_TO_USER_FEED, {
+await this.emitSfuEvent(userId, EVENTS.SUBSCRIBED_TO_USER_FEED, {
               room: subscriberAttachedEvent.plugindata.data.room,
               streams: subscriberAttachedEvent.plugindata.data.streams,
               jsep: subscriberAttachedEvent.jsep,
+              iceServers: this.getIceConfig(),
               feedId: feedId!
             });
+            console.log('📤 Sent SUBSCRIBED_TO_USER_FEED with iceServers');
           });
           break;
 
