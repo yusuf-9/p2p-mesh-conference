@@ -71,7 +71,7 @@ resource "aws_security_group" "coturn" {
 
 resource "aws_instance" "coturn" {
   ami           = data.aws_ami.al2023.id
-  instance_type = "t3.small"
+  instance_type = "t3.micro"
 
   vpc_security_group_ids = [aws_security_group.coturn.id]
   key_name               = "loadtest-server"
