@@ -1082,7 +1082,6 @@ export default class SfuClient {
 
   public async destroySession(roomId: string, sessionId: number) {
     try {
-      // Stop keep-alive for this session
       this.stopSessionKeepAlive(sessionId);
 
       const message = {
@@ -1095,10 +1094,59 @@ export default class SfuClient {
         this.ws.send(JSON.stringify(message));
       }
 
-      await this.dbService.mediaRoomRepository.deleteMediaSessionBySessionId(sessionId.toString());
+      const session = await this.dbService.mediaRoomRepository.getMediaSessionBySessionId(sessionId.toString());
+      if (session) {
+        await this.dbService.mediaRoomRepository.updateMediaSessionActive(session.id, false);
+      }
     } catch (error) {
       console.error(`Error destroying session ${roomId}:`, error);
     }
+  }
+
+  public async destroyRoom(sessionId: number, handleId: number, roomId: number): Promise<boolean> {
+    return new Promise((resolve) => {
+      try {
+        const transaction = this.createTransactionId();
+
+        const message = {
+          janus: "message",
+          session_id: sessionId,
+          handle_id: handleId,
+          transaction: transaction,
+          body: {
+            request: "destroy",
+            room: roomId,
+          },
+        };
+
+        this.pendingTransactions.set(transaction, {
+          type: "destroy_room",
+          resolve: (response: any) => {
+            if (response.janus === "success") {
+              console.log(`✅ Destroyed Janus room ${roomId}`);
+              resolve(true);
+            } else {
+              console.error(`Failed to destroy Janus room ${roomId}:`, response);
+              resolve(false);
+            }
+          },
+          reject: (error: any) => {
+            console.error(`Error destroying Janus room ${roomId}:`, error);
+            resolve(false);
+          },
+          timestamp: Date.now(),
+        });
+
+        if (this.ws && this.ws.readyState === WebSocket.OPEN) {
+          this.ws.send(JSON.stringify(message));
+        } else {
+          resolve(false);
+        }
+      } catch (error) {
+        console.error(`Error destroying room ${roomId}:`, error);
+        resolve(false);
+      }
+    });
   }
 
   private createTransactionId() {

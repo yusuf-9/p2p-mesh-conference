@@ -11,22 +11,31 @@ export default class MediaRoomRepository {
   }
 
   public async getMediaRoomById(id: string) {
-    const room = await this.dbService.getDb().select().from(mediaRooms).where(eq(mediaRooms.id, id));
+    const room = await this.dbService.getDb().select().from(mediaRooms).where(and(eq(mediaRooms.id, id), eq(mediaRooms.active, true)));
     return room?.[0] ?? null;
   }
 
   public async getMediaRoomBySessionId(sessionId: string) {
-    // First get the media session for this room, then get the media room
     const session = await this.dbService
       .getDb()
       .select()
       .from(mediaRooms)
-      .where(eq(mediaRooms.sessionId, sessionId))
+      .where(and(eq(mediaRooms.sessionId, sessionId), eq(mediaRooms.active, true)))
       .limit(1);
     return session?.[0] ?? null;
   }
 
   public async createMediaRoom(sessionId: string, sfuRoomId: number) {
+    const existingRoom = await this.getMediaRoomBySessionId(sessionId);
+
+    if (existingRoom) {
+      if (existingRoom.sfuRoomId !== sfuRoomId) {
+        await this.deleteMediaRoom(existingRoom.id);
+      } else {
+        return existingRoom;
+      }
+    }
+
     const newMediaRoom = await this.dbService
       .getDb()
       .insert(mediaRooms)
@@ -34,16 +43,11 @@ export default class MediaRoomRepository {
         sessionId,
         sfuRoomId,
       })
-      .onConflictDoUpdate({
-        target: [mediaRooms.sessionId],
-        set: {
-          sfuRoomId,
-        },
-      })
       .returning({
         id: mediaRooms.id,
         sessionId: mediaRooms.sessionId,
         sfuRoomId: mediaRooms.sfuRoomId,
+        active: mediaRooms.active,
         createdAt: mediaRooms.createdAt,
       });
     return newMediaRoom[0];
@@ -63,21 +67,20 @@ export default class MediaRoomRepository {
         createdAt: mediaRooms.createdAt,
       })
       .from(mediaRooms)
-      .where(eq(mediaRooms.sfuRoomId, sfuRoomId))
+      .where(and(eq(mediaRooms.sfuRoomId, sfuRoomId), eq(mediaRooms.active, true)))
       .limit(1);
     return room?.[0] ?? null;
   }
 
   // Media Sessions methods
   public async createMediaSession(roomId: string, sessionId: string) {
-    // Check if session already exists for this room
     const existingSession = await this.getMediaSessionByRoomId(roomId);
 
     if (existingSession) {
-      // If updating with a different sessionId, clean up related data first
       if (existingSession.sessionId !== sessionId) {
         await this.deleteMediaSessionRelatedData(existingSession.id);
       }
+      return existingSession;
     }
 
     const newSession = await this.dbService
@@ -87,28 +90,22 @@ export default class MediaRoomRepository {
         roomId,
         sessionId,
       })
-      .onConflictDoUpdate({
-        target: [mediaSessions.roomId],
-        set: {
-          sessionId,
-        },
-      })
       .returning();
     return newSession[0];
   }
 
   public async getMediaSessionById(id: string) {
-    const session = await this.dbService.getDb().select().from(mediaSessions).where(eq(mediaSessions.id, id));
+    const session = await this.dbService.getDb().select().from(mediaSessions).where(and(eq(mediaSessions.id, id), eq(mediaSessions.active, true)));
     return session?.[0] ?? null;
   }
 
   public async getMediaSessionBySessionId(sessionId: string) {
-    const session = await this.dbService.getDb().select().from(mediaSessions).where(eq(mediaSessions.sessionId, sessionId));
+    const session = await this.dbService.getDb().select().from(mediaSessions).where(and(eq(mediaSessions.sessionId, sessionId), eq(mediaSessions.active, true)));
     return session?.[0] ?? null;
   }
 
   public async getMediaSessionByRoomId(roomId: string) {
-    const session = await this.dbService.getDb().select().from(mediaSessions).where(eq(mediaSessions.roomId, roomId));
+    const session = await this.dbService.getDb().select().from(mediaSessions).where(and(eq(mediaSessions.roomId, roomId), eq(mediaSessions.active, true)));
     return session[0] ?? null;
   }
 
@@ -174,7 +171,7 @@ export default class MediaRoomRepository {
   }
 
   public async getMediaHandleById(id: string) {
-    const handle = await this.dbService.getDb().select().from(mediaHandles).where(eq(mediaHandles.id, id));
+    const handle = await this.dbService.getDb().select().from(mediaHandles).where(and(eq(mediaHandles.id, id), eq(mediaHandles.active, true)));
     return handle?.[0] ?? null;
   }
 
@@ -183,7 +180,7 @@ export default class MediaRoomRepository {
       .getDb()
       .select()
       .from(mediaHandles)
-      .where(eq(mediaHandles.mediaRoomId, mediaRoomId));
+      .where(and(eq(mediaHandles.mediaRoomId, mediaRoomId), eq(mediaHandles.active, true)));
     return handles;
   }
 
@@ -197,7 +194,8 @@ export default class MediaRoomRepository {
           eq(mediaHandles.sessionId, sessionId),
           eq(mediaHandles.userId, userId),
           eq(mediaHandles.feedId, Number(feedId)),
-          eq(mediaHandles.type, type)
+          eq(mediaHandles.type, type),
+          eq(mediaHandles.active, true)
         )
       );
     return handle?.[0] ?? null;
@@ -212,7 +210,7 @@ export default class MediaRoomRepository {
       })
       .from(mediaHandles)
       .innerJoin(mediaSessions, eq(mediaHandles.sessionId, mediaSessions.id))
-      .where(and(eq(mediaSessions.roomId, roomId), eq(mediaHandles.type, "manager")))
+      .where(and(eq(mediaSessions.roomId, roomId), eq(mediaSessions.active, true), eq(mediaHandles.type, "manager"), eq(mediaHandles.active, true)))
       .limit(1);
     return result[0]?.handle ?? null;
   }
@@ -222,7 +220,7 @@ export default class MediaRoomRepository {
       .getDb()
       .select()
       .from(mediaHandles)
-      .where(and(eq(mediaHandles.sessionId, sessionId), eq(mediaHandles.type, "manager")))
+      .where(and(eq(mediaHandles.sessionId, sessionId), eq(mediaHandles.type, "manager"), eq(mediaHandles.active, true)))
       .limit(1);
     return handle[0] ?? null;
   }
@@ -232,12 +230,12 @@ export default class MediaRoomRepository {
   }
 
   public async getMediaHandleByHandleId(handleId: string) {
-    const handles = await this.dbService.getDb().select().from(mediaHandles).where(eq(mediaHandles.handleId, handleId));
+    const handles = await this.dbService.getDb().select().from(mediaHandles).where(and(eq(mediaHandles.handleId, handleId), eq(mediaHandles.active, true)));
     return handles[0] || null;
   }
 
   public async getUserByMediaHandleHandleId(handleId: string) {
-    const handle = await this.dbService.getDb().select().from(mediaHandles).where(eq(mediaHandles.handleId, handleId));
+    const handle = await this.dbService.getDb().select().from(mediaHandles).where(and(eq(mediaHandles.handleId, handleId), eq(mediaHandles.active, true)));
     return handle?.[0]?.userId ?? null;
   }
 
@@ -260,8 +258,20 @@ export default class MediaRoomRepository {
     await this.dbService.getDb().delete(mediaHandles).where(and(eq(mediaHandles.userId, userId), eq(mediaHandles.sessionId, sessionId)));
   }
 
+  public async updateMediaHandleActiveStatus(sessionId: string, userId: string, active: boolean) {
+    await this.dbService.getDb().update(mediaHandles).set({ active }).where(and(eq(mediaHandles.userId, userId), eq(mediaHandles.sessionId, sessionId), eq(mediaHandles.active, true)));
+  }
+
+  public async updateMediaSessionActive(id: string, active: boolean) {
+    await this.dbService.getDb().update(mediaSessions).set({ active }).where(eq(mediaSessions.id, id));
+  }
+
+  public async updateMediaRoomActive(id: string, active: boolean) {
+    await this.dbService.getDb().update(mediaRooms).set({ active }).where(eq(mediaRooms.id, id));
+  }
+
   public async getMediaHandlesOfUser(userId: string, sessionId: string) {
-    const userHandles = await this.dbService.getDb().select().from(mediaHandles).where(and(eq(mediaHandles.userId, userId), eq(mediaHandles.sessionId, sessionId)))
+    const userHandles = await this.dbService.getDb().select().from(mediaHandles).where(and(eq(mediaHandles.userId, userId), eq(mediaHandles.sessionId, sessionId), eq(mediaHandles.active, true)))
     return userHandles;
   }
 
@@ -312,7 +322,7 @@ export default class MediaRoomRepository {
   }
 
   public async getPubHandleByFeedId(feedId: number) {
-    const pub = await this.dbService.getDb().select().from(mediaHandles).where(and(eq(mediaHandles.feedId, feedId), eq(mediaHandles.type, "publisher")));
+    const pub = await this.dbService.getDb().select().from(mediaHandles).where(and(eq(mediaHandles.feedId, feedId), eq(mediaHandles.type, "publisher"), eq(mediaHandles.active, true)));
     return pub?.[0] ?? null;
   }
 
@@ -347,7 +357,7 @@ export default class MediaRoomRepository {
     const handle = await this.dbService.getDb()
       .select()
       .from(mediaHandles)
-      .where(eq(mediaHandles.id, id))
+      .where(and(eq(mediaHandles.id, id), eq(mediaHandles.active, true)))
       .limit(1);
     
     const result = handle[0];
@@ -369,7 +379,8 @@ export default class MediaRoomRepository {
       .where(and(
         eq(mediaHandles.userId, userId),
         eq(mediaHandles.sessionId, sessionId),
-        eq(mediaHandles.type, "publisher")
+        eq(mediaHandles.type, "publisher"),
+        eq(mediaHandles.active, true)
       ));
     
     // Parse simulcast resolutions for each handle

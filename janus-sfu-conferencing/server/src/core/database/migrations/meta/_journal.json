@@ -148,6 +148,13 @@
       "when": 1776265705553,
       "tag": "0020_sour_starfox",
       "breakpoints": true
+    },
+    {
+      "idx": 21,
+      "version": "6",
+      "when": 1778004976948,
+      "tag": "0021_simple_red_hulk",
+      "breakpoints": true
     }
   ]
 }

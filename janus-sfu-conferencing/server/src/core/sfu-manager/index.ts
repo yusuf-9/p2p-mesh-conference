@@ -528,6 +528,9 @@ await this.emitSfuEvent(userId, EVENTS.SUBSCRIBED_TO_USER_FEED, {
   public async cleanupUserHandles(userId: string, roomId: string): Promise<void> {
     try {
       await this.runOnlyIfSfuClientIsReady(async () => {
+        const usersInCallBefore = await this.dbService.userRepository.getUsersInCallInRoom(roomId);
+        const isLastUser = usersInCallBefore.length === 1 && usersInCallBefore[0].id === userId;
+
         await this.sfuClients.get("main")?.client.cleanupUserHandles(userId, roomId);
 
         const user = await this.dbService.userRepository.updateUser(userId, {
@@ -538,18 +541,27 @@ await this.emitSfuEvent(userId, EVENTS.SUBSCRIBED_TO_USER_FEED, {
 
         if (!roomMediaSession) {
           console.warn(`No media session found for room ${roomId}`);
+        } else {
+          await this.dbService.mediaRoomRepository.updateMediaHandleActiveStatus(roomMediaSession.id, userId, false);
+          console.log(`🗑️ Marked handles as inactive for user ${userId}`);
         }
 
-        // Delete all handles from database in one batch operation
-        await this.dbService.mediaRoomRepository.deleteMediaHandlesOfUserInSession(roomMediaSession.id, userId);
-        console.log(`🗑️ Deleted handles from database`);
+        if (isLastUser && roomMediaSession) {
+          await this.sfuClients.get("main")?.client.destroySession(roomId, Number(roomMediaSession.sessionId));
 
-        // Broadcast that the user has left the video room to the users in the room
+          const mediaRoom = await this.dbService.mediaRoomRepository.getMediaRoomBySessionId(roomMediaSession.id);
+
+          if (mediaRoom) {
+            await this.dbService.mediaRoomRepository.updateMediaRoomActive(mediaRoom.id, false);
+          }
+
+          console.log(`🗑️ Marked session and room as inactive - last user left`);
+        }
+
         await this.emitToRoom(roomId, EVENTS.USER_LEFT_CALL, {
           userId: user.id,
         }, user.id);
 
-        // Broadcast that the user has left the video room to the users in the call
         await this.emitToRoom(roomId, EVENTS.USER_LEFT_CONFERENCE, {
           userId: user.id,
         }, user.id, true);

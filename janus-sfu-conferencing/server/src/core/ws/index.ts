@@ -763,12 +763,12 @@ export default class SocketServer {
   private async performUserLeave(userId: string, roomId: string): Promise<void> {
     console.log(`🚪 Performing leave room for user ${userId} from room ${roomId}`);
 
+    // Clean up user's SFU handles first (must happen before resetting call state to check last user)
+    await this.sfuManager.cleanupUserHandles(userId, roomId);
+
     // Reset user's call state and mark as disconnected
     await this.dbService.userRepository.resetUserCallState(userId, true);
     this.wsConnections.delete(userId);
-
-    // Clean up user's SFU handles if any
-    await this.sfuManager.cleanupUserHandles(userId, roomId);
 
     // Notify other users
     await this.broadcastToRoom(roomId, EVENTS.USER_DISCONNECTED, userId, userId);

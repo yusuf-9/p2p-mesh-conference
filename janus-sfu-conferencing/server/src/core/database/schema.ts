@@ -79,9 +79,9 @@ export const mediaSessions = pgTable("media_sessions", {
   id: uuid("id").primaryKey().defaultRandom(),
   roomId: uuid("room_id")
     .references(() => rooms.id, { onDelete: "cascade" })
-    .notNull()
-    .unique(), // Make roomId unique to ensure one session per room
+    .notNull(),
   sessionId: varchar("session_id", { length: 255 }).unique().notNull(),
+  active: boolean("active").default(true).notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
@@ -90,8 +90,9 @@ export const mediaRooms = pgTable("media_rooms", {
   sessionId: uuid("session_id")
     .references(() => mediaSessions.id, { onDelete: "cascade" })
     .notNull()
-    .unique(), // Make sessionId unique to ensure one media room per session
+    .unique(),
   sfuRoomId: integer("janus_room_id").unique().notNull(),
+  active: boolean("active").default(true).notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
@@ -108,8 +109,9 @@ export const mediaHandles = pgTable("media_handles", {
   videoEnabled: boolean("video_enabled").default(false).notNull(),
   handRaised: boolean("hand_raised").default(false).notNull(),
   simulcastEnabled: boolean("simulcast_enabled").default(false).notNull(),
-  simulcastResolutions: text("simulcast_resolutions"), // JSON array of resolutions ["h","m","l"] for publishers
-  subscribedResolution: varchar("subscribed_resolution", { length: 1 }), // "h"|"m"|"l" for subscribers
+  simulcastResolutions: text("simulcast_resolutions"),
+  subscribedResolution: varchar("subscribed_resolution", { length: 1 }),
+  active: boolean("active").default(true).notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
@@ -128,10 +130,7 @@ export const pendingTransactions = pgTable("pending_transactions", {
 export const roomsRelations = relations(rooms, ({ one, many }) => ({
   users: many(users),
   messages: many(messages),
-  mediaSession: one(mediaSessions, {
-    fields: [rooms.id],
-    references: [mediaSessions.roomId],
-  }),
+  mediaSessions: many(mediaSessions),
 }));
 
 export const usersRelations = relations(users, ({ one, many }) => ({
