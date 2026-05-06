@@ -149,8 +149,8 @@ export default class SfuManager {
       console.log("unknown transaction", transactionId);
       return;
     }
-    
-    if(transaction.type === "configure_feed_subscription") {
+
+    if (transaction.type === "configure_feed_subscription") {
       console.log("configuring feed subscription")
       return;
     }
@@ -200,11 +200,12 @@ export default class SfuManager {
               joinedEvent.plugindata?.data?.publishers || []
             );
 
-await this.emitSfuEvent(userId, EVENTS.JOINED_CONFERENCE_AS_PUBLISHER, {
+            await this.emitSfuEvent(userId, EVENTS.JOINED_CONFERENCE_AS_PUBLISHER, {
               room: joinedEvent.plugindata.data.room,
               feed: userFeed,
               publishers: standardizedPublishers,
               iceServers: this.getIceConfig(),
+              handleId: mediaHandle.id,
             });
             console.log('📤 Sent JOINED_CONFERENCE_AS_PUBLISHER with iceServers');
 
@@ -230,17 +231,17 @@ await this.emitSfuEvent(userId, EVENTS.JOINED_CONFERENCE_AS_PUBLISHER, {
           console.log("subscriber attached event", eventPayload);
           const subscriberAttachedEvent = eventPayload as VideoroomSubscriberAttachedEvent;
           await this.linkEventToTransaction(subscriberAttachedEvent.transaction, async (userId: string, feedId?: number) => {
-              const subscriberHandle = await this.dbService.mediaRoomRepository.getHandleByFeedId(feedId!, "subscriber");
-              await this.emitSfuEvent(userId, EVENTS.SUBSCRIBED_TO_USER_FEED, {
-                room: subscriberAttachedEvent.plugindata.data.room,
-                handleId: subscriberHandle?.id,
-                streams: subscriberAttachedEvent.plugindata.data.streams,
-                jsep: subscriberAttachedEvent.jsep,
-                iceServers: this.getIceConfig(),
-                feedId: feedId!
-              });
-              console.log('📤 Sent SUBSCRIBED_TO_USER_FEED with iceServers');
+            const subscriberHandle = await this.dbService.mediaRoomRepository.getHandleByFeedId(feedId!, "subscriber");
+            await this.emitSfuEvent(userId, EVENTS.SUBSCRIBED_TO_USER_FEED, {
+              room: subscriberAttachedEvent.plugindata.data.room,
+              handleId: subscriberHandle?.id,
+              streams: subscriberAttachedEvent.plugindata.data.streams,
+              jsep: subscriberAttachedEvent.jsep,
+              iceServers: this.getIceConfig(),
+              feedId: feedId!
             });
+            console.log('📤 Sent SUBSCRIBED_TO_USER_FEED with iceServers');
+          });
           break;
 
         case VideoroomConfiguredEventSchema.safeParse(eventPayload).success:
@@ -350,7 +351,7 @@ await this.emitSfuEvent(userId, EVENTS.JOINED_CONFERENCE_AS_PUBLISHER, {
             }
           );
 
-if (handleThatConnected.type === "publisher") {
+          if (handleThatConnected.type === "publisher") {
             console.log("emitting publisher joined conference");
             this.emitToRoom(user.roomId!, EVENTS.PUBLISHER_JOINED_CONFERENCE, {
               publisher: {

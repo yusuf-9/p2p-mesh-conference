@@ -178,7 +178,7 @@ export const ClientToServerMessageSchemas = {
 INGEST_STATS: z.object({
     type: z.literal(EVENTS.INGEST_STATS),
     data: z.object({
-      handleId: z.string().uuid(),
+      handleId: z.uuid(),
       stats: z.any(),
       type: z.enum(["session_start", "health_metrics", "state_change", "session_end"]),
     }),
@@ -260,6 +260,7 @@ export const ServerToClientMessageSchemas = {
     type: z.literal(EVENTS.JOINED_CONFERENCE_AS_PUBLISHER),
     data: z.object({
       room: z.number(),
+      handleId: z.uuid(),
       feed: StandardizedPublisherSchema,
       publishers: z.array(StandardizedPublisherSchema),
       iceServers: z.object({
@@ -309,7 +310,7 @@ export const ServerToClientMessageSchemas = {
     type: z.literal(EVENTS.SUBSCRIBED_TO_USER_FEED),
     data: z.object({
       room: z.number(),
-      handleId: z.string().uuid().optional(),
+      handleId: z.uuid(),
       streams: z.array(z.object({
         mid: z.string(),
         type: z.enum(["audio", "video", "data"]),

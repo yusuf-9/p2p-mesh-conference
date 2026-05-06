@@ -356,6 +356,12 @@ class RoomManager {
     const feedId = data.feedId;
     const peerData = store.peers.get(`sub-${feedId}`);
 
+    // Store the handleId for stats reporting
+    if (data.handleId && peerData) {
+      peerData.handleId = data.handleId;
+      console.log('📡 Stored subscriber handleId:', data.handleId);
+    }
+
     if (peerData && peerData.peerConnection && data.jsep) {
       // Set remote description from server
       peerData.peerConnection.setRemoteDescription(data.jsep)
@@ -689,13 +695,13 @@ class RoomManager {
     // data: { feedId: number, simulcast: boolean, resolutions: Array<"h"|"m"|"l"> | null }
     const { feedId, simulcast, resolutions } = data;
     const store = useStore.getState();
-    
+
     // Update local feed with new simulcast configuration
     store.updateLocalFeed(feedId, {
       simulcastEnabled: simulcast,
       simulcastResolutions: resolutions
     });
-    
+
     console.log(`🔄 Updated local feed ${feedId} simulcast config:`, { simulcast, resolutions });
   }
 
@@ -703,7 +709,7 @@ class RoomManager {
     console.log("📺 Feed subscription configured:", data);
     // data: { feedId: number, resolution: "h"|"m"|"l" }
     const { feedId, resolution } = data;
-    
+
     // Update subscription state - this could be stored in a separate subscription map
     // For now, we'll just log the confirmation
     console.log(`✅ Subscription to feed ${feedId} configured to resolution: ${resolution}`);
@@ -714,13 +720,13 @@ class RoomManager {
     // data: { feedId: number, userId: string, simulcast: boolean, resolutions: Array<"h"|"m"|"l"> | null }
     const { feedId, userId, simulcast, resolutions } = data;
     const store = useStore.getState();
-    
+
     // Update remote feed with new simulcast configuration
     store.updateRemoteFeed(feedId, {
       simulcastEnabled: simulcast,
       simulcastResolutions: resolutions
     });
-    
+
     console.log(`🔄 Updated remote feed ${feedId} (user: ${userId}) simulcast config:`, { simulcast, resolutions });
   }
 
@@ -922,7 +928,7 @@ class RoomManager {
     store.updateConferenceState({ joinedConference: true });
 
     // Extract feed info from new schema format
-    const { feed, publishers, iceServers } = data;
+    const { feed, publishers, iceServers, handleId } = data;
 
     // Store iceServers for use in peer connections
     if (iceServers) {
@@ -951,7 +957,7 @@ class RoomManager {
       const updatedFeed = {
         ...targetLocalFeed,
         feedId: feedId,
-        id: `local-handle-${feedId}`,
+        id: handleId,
         feedType: feedType,
         audioEnabled: feed.audio,
         videoEnabled: feed.video,
@@ -971,7 +977,7 @@ class RoomManager {
         this.tempScreenStream : this.tempLocalStream;
 
       if (localStream) {
-        this.createPublisherPeerConnection(feedId, localStream);
+        this.createPublisherPeerConnection(feedId, localStream, handleId);
 
         // Clean up the temporary stream reference
         if (feedType === "screenshare") {
@@ -1031,16 +1037,16 @@ class RoomManager {
 
   joinConferenceAsPublisher(options = {}) {
     const { feedType = "camera", audio = true, video = true } = options;
-    
+
     // Always enable simulcast by default with all quality levels
-    const payload = { 
-      feedType, 
-      audio, 
+    const payload = {
+      feedType,
+      audio,
       video,
       simulcast: true,
       resolutions: ["h", "m", "l"]
     };
-    
+
     console.log(`🎥 Joining conference as publisher with simulcast enabled:`, payload);
     return this.sendMessage(EVENTS.JOIN_CONFERENCE_AS_PUBLISHER, payload);
   }
@@ -1112,10 +1118,10 @@ class RoomManager {
   // Simulcast configuration methods
   async configureFeed(feedId, simulcast, resolutions = null) {
     console.log(`⚙️ Configuring feed ${feedId}:`, { simulcast, resolutions });
-    
+
     // Update WebRTC sender parameters for simulcast layers
     await this.updateSimulcastParameters(feedId, resolutions);
-    
+
     // Payload: { feedId: number, simulcast: boolean, resolutions?: Array<"h"|"m"|"l"> }
     const payload = { feedId, simulcast };
     if (resolutions) {
@@ -1143,7 +1149,7 @@ class RoomManager {
   }
 
   // WebRTC Helper Methods
-  createPublisherPeerConnection(feedId, localStream) {
+  createPublisherPeerConnection(feedId, localStream, handleId) {
     if (!localStream) {
       console.error("No local stream available for publisher");
       return;
@@ -1215,6 +1221,52 @@ class RoomManager {
       .catch(error => {
         console.error("Error creating publisher offer:", error);
       });
+
+    peerConnection.oniceconnectionstatechange = async (event) => {
+      if (event.target.iceConnectionState === "connected") {
+        const stats = await peerConnection.getStats();
+        const rawDump = {};
+        stats.forEach((report, id) => { rawDump[id] = report; });
+
+        // send event to ingest_stats
+        this.sendMessage(EVENTS.INGEST_STATS, {
+          handleId: handleId,
+          stats: {
+            timestamp: new Date().toISOString(),
+            rawStatsDump: rawDump,  // full dump, let server extract what it needs
+            device: {
+              userAgent: navigator.userAgent,
+              hardwareConcurrency: navigator.hardwareConcurrency ?? null,
+              deviceMemory: navigator.deviceMemory ?? null,
+              effectiveType: navigator.connection?.effectiveType ?? null,
+            }
+          },
+          type: "session_start",
+        });
+      }
+    };
+
+    peerConnection.onconnectionstatechange = async (event) => {
+      const pc = event.target;
+      const stats = await pc.getStats();
+      const rawDump = {};
+      stats.forEach((report, id) => { rawDump[id] = report; });
+
+
+      // send event to ingest_stats
+      this.sendMessage(EVENTS.INGEST_STATS, {
+        handleId: handleId,
+        stats: {
+          timestamp: new Date().toISOString(),
+          connectionState: pc.connectionState,
+          iceConnectionState: pc.iceConnectionState,
+          iceGatheringState: pc.iceGatheringState,
+          signalingState: pc.signalingState,
+          rawStatsDump: rawDump,
+        },
+        type: "state_change",
+      });
+    };
 
     console.log("📡 Created publisher peer connection for feedId:", feedId);
   }
@@ -1500,16 +1552,67 @@ class RoomManager {
       }
     };
 
-    peerConnection.oniceconnectionstatechange = (event) => {
+    peerConnection.oniceconnectionstatechange = async (event) => {
       console.log(`📡 ICE connection state changed for feedId: ${feedId}`, event);
+
+      if (event.target.iceConnectionState === "connected") {
+        const currentStore = useStore.getState();
+        const currentPeerData = currentStore.peers.get(`sub-${feedId}`);
+        const handleId = currentPeerData?.handleId;
+
+        if (handleId) {
+          const stats = await peerConnection.getStats();
+          const rawDump = {};
+          stats.forEach((report, id) => { rawDump[id] = report; });
+
+          this.sendMessage(EVENTS.INGEST_STATS, {
+            handleId: handleId,
+            stats: {
+              timestamp: new Date().toISOString(),
+              rawStatsDump: rawDump,
+              device: {
+                userAgent: navigator.userAgent,
+                hardwareConcurrency: navigator.hardwareConcurrency ?? null,
+                deviceMemory: navigator.deviceMemory ?? null,
+                effectiveType: navigator.connection?.effectiveType ?? null,
+              }
+            },
+            type: "session_start",
+          });
+        }
+      }
     };
 
     peerConnection.onsignalingstatechange = (event) => {
       console.log(`📡 Signaling state changed for feedId: ${feedId}`, event);
     };
 
-    peerConnection.onconnectionstatechange = (event) => {
+    peerConnection.onconnectionstatechange = async (event) => {
       console.log(`📡 Connection state changed for feedId: ${feedId}`, event);
+
+      const currentStore = useStore.getState();
+      const currentPeerData = currentStore.peers.get(`sub-${feedId}`);
+      const handleId = currentPeerData?.handleId;
+
+      if (handleId) {
+        const pc = event.target;
+        const stats = await pc.getStats();
+        const rawDump = {};
+        stats.forEach((report, id) => { rawDump[id] = report; });
+
+        this.sendMessage(EVENTS.INGEST_STATS, {
+          handleId: handleId,
+          stats: {
+            timestamp: new Date().toISOString(),
+            connectionState: pc.connectionState,
+            iceConnectionState: pc.iceConnectionState,
+            iceGatheringState: pc.iceGatheringState,
+            signalingState: pc.signalingState,
+            rawStatsDump: rawDump,
+          },
+          type: "state_change",
+        });
+      }
     };
 
     // Handle ICE candidates
@@ -1643,14 +1746,14 @@ class RoomManager {
     try {
       const store = useStore.getState();
       const peerData = store.peers.get(feedId);
-      
+
       if (!peerData || !peerData.peerConnection) {
         console.warn(`No peer connection found for feedId: ${feedId}`);
         return;
       }
 
       const senders = peerData.peerConnection.getSenders();
-      const videoSender = senders.find(sender => 
+      const videoSender = senders.find(sender =>
         sender.track && sender.track.kind === 'video'
       );
 
@@ -1667,7 +1770,7 @@ class RoomManager {
 
       // Map resolutions to encoding indices: h=0, m=1, l=2 (high to low)
       const resolutionMap = { 'h': 0, 'm': 1, 'l': 2 };
-      
+
       // Enable/disable encodings based on selected resolutions
       params.encodings.forEach((encoding, index) => {
         const resolution = Object.keys(resolutionMap).find(key => resolutionMap[key] === index);
@@ -1679,10 +1782,10 @@ class RoomManager {
       await videoSender.setParameters(params);
       console.log(`✅ Updated simulcast parameters for feedId ${feedId}:`, {
         resolutions,
-        encodings: params.encodings.map((enc, i) => ({ 
-          index: i, 
-          rid: enc.rid, 
-          active: enc.active 
+        encodings: params.encodings.map((enc, i) => ({
+          index: i,
+          rid: enc.rid,
+          active: enc.active
         }))
       });
 
