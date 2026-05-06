@@ -151,6 +151,7 @@ server {
 
     location = / { return 301 /client/; }
     location /client/ { try_files \$uri \$uri/ /client/index.html; }
+    location /stats/ { try_files \$uri \$uri/ /stats/index.html; }
     location /api/ {
         proxy_pass http://localhost:3000/api/;
         proxy_http_version 1.1;
@@ -173,7 +174,7 @@ echo "=== [9/10] Obtaining SSL certificate ==="
 certbot --nginx -d $DOMAIN --non-interactive --agree-tos --register-unsafely-without-email
 
 # ── Client build (with HTTPS URLs) ───────────────────────────────────────────
-echo "=== [10/10] Building client ==="
+echo "=== [10/10] Building client and stats-client ==="
 cd /app/janus-sfu-conferencing/client
 
 cat > .env.production << ENVEOF
@@ -186,6 +187,20 @@ npm run build
 
 mkdir -p /usr/share/nginx/html/client
 cp -r dist/* /usr/share/nginx/html/client/
+
+# ── Stats client build ─────────────────────────────────────────────────────
+cd /app/janus-sfu-conferencing/stats-client
+
+cat > .env.production << ENVEOF
+VITE_WS_URL=https://$DOMAIN
+VITE_API_URL=https://$DOMAIN/api
+ENVEOF
+
+npm install
+npm run build
+
+mkdir -p /usr/share/nginx/html/stats
+cp -r dist/* /usr/share/nginx/html/stats/
 
 systemctl reload nginx
 
