@@ -1,7 +1,5 @@
 import { memo, useEffect, useRef, useState } from "react";
 import FeedReactions from "./FeedReactions";
-import StreamStats from "./StreamStats";
-import useStore from "../../../../../store";
 
 const VideoFeed = memo(({
   videoEnabled,
@@ -17,7 +15,6 @@ const VideoFeed = memo(({
   onTakeScreenshot = null,
   onModerateFeed = null,
   // Simulcast props
-  simulcastEnabled = false,
   simulcastResolutions = [],
   subscribedResolution = null,
   onConfigureFeed = null,
@@ -25,14 +22,6 @@ const VideoFeed = memo(({
 }) => {
   const videoRef = useRef(null);
   const [dropdownOpen, setDropdownOpen] = useState(false);
-  
-  // Stats management
-  const statsVisibility = useStore((state) => state.statsVisibility);
-  const streamStats = useStore((state) => state.streamStats);
-  const statsHistory = useStore((state) => state.statsHistory);
-  const toggleStatsVisibility = useStore((state) => state.toggleStatsVisibility);
-  const setStatsVisibility = useStore((state) => state.setStatsVisibility);
-  const loadStatsVisibilityFromStorage = useStore((state) => state.loadStatsVisibilityFromStorage);
   
   // Simulcast configuration state
   const [showSimulcastConfig, setShowSimulcastConfig] = useState(false);
@@ -62,16 +51,6 @@ const VideoFeed = memo(({
     setTempSubscriptionResolution(subscribedResolution || 'h');
   }, [simulcastResolutions, subscribedResolution]);
 
-  // Load stats visibility from storage on mount, default to visible
-  // useEffect(() => {
-  //   if (feedId) {
-  //     const stored = loadStatsVisibilityFromStorage(feedId);
-  //     // If no stored preference exists, default to visible
-  //     if (stored === null) {
-  //       setStatsVisibility(feedId, true);
-  //     }
-  //   }
-  // }, [feedId]); // Temporarily disabled
 
   // Simulcast configuration handlers
   const handleResolutionToggle = (resolution) => {
@@ -240,27 +219,6 @@ const VideoFeed = memo(({
                   </button>
                 )}
 
-                {/* Statistics Toggle */}
-                {feedId && (
-                  <>
-                    {(onTakeScreenshot || (isHost && onModerateFeed)) && (
-                      <div className="h-px bg-slate-600 my-2"></div>
-                    )}
-                    <button
-                      onClick={() => {
-                        toggleStatsVisibility(feedId);
-                        setDropdownOpen(false);
-                      }}
-                      className="w-full px-4 py-2 text-left text-white hover:bg-slate-700 transition-colors text-sm flex items-center gap-2"
-                    >
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-                      </svg>
-                      {statsVisibility.get(feedId) ? 'Hide Statistics' : 'Show Statistics'}
-                    </button>
-                  </>
-                )}
-                
                 {/* Simulcast Options */}
                 {feedId && (isLocal ? onConfigureFeed : onConfigureFeedSubscription) && (
                   <>
@@ -389,17 +347,6 @@ const VideoFeed = memo(({
 
       {/* Reactions for this feed */}
       <FeedReactions feedId={feedId} />
-
-      {/* Stream Statistics Overlay — hidden by default, toggled via 3-dot menu */}
-      {feedId && statsVisibility.get(feedId) && (
-        <StreamStats
-          feedId={feedId}
-          stats={streamStats.get(feedId)}
-          statsHistory={statsHistory.get(feedId) || []}
-          isLocal={isLocal}
-          className="absolute top-3 left-3 z-10"
-        />
-      )}
     </div>
   )
 });

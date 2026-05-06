@@ -1,6 +1,5 @@
 import { EVENTS } from '../constants';
 import useStore from '../../../store';
-import { PeerMetrics } from '@peermetrics/sdk';
 
 class RoomManager {
   constructor() {
@@ -20,32 +19,9 @@ class RoomManager {
     this.videoTransceiver = null; // Store reference to video transceiver for simulcast control
     this.simulcastDebugMode = false; // Enable/disable detailed simulcast logging
 
-    this.peerMetrics = null;
-    this.peerMetricsReady = null;
     this.forceRelayIce = window.location.search.includes('forceRelayIce');
     console.log('🔌 Relay ICE:', this.forceRelayIce);
     this.iceServers = null;
-  }
-
-  async initializePeerMetrics(userId, conferenceId) {
-    if (this.peerMetrics) return;
-    this.peerMetrics = new PeerMetrics({
-      apiKey: import.meta.env.VITE_PEERMETRICS_API_KEY,
-      userId: String(userId),
-      conferenceId: String(conferenceId),
-      apiRoot: import.meta.env.VITE_PEERMETRICS_API_ROOT || 'http://localhost:8081/v1',
-    });
-    this.peerMetricsReady = this.peerMetrics.initialize();
-    return this.peerMetricsReady;
-  }
-
-  async _addPeerMetricsConnection(pc, peerId) {
-    try {
-      await this.peerMetricsReady;
-      await this.peerMetrics?.addConnection({ pc, peerId });
-    } catch (e) {
-      console.warn('[peermetrics] addConnection failed:', e);
-    }
   }
 
   async connectToWebSocket(userToken) {
@@ -503,9 +479,6 @@ class RoomManager {
 
     const store = useStore.getState();
 
-    this.peerMetrics?.endCall();
-    this.peerMetrics = null;
-    this.peerMetricsReady = null;
 
     // Clean up simulcast monitoring
     this.cleanupSimulcastMonitoring();
@@ -944,7 +917,6 @@ class RoomManager {
     console.log("🎥 Joined conference as publisher:", data);
 
     const store = useStore.getState();
-    this.initializePeerMetrics(store.user?.id, store.room?.id);
 
     // Set joinedConference to true
     store.updateConferenceState({ joinedConference: true });
@@ -1244,7 +1216,6 @@ class RoomManager {
         console.error("Error creating publisher offer:", error);
       });
 
-    this._addPeerMetricsConnection(peerConnection, `pub-${feedId}`);
     console.log("📡 Created publisher peer connection for feedId:", feedId);
   }
 
@@ -1458,378 +1429,6 @@ class RoomManager {
     }
   }
 
-  // Get simulcast statistics
-  async getSimulcastStats(feedId) {
-    const store = useStore.getState();
-    const peerData = store.peers.get(feedId);
-
-    if (!peerData || !peerData.peerConnection) {
-      return null;
-    }
-
-    try {
-      const senders = peerData.peerConnection.getSenders();
-      const videoSender = senders.find(sender =>
-        sender.track && sender.track.kind === 'video'
-      );
-
-      if (!videoSender) {
-        return null;
-      }
-
-      const stats = await peerData.peerConnection.getStats(videoSender);
-      const encodingStats = [];
-
-      stats.forEach(stat => {
-        if (stat.type === 'outbound-rtp' && stat.kind === 'video') {
-          encodingStats.push({
-            rid: stat.rid || 'unknown',
-            bytesSent: stat.bytesSent || 0,
-            packetsSent: stat.packetsSent || 0,
-            frameWidth: stat.frameWidth || 0,
-            frameHeight: stat.frameHeight || 0,
-            framesPerSecond: stat.framesPerSecond || 0,
-            targetBitrate: stat.targetBitrate || 0,
-            active: true
-          });
-        }
-      });
-
-      return encodingStats;
-    } catch (error) {
-      console.error('Error getting simulcast stats:', error);
-      return null;
-    }
-  }
-
-  // Get comprehensive WebRTC statistics for any feed (local or remote)
-  async getComprehensiveStats(feedId, isLocal = false) {
-    const store = useStore.getState();
-    const peerKey = isLocal ? feedId : `sub-${feedId}`;
-    const peerData = store.peers.get(peerKey);
-
-    if (!peerData || !peerData.peerConnection) {
-      return null;
-    }
-
-    try {
-      const stats = await peerData.peerConnection.getStats();
-      const result = {
-        feedId,
-        isLocal,
-        timestamp: Date.now(),
-        video: null,
-        audio: null,
-        simulcastLayers: [] // Array of individual layer stats
-      };
-
-      let lastBytesSent = 0;
-      let lastBytesReceived = 0;
-      let lastPacketsSent = 0;
-      let lastPacketsReceived = 0;
-
-      stats.forEach(stat => {
-        // Video statistics
-        if (stat.kind === 'video') {
-          if (isLocal && stat.type === 'outbound-rtp') {
-            // OUTBOUND (Publisher) METRICS - Individual simulcast layers
-            const layerStats = {
-              rid: stat.rid || 'main',
-              // Raw counters for bitrate calculation
-              bytesSent: stat.bytesSent || 0,
-              packetsSent: stat.packetsSent || 0,
-              framesEncoded: stat.framesEncoded || 0,
-              framesSent: stat.framesSent || 0,
-              
-              // Basic video info
-              frameWidth: stat.frameWidth || 0,
-              frameHeight: stat.frameHeight || 0,
-              targetBitrate: stat.targetBitrate || 0,
-              
-              // CRITICAL: Quality limitation (why quality dropped)
-              qualityLimitationReason: stat.qualityLimitationReason || 'none',
-              
-              // CRITICAL: Retransmissions (network issues)
-              retransmittedPacketsSent: stat.retransmittedPacketsSent || 0,
-              
-              // CRITICAL: Encoder performance
-              totalEncodeTime: stat.totalEncodeTime || 0,
-              
-              // Other outbound metrics
-              encoderImplementation: stat.encoderImplementation || 'Unknown',
-              codecName: this.extractCodecName(stat),
-              active: stat.active !== false,
-              
-              // NOTE: Sender doesn't know packet loss - estimated from remote-inbound-rtp
-              estimatedPacketsLost: 0 // Will be filled from remote-inbound-rtp if available
-            };
-            
-            result.simulcastLayers.push(layerStats);
-            
-            // Aggregate stats for backward compatibility
-            if (!result.video) {
-              result.video = { ...layerStats };
-            } else {
-              // Aggregate multiple layers
-              result.video.bytesSent = (result.video.bytesSent || 0) + layerStats.bytesSent;
-              result.video.packetsSent = (result.video.packetsSent || 0) + layerStats.packetsSent;
-              result.video.framesEncoded = (result.video.framesEncoded || 0) + layerStats.framesEncoded;
-              result.video.framesSent = (result.video.framesSent || 0) + layerStats.framesSent;
-              result.video.totalEncodeTime = (result.video.totalEncodeTime || 0) + layerStats.totalEncodeTime;
-              result.video.retransmittedPacketsSent = (result.video.retransmittedPacketsSent || 0) + layerStats.retransmittedPacketsSent;
-              
-              // Use highest resolution layer for dimensions
-              if (layerStats.frameWidth > (result.video.frameWidth || 0)) {
-                result.video.frameWidth = layerStats.frameWidth;
-                result.video.frameHeight = layerStats.frameHeight;
-              }
-            }
-            
-            lastBytesSent += layerStats.bytesSent;
-            lastPacketsSent += layerStats.packetsSent;
-            
-          } else if (!isLocal && stat.type === 'inbound-rtp') {
-            // INBOUND (Subscriber) METRICS
-            result.video = {
-              ...result.video,
-              // Raw counters for bitrate calculation
-              bytesReceived: stat.bytesReceived || 0,
-              packetsReceived: stat.packetsReceived || 0,
-              packetsLost: stat.packetsLost || 0,
-              
-              // Frame metrics
-              framesDecoded: stat.framesDecoded || 0,
-              framesDropped: stat.framesDropped || 0,
-              framesReceived: stat.framesReceived || 0,
-              frameWidth: stat.frameWidth || 0,
-              frameHeight: stat.frameHeight || 0,
-              
-              // CRITICAL: Decode performance
-              totalDecodeTime: stat.totalDecodeTime || 0,
-              
-              // CRITICAL: Freeze metrics (direct UX impact)
-              freezeCount: stat.freezeCount || 0,
-              totalFreezesDuration: stat.totalFreezesDuration || 0,
-              
-              // CRITICAL: Jitter buffer (buffering due to network)
-              jitterBufferDelay: stat.jitterBufferDelay || 0,
-              jitterBufferEmittedCount: stat.jitterBufferEmittedCount || 0,
-              
-              // Network quality
-              jitter: stat.jitter ? stat.jitter * 1000 : 0, // Convert to ms
-              
-              // Other inbound metrics  
-              decoderImplementation: stat.decoderImplementation || 'Unknown',
-              codecName: this.extractCodecName(stat)
-            };
-            
-            lastBytesReceived = stat.bytesReceived || 0;
-            lastPacketsReceived = stat.packetsReceived || 0;
-            
-          } else if (isLocal && stat.type === 'remote-inbound-rtp') {
-            // REMOTE INBOUND RTP - This gives us the REAL packet loss from receiver perspective
-            // Find matching layer and update packet loss
-            const matchingLayer = result.simulcastLayers.find(layer => layer.rid === stat.rid);
-            if (matchingLayer) {
-              matchingLayer.estimatedPacketsLost = stat.packetsLost || 0;
-              matchingLayer.roundTripTime = stat.roundTripTime ? stat.roundTripTime * 1000 : 0; // Convert to ms
-            }
-            
-            // Also update aggregate video stats
-            if (result.video) {
-              result.video.remotePacketsLost = (result.video.remotePacketsLost || 0) + (stat.packetsLost || 0);
-              result.video.remoteRoundTripTime = stat.roundTripTime ? stat.roundTripTime * 1000 : 0;
-            }
-          }
-        }
-
-        // Audio statistics  
-        if (stat.kind === 'audio') {
-          if (isLocal && stat.type === 'outbound-rtp') {
-            // Local audio sender stats
-            result.audio = {
-              bytesSent: stat.bytesSent || 0,
-              packetsSent: stat.packetsSent || 0,
-              packetsLost: stat.packetsLost || 0,
-              codecName: this.extractCodecName(stat),
-              retransmittedPacketsSent: stat.retransmittedPacketsSent || 0
-            };
-          } else if (!isLocal && stat.type === 'inbound-rtp') {
-            // Remote audio receiver stats
-            result.audio = {
-              bytesReceived: stat.bytesReceived || 0,
-              packetsReceived: stat.packetsReceived || 0,
-              packetsLost: stat.packetsLost || 0,
-              codecName: this.extractCodecName(stat),
-              jitter: stat.jitter ? stat.jitter * 1000 : 0, // Convert to ms
-              audioLevel: stat.audioLevel || 0
-            };
-          }
-        }
-
-        // Connection statistics - CRITICAL for network analysis
-        if (stat.type === 'candidate-pair' && stat.state === 'succeeded') {
-          const rtt = stat.currentRoundTripTime;
-          if (rtt !== undefined) {
-            result.connectionStats = {
-              // CRITICAL: RTT from active candidate pair
-              roundTripTime: rtt * 1000, // Convert to ms
-              availableOutgoingBitrate: stat.availableOutgoingBitrate || 0,
-              availableIncomingBitrate: stat.availableIncomingBitrate || 0,
-              
-              // Additional connection quality metrics
-              totalRoundTripTime: stat.totalRoundTripTime ? stat.totalRoundTripTime * 1000 : 0,
-              currentRoundTripTime: rtt * 1000,
-              
-              // Bytes sent/received at transport level
-              bytesSent: stat.bytesSent || 0,
-              bytesReceived: stat.bytesReceived || 0,
-              
-              // Connection type info
-              localCandidateType: stat.localCandidateType || 'unknown',
-              remoteCandidateType: stat.remoteCandidateType || 'unknown',
-              
-              // Nomination state
-              nominated: stat.nominated || false,
-              state: stat.state
-            };
-          }
-        }
-      });
-
-      // CALCULATE DERIVED METRICS using correct formulas
-      if (result.video) {
-        const prevStats = this.previousStats?.get(feedId);
-        const timeDiffSeconds = prevStats && prevStats.timestamp ? 
-          (result.timestamp - prevStats.timestamp) / 1000 : 0;
-
-        if (timeDiffSeconds > 0 && prevStats) {
-          if (isLocal) {
-            // OUTBOUND BITRATE CALCULATION
-            // Formula: bitrate (bps) = (bytesSent_now - bytesSent_prev) * 8 / time_diff
-            const bytesDiff = lastBytesSent - (prevStats.bytesSent || 0);
-            result.video.bitrate = Math.round((bytesDiff * 8) / timeDiffSeconds);
-
-            // OUTBOUND FPS CALCULATION  
-            // Formula: fps = (framesEncoded_now - framesEncoded_prev) / time_diff
-            const framesDiff = (result.video.framesEncoded || 0) - (prevStats.framesEncoded || 0);
-            result.video.fps = Math.round(framesDiff / timeDiffSeconds);
-
-            // CALCULATE INDIVIDUAL SIMULCAST LAYER METRICS
-            if (result.simulcastLayers.length > 0 && prevStats.layerStats) {
-              result.simulcastLayers.forEach(layer => {
-                const prevLayer = prevStats.layerStats.find(l => l.rid === layer.rid);
-                if (prevLayer) {
-                  // Layer bitrate: (bytesSent_now - bytesSent_prev) * 8 / time_diff
-                  const layerBytesDiff = layer.bytesSent - prevLayer.bytesSent;
-                  layer.bitrate = Math.round((layerBytesDiff * 8) / timeDiffSeconds);
-
-                  // Layer FPS: (framesEncoded_now - framesEncoded_prev) / time_diff
-                  const layerFramesDiff = layer.framesEncoded - prevLayer.framesEncoded;
-                  layer.fps = Math.round(layerFramesDiff / timeDiffSeconds);
-
-                  // CORRECT Packet Loss: use remote-inbound-rtp data if available
-                  if (layer.estimatedPacketsLost > 0) {
-                    const totalPacketsAtReceiver = layer.packetsSent + layer.estimatedPacketsLost;
-                    layer.packetLossPercentage = (layer.estimatedPacketsLost / totalPacketsAtReceiver) * 100;
-                  } else {
-                    layer.packetLossPercentage = 0;
-                  }
-
-                  // Retransmission rate: retransmitted / total_sent
-                  layer.retransmissionRate = layer.packetsSent > 0 ? 
-                    (layer.retransmittedPacketsSent / layer.packetsSent) * 100 : 0;
-
-                  // Average encode time per frame
-                  layer.avgEncodeTime = layer.framesEncoded > 0 ? 
-                    layer.totalEncodeTime / layer.framesEncoded : 0;
-                  
-                } else {
-                  // First measurement - no previous data
-                  layer.bitrate = 0;
-                  layer.fps = 0;
-                  layer.packetLossPercentage = 0;
-                  layer.retransmissionRate = 0;
-                  layer.avgEncodeTime = 0;
-                }
-              });
-            }
-
-          } else {
-            // INBOUND BITRATE CALCULATION
-            // Formula: bitrate (bps) = (bytesReceived_now - bytesReceived_prev) * 8 / time_diff
-            const bytesDiff = lastBytesReceived - (prevStats.bytesReceived || 0);
-            result.video.bitrate = Math.round((bytesDiff * 8) / timeDiffSeconds);
-
-            // INBOUND FPS CALCULATION
-            // Formula: fps = (framesDecoded_now - framesDecoded_prev) / time_diff
-            const framesDiff = (result.video.framesDecoded || 0) - (prevStats.framesDecoded || 0);
-            result.video.fps = Math.round(framesDiff / timeDiffSeconds);
-
-            // CORRECT Packet Loss Calculation for inbound
-            // Formula: packet_loss_% = packetsLost / (packetsLost + packetsReceived) * 100
-            const totalPackets = result.video.packetsLost + result.video.packetsReceived;
-            result.video.packetLossPercentage = totalPackets > 0 ? 
-              (result.video.packetsLost / totalPackets) * 100 : 0;
-
-            // Frame drop rate: framesDropped / framesReceived
-            result.video.frameDropRate = result.video.framesReceived > 0 ? 
-              (result.video.framesDropped / result.video.framesReceived) * 100 : 0;
-
-            // Average decode time per frame
-            result.video.avgDecodeTime = result.video.framesDecoded > 0 ? 
-              result.video.totalDecodeTime / result.video.framesDecoded : 0;
-
-            // Average jitter buffer delay
-            result.video.avgJitterBuffer = result.video.jitterBufferEmittedCount > 0 ? 
-              result.video.jitterBufferDelay / result.video.jitterBufferEmittedCount : 0;
-          }
-
-        } else {
-          // First measurement - no time diff available
-          result.video.bitrate = 0;
-          result.video.fps = 0;
-          result.video.packetLossPercentage = 0;
-          
-          if (isLocal) {
-            result.simulcastLayers.forEach(layer => {
-              layer.bitrate = 0;
-              layer.fps = 0;
-              layer.packetLossPercentage = 0;
-              layer.retransmissionRate = 0;
-              layer.avgEncodeTime = 0;
-            });
-          } else {
-            result.video.frameDropRate = 0;
-            result.video.avgDecodeTime = 0;
-            result.video.avgJitterBuffer = 0;
-          }
-        }
-
-        // Store current stats for next calculation
-        if (!this.previousStats) this.previousStats = new Map();
-        this.previousStats.set(feedId, {
-          timestamp: result.timestamp,
-          bytesSent: isLocal ? lastBytesSent : 0,
-          bytesReceived: !isLocal ? lastBytesReceived : 0,
-          framesEncoded: isLocal ? (result.video.framesEncoded || 0) : 0,
-          framesDecoded: !isLocal ? (result.video.framesDecoded || 0) : 0,
-          layerStats: isLocal ? result.simulcastLayers.map(l => ({
-            rid: l.rid,
-            bytesSent: l.bytesSent,
-            packetsSent: l.packetsSent,
-            framesEncoded: l.framesEncoded
-          })) : null
-        });
-      }
-
-      return result;
-    } catch (error) {
-      console.error('Error getting comprehensive stats:', error);
-      return null;
-    }
-  }
-
   // Helper method to extract codec name from stats
   extractCodecName(stat) {
     if (stat.mimeType) {
@@ -1837,84 +1436,6 @@ class RoomManager {
       return parts[1] ? parts[1].toUpperCase() : 'Unknown';
     }
     return 'Unknown';
-  }
-
-  // Start monitoring stats for a specific feed
-  startStatsMonitoring(feedId, isLocal = false, interval = 2000) {
-    if (!this.statsMonitors) {
-      this.statsMonitors = new Map();
-    }
-
-    // Don't start if already monitoring
-    if (this.statsMonitors.has(feedId)) {
-      return;
-    }
-
-    // Verify the peer connection exists before starting monitoring
-    const store = useStore.getState();
-    const peerKey = isLocal ? feedId : `sub-${feedId}`;
-    const peerData = store.peers.get(peerKey);
-
-    if (!peerData || !peerData.peerConnection) {
-      console.warn(`Cannot start stats monitoring: no peer connection for feedId ${feedId}`);
-      return;
-    }
-
-    const monitor = setInterval(async () => {
-      try {
-        const stats = await this.getComprehensiveStats(feedId, isLocal);
-        if (stats) {
-          // Update store with new stats
-          const store = useStore.getState();
-          store.updateStreamStats(feedId, stats);
-          store.addStatsDataPoint(feedId, stats);
-        }
-      } catch (error) {
-        console.error(`Error monitoring stats for feedId ${feedId}:`, error);
-      }
-    }, interval);
-
-    this.statsMonitors.set(feedId, {
-      intervalId: monitor,
-      isLocal,
-      interval
-    });
-
-    console.log(`📊 Started stats monitoring for feedId: ${feedId} (${isLocal ? 'local' : 'remote'})`);
-  }
-
-  // Stop monitoring stats for a specific feed
-  stopStatsMonitoring(feedId) {
-    if (!this.statsMonitors || !this.statsMonitors.has(feedId)) {
-      return false;
-    }
-
-    const monitor = this.statsMonitors.get(feedId);
-    clearInterval(monitor.intervalId);
-    this.statsMonitors.delete(feedId);
-
-    // Clean up previous stats
-    if (this.previousStats) {
-      this.previousStats.delete(feedId);
-    }
-
-    console.log(`🛑 Stopped stats monitoring for feedId: ${feedId}`);
-    return true;
-  }
-
-  // Stop all stats monitoring
-  stopAllStatsMonitoring() {
-    if (this.statsMonitors) {
-      this.statsMonitors.forEach((monitor, feedId) => {
-        clearInterval(monitor.intervalId);
-        console.log(`🛑 Stopped stats monitoring for feedId: ${feedId}`);
-      });
-      this.statsMonitors.clear();
-    }
-
-    if (this.previousStats) {
-      this.previousStats.clear();
-    }
   }
 
   // Helper method to get current simulcast configuration
@@ -2022,7 +1543,6 @@ class RoomManager {
       }
     };
 
-    this._addPeerMetricsConnection(peerConnection, `sub-${feedId}`);
     console.log("📡 Created subscriber peer connection for feedId:", feedId);
     return peerConnection;
   }
@@ -2095,40 +1615,6 @@ class RoomManager {
     }
   }
 
-  // Monitor simulcast performance
-  async monitorSimulcastPerformance(feedId, intervalMs = 5000) {
-    const monitorInterval = setInterval(async () => {
-      const stats = await this.getSimulcastStats(feedId);
-      if (stats && stats.length > 0) {
-        console.log(`📊 Simulcast stats for feedId ${feedId}:`, stats);
-
-        // Check for potential issues
-        const activeEncodings = stats.filter(s => s.active);
-        if (activeEncodings.length === 0) {
-          console.warn('⚠️ No active simulcast encodings detected');
-        }
-
-        // Check bitrates
-        activeEncodings.forEach(encoding => {
-          if (encoding.targetBitrate === 0) {
-            console.warn(`⚠️ Zero bitrate detected for ${encoding.rid} layer`);
-          }
-        });
-      } else {
-        // Feed might have been removed, stop monitoring
-        clearInterval(monitorInterval);
-        console.log(`📊 Stopped monitoring simulcast for feedId ${feedId}`);
-      }
-    }, intervalMs);
-
-    // Store interval reference for cleanup
-    if (!this.simulcastMonitors) {
-      this.simulcastMonitors = new Map();
-    }
-    this.simulcastMonitors.set(feedId, monitorInterval);
-
-    return monitorInterval;
-  }
 
   // Stop monitoring simulcast for a specific feed
   stopSimulcastMonitoring(feedId) {
@@ -2347,12 +1833,6 @@ class RoomManager {
       }
 
       console.log("✅ Successfully left room");
-
-      // Clean up simulcast monitoring
-      this.cleanupSimulcastMonitoring();
-
-      // Clean up stats monitoring
-      this.stopAllStatsMonitoring();
 
       // Close WebSocket connection
       if (this.webSocket) {

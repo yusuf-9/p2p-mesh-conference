@@ -52,12 +52,7 @@ const useStore = create((set, get) => ({
   // Notifications
   notifications: [], // Array of { id, type, title, message, timestamp }
   
-  // Stream Statistics
-  streamStats: new Map(), // feedId -> current stats object
-  statsHistory: new Map(), // feedId -> array of historical stats
-  statsVisibility: new Map(), // feedId -> boolean (show/hide stats)
-  
-  // Actions for room
+  // Actioons for room
   setRoom: (room) => set({ room }),
   
   // Actions for user
@@ -220,120 +215,6 @@ const useStore = create((set, get) => ({
   removeNotification: (notificationId) => set((state) => ({
     notifications: state.notifications.filter(n => n.id !== notificationId)
   })),
-  
-  // Actions for stream statistics
-  updateStreamStats: (feedId, stats) => set((state) => {
-    const newStreamStats = new Map(state.streamStats);
-    newStreamStats.set(feedId, stats);
-    return { streamStats: newStreamStats };
-  }),
-  
-  addStatsDataPoint: (feedId, stats) => set((state) => {
-    const newStatsHistory = new Map(state.statsHistory);
-    const history = newStatsHistory.get(feedId) || [];
-    const maxHistoryPoints = 30; // Keep last 30 data points
-    
-    // Add new data point and limit history
-    const updatedHistory = [...history, {
-      timestamp: stats.timestamp,
-      bitrate: stats.video?.bitrate || 0,
-      framesPerSecond: stats.video?.framesPerSecond || 0,
-      packetLossPercentage: stats.video?.packetLossPercentage || 0,
-      jitter: stats.video?.jitter || stats.connectionStats?.roundTripTime || 0,
-      frameWidth: stats.video?.frameWidth || 0,
-      frameHeight: stats.video?.frameHeight || 0
-    }].slice(-maxHistoryPoints);
-    
-    newStatsHistory.set(feedId, updatedHistory);
-    return { statsHistory: newStatsHistory };
-  }),
-  
-  toggleStatsVisibility: (feedId) => set((state) => {
-    const newStatsVisibility = new Map(state.statsVisibility);
-    const currentVisibility = newStatsVisibility.get(feedId) || false;
-    newStatsVisibility.set(feedId, !currentVisibility);
-    
-    // Store in localStorage for persistence
-    try {
-      localStorage.setItem(`stats-visibility-${feedId}`, JSON.stringify(!currentVisibility));
-    } catch (error) {
-      console.warn('Failed to save stats visibility to localStorage:', error);
-    }
-    
-    return { statsVisibility: newStatsVisibility };
-  }),
-  
-  setStatsVisibility: (feedId, visible) => set((state) => {
-    const newStatsVisibility = new Map(state.statsVisibility);
-    newStatsVisibility.set(feedId, visible);
-    
-    // Store in localStorage for persistence
-    try {
-      localStorage.setItem(`stats-visibility-${feedId}`, JSON.stringify(visible));
-    } catch (error) {
-      console.warn('Failed to save stats visibility to localStorage:', error);
-    }
-    
-    return { statsVisibility: newStatsVisibility };
-  }),
-  
-  loadStatsVisibilityFromStorage: (feedId) => {
-    try {
-      const saved = localStorage.getItem(`stats-visibility-${feedId}`);
-      if (saved !== null) {
-        const visibility = JSON.parse(saved);
-        set((state) => {
-          const newStatsVisibility = new Map(state.statsVisibility);
-          newStatsVisibility.set(feedId, visibility);
-          return { statsVisibility: newStatsVisibility };
-        });
-        return visibility;
-      }
-    } catch (error) {
-      console.warn('Failed to load stats visibility from localStorage:', error);
-    }
-    return null;
-  },
-  
-  clearStreamStats: (feedId) => set((state) => {
-    const newStreamStats = new Map(state.streamStats);
-    const newStatsHistory = new Map(state.statsHistory);
-    const newStatsVisibility = new Map(state.statsVisibility);
-    
-    newStreamStats.delete(feedId);
-    newStatsHistory.delete(feedId);
-    newStatsVisibility.delete(feedId);
-    
-    // Clean up localStorage
-    try {
-      localStorage.removeItem(`stats-visibility-${feedId}`);
-    } catch (error) {
-      console.warn('Failed to remove stats visibility from localStorage:', error);
-    }
-    
-    return { 
-      streamStats: newStreamStats, 
-      statsHistory: newStatsHistory,
-      statsVisibility: newStatsVisibility
-    };
-  }),
-  
-  clearAllStreamStats: () => set((state) => {
-    // Clean up localStorage for all feed stats
-    state.statsVisibility.forEach((_, feedId) => {
-      try {
-        localStorage.removeItem(`stats-visibility-${feedId}`);
-      } catch (error) {
-        console.warn('Failed to remove stats visibility from localStorage:', error);
-      }
-    });
-    
-    return { 
-      streamStats: new Map(), 
-      statsHistory: new Map(),
-      statsVisibility: new Map()
-    };
-  }),
   
   // Reset store
   resetStore: () => set({

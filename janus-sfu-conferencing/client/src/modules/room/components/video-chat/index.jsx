@@ -305,38 +305,6 @@ export function VideoChat({ joinCallAutomatically = false }) {
     }
   }, [joinCallAutomatically, conferenceState.step, updateConferenceState]);
 
-  // Automatic stats monitoring lifecycle - with delay to avoid connection issues
-  useEffect(() => {
-    if (!roomManager || conferenceState.step !== "joined") return;
-
-    const startMonitoringTimer = setTimeout(() => {
-      // Start monitoring for local feeds
-      localFeeds.forEach(feed => {
-        if (feed.feedId && feed.stream) {
-          roomManager.startStatsMonitoring(feed.feedId, true);
-        }
-      });
-
-      // Start monitoring for remote feeds
-      remoteFeeds.forEach(feed => {
-        if (feed.feedId && feed.stream) {
-          roomManager.startStatsMonitoring(feed.feedId, false);
-        }
-      });
-    }, 3000); // Wait 3 seconds after joining before starting stats
-
-    return () => {
-      clearTimeout(startMonitoringTimer);
-    };
-  }, [localFeeds, remoteFeeds, roomManager, conferenceState.step]);
-
-  // Stop all stats monitoring when leaving conference
-  useEffect(() => {
-    if (conferenceState.step === "pending" && roomManager) {
-      roomManager.stopAllStatsMonitoring();
-    }
-  }, [conferenceState.step, roomManager]);
-
   // Render based on conference state
   if (conferenceState.step === "pending") {
     return (

@@ -25,6 +25,7 @@ export const RTCIceCandidateSchema = z.any();
 // Standardized Publisher schema (matches StandardizedPublisher from database/types.ts)
 export const StandardizedPublisherSchema = z.object({
   id: z.number(),
+  handleId: z.string().uuid().optional(),
   feedType: z.enum(["camera", "screenshare"]),
   userId: z.string(),
   audio: z.boolean(),
@@ -173,6 +174,15 @@ export const ClientToServerMessageSchemas = {
       resolution: z.enum(["h", "m", "l"]),
     }),
   }),
+
+INGEST_STATS: z.object({
+    type: z.literal(EVENTS.INGEST_STATS),
+    data: z.object({
+      handleId: z.string().uuid(),
+      stats: z.any(),
+      type: z.enum(["session_start", "health_metrics", "state_change", "session_end"]),
+    }),
+  }),
 } as const;
 
 // Union type for all Client-to-Server messages
@@ -197,6 +207,7 @@ export const ClientToServerMessageSchema = z.discriminatedUnion("type", [
   ClientToServerMessageSchemas.MODERATE_FEED,
   ClientToServerMessageSchemas.CONFIGURE_FEED,
   ClientToServerMessageSchemas.CONFIGURE_FEED_SUBSCRIPTION,
+  ClientToServerMessageSchemas.INGEST_STATS,
 ]);
 
 // Server-to-Client message schemas
@@ -298,6 +309,7 @@ export const ServerToClientMessageSchemas = {
     type: z.literal(EVENTS.SUBSCRIBED_TO_USER_FEED),
     data: z.object({
       room: z.number(),
+      handleId: z.string().uuid().optional(),
       streams: z.array(z.object({
         mid: z.string(),
         type: z.enum(["audio", "video", "data"]),
@@ -593,6 +605,7 @@ export type ClientToServerMessages = {
   [EVENTS.MODERATE_FEED]: z.infer<typeof ClientToServerMessageSchemas.MODERATE_FEED>;
   [EVENTS.CONFIGURE_FEED]: z.infer<typeof ClientToServerMessageSchemas.CONFIGURE_FEED>;
   [EVENTS.CONFIGURE_FEED_SUBSCRIPTION]: z.infer<typeof ClientToServerMessageSchemas.CONFIGURE_FEED_SUBSCRIPTION>;
+  [EVENTS.INGEST_STATS]: z.infer<typeof ClientToServerMessageSchemas.INGEST_STATS>;
 };
 
 // Individual server message types - using actual event constants as keys
