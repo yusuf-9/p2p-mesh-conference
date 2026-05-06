@@ -256,6 +256,40 @@ body {
   margin-top: 12px;
 }
 
+.layer-selector {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 12px;
+  align-items: center;
+}
+
+.layer-selector span {
+  font-size: 13px;
+  font-weight: 600;
+  color: #666;
+}
+
+.layer-btn {
+  padding: 4px 12px;
+  border: 1px solid #ddd;
+  background: white;
+  border-radius: 3px;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: capitalize;
+}
+
+.layer-btn:hover {
+  background: #f5f5f5;
+}
+
+.layer-btn.active {
+  background: #007bff;
+  color: white;
+  border-color: #0056b3;
+}
+
 /* State Change Log */
 .state-change-log {
   margin-top: 12px;
@@ -315,6 +349,194 @@ body {
   color: #999;
   font-style: italic;
   padding: 8px 0;
+}
+
+/* Health Metrics Component */
+.health-metrics {
+  margin-top: 12px;
+}
+
+.metric-cards-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.metric-card {
+  padding: 12px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  text-align: center;
+  transition: transform 0.2s;
+}
+
+.metric-card:hover {
+  transform: translateY(-2px);
+}
+
+.metric-label {
+  font-size: 11px;
+  text-transform: uppercase;
+  color: #666;
+  margin-bottom: 4px;
+  font-weight: 600;
+}
+
+.metric-value {
+  font-size: 24px;
+  font-weight: 700;
+  color: #333;
+}
+
+.metric-unit {
+  font-size: 14px;
+  font-weight: 400;
+  color: #666;
+}
+
+.metric-hint {
+  font-size: 11px;
+  color: #999;
+  margin-top: 4px;
+}
+
+.metric-alert {
+  font-size: 11px;
+  color: #6f42c1;
+  margin-top: 4px;
+  font-weight: 600;
+}
+
+.alerts-row {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.alert-box {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 12px;
+  background: #f0d9ff;
+  border: 1px solid #d4c4e9;
+  border-radius: 4px;
+  font-size: 13px;
+  color: #6f42c1;
+  font-weight: 600;
+}
+
+.alert-icon {
+  font-size: 14px;
+}
+
+.role-indicator {
+  margin-bottom: 12px;
+}
+
+.role-badge {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: capitalize;
+}
+
+.role-badge.publisher {
+  background: #e3f2fd;
+  color: #1565c0;
+  border: 1px solid #90caf9;
+}
+
+.role-badge.subscriber {
+  background: #f3e5f5;
+  color: #7b1fa2;
+  border: 1px solid #ce93d8;
+}
+
+/* Tab Selector */
+.tab-selector {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 16px;
+  border-bottom: 1px solid #ddd;
+  padding-bottom: 8px;
+}
+
+.tab-btn {
+  padding: 6px 16px;
+  border: 1px solid #ddd;
+  background: white;
+  border-radius: 4px 4px 0 0;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.tab-btn:hover {
+  background: #f5f5f5;
+}
+
+.tab-btn.active {
+  background: #007bff;
+  color: white;
+  border-color: #0056b3;
+}
+
+/* Simulcast Metrics Table */
+.simulcast-metrics-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+  margin-bottom: 16px;
+}
+
+.simulcast-metrics-table th,
+.simulcast-metrics-table td {
+  border: 1px solid #ddd;
+  padding: 8px;
+  text-align: left;
+}
+
+.simulcast-metrics-table th {
+  background: #f5f5f5;
+  font-weight: 600;
+}
+
+.status-text.active {
+  color: #155724;
+  font-weight: 600;
+}
+
+.status-text.inactive {
+  color: #721c24;
+}
+
+/* Charts */
+.charts-container {
+  margin-top: 16px;
+}
+
+.chart-section {
+  margin-bottom: 24px;
+}
+
+.chart-section h5 {
+  margin: 0 0 8px;
+  font-size: 14px;
+}
+
+.chart-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.chart-half h5 {
+  margin: 0 0 8px;
+  font-size: 14px;
 }
 
 /* Connection Stats */
@@ -623,6 +845,14 @@ body {
   background: #fafafa;
   border: 1px solid #ddd;
   border-radius: 4px;
+}
+
+.candidate-list h6 {
+  margin: 0 0 8px;
+  font-size: 13px;
+  font-weight: 600;
+  text-transform: uppercase;
+  color: #666;
 }
 
 .candidate-list h6 {

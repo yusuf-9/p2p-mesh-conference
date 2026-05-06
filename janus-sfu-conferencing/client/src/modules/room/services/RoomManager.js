@@ -498,7 +498,7 @@ class RoomManager {
     this.cleanupSimulcastMonitoring();
 
     // Clean up health metrics intervals
-    this.healthMetricsIntervals.forEach((interval, key) => {
+    this.healthMetricsIntervals.forEach((interval) => {
       clearInterval(interval);
     });
     this.healthMetricsIntervals.clear();
@@ -1986,7 +1986,6 @@ class RoomManager {
 
       const now = Date.now();
       const intervalSeconds = (now - prevState.lastTimestamp) / 1000;
-      const prevBytes = role === 'publisher' ? prevState.bytesSent : prevState.bytesReceived;
 
       let statJson = {
         subtype: 'interval',
@@ -1997,6 +1996,7 @@ class RoomManager {
       let videoStats = {};
       let remoteInboundStats = null;
       let networkStats = {};
+      let simulcastLayers = {};
 
       stats.forEach((report) => {
         // Get candidate-pair stats for network metrics
@@ -2006,71 +2006,111 @@ class RoomManager {
         }
 
         if (role === 'publisher') {
-          // Publisher: get outbound-rtp for video
+          // Publisher: get outbound-rtp for video - handle simulcast layers
           if (report.type === 'outbound-rtp' && report.kind === 'video') {
-            const bytesSentDelta = report.bytesSent - prevState.bytesSent;
-            const bitrateKbps = prevBytes > 0 ? ((bytesSentDelta * 8) / intervalSeconds / 1000) : 0;
+            const rid = report.rid || 'default';
+            const layerKey = `${rid}`;
+            const prevLayerState = prevState.layers?.[layerKey] || {};
 
-            videoStats = {
+            const bytesSentDelta = report.bytesSent - (prevLayerState.bytesSent || 0);
+            const bitrateKbps = intervalSeconds > 0 ? Math.round((bytesSentDelta * 8) / intervalSeconds / 1000) : 0;
+
+            const layerStats = {
               frameWidth: report.frameWidth || 0,
               frameHeight: report.frameHeight || 0,
               framesPerSecond: report.framesPerSecond || 0,
-              bitrateKbps: Math.round(bitrateKbps),
-              packetsSentDelta: report.packetsSent - prevState.packetsSent,
+              bitrateKbps: bitrateKbps,
+              packetsSentDelta: report.packetsSent - (prevLayerState.packetsSent || 0),
               qualityLimitationReason: report.qualityLimitationReason || 'none',
-              nackCountDelta: (report.nackCount || 0) - prevState.nackCount,
-              pliCountDelta: (report.pliCount || 0) - prevState.pliCount
+              nackCountDelta: (report.nackCount || 0) - (prevLayerState.nackCount || 0),
+              pliCountDelta: (report.pliCount || 0) - (prevLayerState.pliCount || 0),
+              active: report.active !== false
             };
+
+            simulcastLayers[layerKey] = layerStats;
+
+            // Use 'high' layer (or first available) for backward compatibility
+            if (rid === 'high' || !videoStats.rid) {
+              videoStats = { ...layerStats, rid };
+            }
           }
 
-          // Publisher: get remote-inbound-rtp for remote metrics
+          // Publisher: get remote-inbound-rtp for remote metrics - handle simulcast
           if (report.type === 'remote-inbound-rtp' && report.kind === 'video') {
-            remoteInboundStats = {
-              packetsLostDelta: report.packetsLost - prevState.packetsLost,
+            const rid = report.rid || 'default';
+            const prevLayerState = prevState.layers?.[rid] || {};
+
+            const layerRemoteStats = {
+              packetsLostDelta: report.packetsLost - (prevLayerState.packetsLost || 0),
               jitter: report.jitter || 0,
               roundTripTime: report.roundTripTime || 0,
               fractionLost: report.fractionLost || 0
             };
+
+            if (!remoteInboundStats) remoteInboundStats = {};
+            remoteInboundStats[rid] = layerRemoteStats;
+
+            // Use 'high' layer for backward compatibility
+            if (rid === 'high' || !remoteInboundStats._primary) {
+              remoteInboundStats._primary = layerRemoteStats;
+            }
           }
         } else {
           // Subscriber: get inbound-rtp for video
           if (report.type === 'inbound-rtp' && report.kind === 'video') {
-            const bytesReceivedDelta = report.bytesReceived - prevState.bytesReceived;
-            const bitrateKbps = prevBytes > 0 ? ((bytesReceivedDelta * 8) / intervalSeconds / 1000) : 0;
+            const bytesReceivedDelta = report.bytesReceived - (prevState.bytesReceived || 0);
+            const bitrateKbps = intervalSeconds > 0 ? Math.round((bytesReceivedDelta * 8) / intervalSeconds / 1000) : 0;
 
             videoStats = {
               frameWidth: report.frameWidth || 0,
               frameHeight: report.frameHeight || 0,
               framesPerSecond: report.framesPerSecond || 0,
-              bitrateKbps: Math.round(bitrateKbps),
-              packetsReceivedDelta: report.packetsReceived - prevState.packetsReceived,
-              packetsLostDelta: report.packetsLost - prevState.packetsLost,
-              framesDecodedDelta: report.framesDecoded - prevState.framesDecoded,
+              bitrateKbps: bitrateKbps,
+              packetsReceivedDelta: report.packetsReceived - (prevState.packetsReceived || 0),
+              packetsLostDelta: report.packetsLost - (prevState.packetsLost || 0),
+              framesDecodedDelta: report.framesDecoded - (prevState.framesDecoded || 0),
               jitter: report.jitter || 0,
-              nackCountDelta: (report.nackCount || 0) - prevState.nackCount,
-              pliCountDelta: (report.pliCount || 0) - prevState.pliCount
+              nackCountDelta: (report.nackCount || 0) - (prevState.nackCount || 0),
+              pliCountDelta: (report.pliCount || 0) - (prevState.pliCount || 0)
             };
           }
         }
       });
 
       statJson.video = videoStats;
-      if (role === 'publisher' && remoteInboundStats) {
-        statJson.remoteInbound = remoteInboundStats;
+      if (role === 'publisher') {
+        if (remoteInboundStats) {
+          statJson.remoteInbound = remoteInboundStats._primary || null;
+          delete remoteInboundStats._primary;
+          if (Object.keys(remoteInboundStats).length > 0) {
+            statJson.remoteInboundLayers = remoteInboundStats;
+          }
+        }
+        if (Object.keys(simulcastLayers).length > 1) {
+          statJson.simulcastLayers = simulcastLayers;
+        }
       }
       statJson.network = networkStats;
 
-      // Update state for next interval
+      // Update state for next interval - handle simulcast layers separately
+      if (!prevState.layers) prevState.layers = {};
+
       stats.forEach((report) => {
         if (role === 'publisher') {
           if (report.type === 'outbound-rtp' && report.kind === 'video') {
-            prevState.bytesSent = report.bytesSent;
-            prevState.packetsSent = report.packetsSent;
-            prevState.nackCount = report.nackCount || 0;
-            prevState.pliCount = report.pliCount || 0;
+            const rid = report.rid || 'default';
+            prevState.layers[rid] = {
+              bytesSent: report.bytesSent,
+              packetsSent: report.packetsSent,
+              nackCount: report.nackCount || 0,
+              pliCount: report.pliCount || 0,
+              packetsLost: report.packetsLost || 0
+            };
           }
           if (report.type === 'remote-inbound-rtp' && report.kind === 'video') {
-            prevState.packetsLost = report.packetsLost;
+            const rid = report.rid || 'default';
+            if (!prevState.layers[rid]) prevState.layers[rid] = {};
+            prevState.layers[rid].packetsLost = report.packetsLost;
           }
         } else {
           if (report.type === 'inbound-rtp' && report.kind === 'video') {

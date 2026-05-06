@@ -29,10 +29,3 @@ export async function fetchHandleStats(handleId, type = null) {
   const data = await res.json();
   return data.stats;
 }
-
-export async function fetchHandleHealthMetrics(handleId) {
-  const res = await fetch(`${API_URL}/stats/handles/${handleId}/stats/health`);
-  if (!res.ok) throw new Error("Failed to fetch health metrics");
-  const data = await res.json();
-  return data.chartData;
-}

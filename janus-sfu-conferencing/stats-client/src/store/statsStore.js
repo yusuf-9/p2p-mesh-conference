@@ -7,7 +7,6 @@ const useStatsStore = create((set, get) => ({
   sessions: [],
   handles: [],
   stats: [],
-  healthChartData: [],
 
   // Selection
   selectedRoomId: null,
@@ -33,7 +32,7 @@ const useStatsStore = create((set, get) => ({
   },
 
   async selectRoom(roomId) {
-    set({ selectedRoomId: roomId, selectedSessionId: null, selectedHandleId: null, sessions: [], handles: [], stats: [], healthChartData: [] });
+    set({ selectedRoomId: roomId, selectedSessionId: null, selectedHandleId: null, sessions: [], handles: [], stats: [] });
     if (!roomId) return;
     set({ loadingSessions: true });
     try {
@@ -46,7 +45,7 @@ const useStatsStore = create((set, get) => ({
   },
 
   async selectSession(sessionId) {
-    set({ selectedSessionId: sessionId, selectedHandleId: null, handles: [], stats: [], healthChartData: [] });
+    set({ selectedSessionId: sessionId, selectedHandleId: null, handles: [], stats: [] });
     if (!sessionId) return;
     set({ loadingHandles: true });
     try {
@@ -59,15 +58,12 @@ const useStatsStore = create((set, get) => ({
   },
 
   async selectHandle(handleId) {
-    set({ selectedHandleId: handleId, stats: [], healthChartData: [] });
+    set({ selectedHandleId: handleId, stats: [] });
     if (!handleId) return;
     set({ loadingStats: true });
     try {
-      const [stats, healthChartData] = await Promise.all([
-        statsApi.fetchHandleStats(handleId),
-        statsApi.fetchHandleHealthMetrics(handleId),
-      ]);
-      set({ stats, healthChartData, loadingStats: false });
+      const stats = await statsApi.fetchHandleStats(handleId);
+      set({ stats, loadingStats: false });
     } catch (err) {
       console.error(err);
       set({ loadingStats: false });
@@ -82,7 +78,6 @@ const useStatsStore = create((set, get) => ({
       sessions: [],
       handles: [],
       stats: [],
-      healthChartData: [],
     });
   },
 }));

@@ -19,7 +19,6 @@ export default class StatsRouter {
     this.router.get("/rooms/:roomId/sessions", this.getRoomSessions.bind(this));
     this.router.get("/sessions/:sessionId/handles", this.getSessionHandles.bind(this));
     this.router.get("/handles/:handleId/stats", this.getHandleStats.bind(this));
-    this.router.get("/handles/:handleId/stats/health", this.getHandleHealthMetrics.bind(this));
   }
 
   private async getRooms(req: Request, res: Response, next: NextFunction): Promise<void> {
@@ -150,42 +149,6 @@ export default class StatsRouter {
         .orderBy(desc(callStats.createdAt));
 
       res.json({ stats });
-    } catch (error) {
-      next(error);
-    }
-  }
-
-  private async getHandleHealthMetrics(req: Request, res: Response, next: NextFunction): Promise<void> {
-    try {
-      const { handleId } = req.params;
-
-      const db = this.dbService.getDb();
-
-      const healthStats = await db
-        .select()
-        .from(callStats)
-        .where(
-          and(
-            eq(callStats.handleId, handleId),
-            eq(callStats.type, "health_metrics")
-          )
-        )
-        .orderBy(callStats.createdAt);
-
-      const chartData = healthStats.map((stat) => {
-        const s = stat.stats as any;
-        return {
-          timestamp: stat.createdAt,
-          bitrateKbps: s?.video?.bitrateKbps ?? 0,
-          packetsLostDelta: s?.video?.packetsLostDelta ?? 0,
-          jitter: s?.remoteInbound?.jitter ?? s?.video?.jitter ?? 0,
-          framesPerSecond: s?.video?.framesPerSecond ?? 0,
-          frameWidth: s?.video?.frameWidth ?? 0,
-          frameHeight: s?.video?.frameHeight ?? 0,
-        };
-      });
-
-      res.json({ chartData });
     } catch (error) {
       next(error);
     }
