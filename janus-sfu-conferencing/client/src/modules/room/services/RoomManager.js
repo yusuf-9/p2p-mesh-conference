@@ -22,6 +22,9 @@ class RoomManager {
     this.forceRelayIce = window.location.search.includes('forceRelayIce');
     console.log('🔌 Relay ICE:', this.forceRelayIce);
     this.iceServers = null;
+
+    this.healthMetricsIntervals = new Map(); // Track health metrics intervals by feedId
+    this.healthMetricsState = new Map(); // Track previous interval values for delta calculations
   }
 
   async connectToWebSocket(userToken) {
@@ -461,6 +464,9 @@ class RoomManager {
     // Find and remove the local feed
     const localFeed = store.localFeeds.find(f => f.feedId === feedId);
     if (localFeed) {
+      // Stop health metrics interval for publisher
+      this.stopHealthMetricsInterval(feedId, 'publisher');
+
       // Close the peer connection
       const peerData = store.peers.get(feedId);
       if (peerData && peerData.peerConnection) {
@@ -476,6 +482,8 @@ class RoomManager {
 
   handlePublisherUnpublishedFeed(data) {
     console.log("📺 Publisher unpublished feed:", data);
+    // Stop health metrics interval for subscriber
+    this.stopHealthMetricsInterval(data.feedId, 'subscriber');
     // Remove publisher from store
     this.removePublisherFromStore(data.feedId);
   }
@@ -488,6 +496,13 @@ class RoomManager {
 
     // Clean up simulcast monitoring
     this.cleanupSimulcastMonitoring();
+
+    // Clean up health metrics intervals
+    this.healthMetricsIntervals.forEach((interval, key) => {
+      clearInterval(interval);
+    });
+    this.healthMetricsIntervals.clear();
+    this.healthMetricsState.clear();
 
     // Clean up all peer connections
     store.peers.forEach((peerData) => {
@@ -524,6 +539,9 @@ class RoomManager {
 
     userFeeds.forEach(feed => {
       if (feed.feedId) {
+        // Stop health metrics interval for this subscriber
+        this.stopHealthMetricsInterval(feed.feedId, 'subscriber');
+
         // Close and remove subscriber peer connection
         const subscriberPeerData = store.peers.get(`sub-${feed.feedId}`);
         if (subscriberPeerData && subscriberPeerData.peerConnection) {
@@ -1243,6 +1261,9 @@ class RoomManager {
           },
           type: "session_start",
         });
+
+        // Start health metrics interval for publisher
+        this.startHealthMetricsInterval(feedId, peerConnection, handleId, 'publisher');
       }
     };
 
@@ -1251,7 +1272,6 @@ class RoomManager {
       const stats = await pc.getStats();
       const rawDump = {};
       stats.forEach((report, id) => { rawDump[id] = report; });
-
 
       // send event to ingest_stats
       this.sendMessage(EVENTS.INGEST_STATS, {
@@ -1579,6 +1599,9 @@ class RoomManager {
             },
             type: "session_start",
           });
+
+          // Start health metrics interval for subscriber
+          this.startHealthMetricsInterval(feedId, peerConnection, handleId, 'subscriber');
         }
       }
     };
@@ -1904,6 +1927,173 @@ class RoomManager {
     } catch (error) {
       console.error('❌ Simulcast test failed:', error);
       return false;
+    }
+  }
+
+  // Health metrics methods
+  startHealthMetricsInterval(feedId, peerConnection, handleId, role) {
+    const intervalKey = role === 'publisher' ? feedId : `sub-${feedId}`;
+
+    if (this.healthMetricsIntervals.has(intervalKey)) {
+      console.log(`⚠️ Health metrics interval already running for ${intervalKey}`);
+      return;
+    }
+
+    console.log(`📊 Starting health metrics interval for ${role} feedId: ${feedId}, handleId: ${handleId}`);
+
+    // Initialize state for this peer
+    this.healthMetricsState.set(intervalKey, {
+      bytesSent: 0,
+      packetsSent: 0,
+      nackCount: 0,
+      pliCount: 0,
+      packetsLost: 0,
+      framesDecoded: 0,
+      packetsReceived: 0,
+      bytesReceived: 0,
+      lastTimestamp: Date.now()
+    });
+
+    const interval = setInterval(async () => {
+      await this.collectAndSendHealthMetrics(feedId, peerConnection, handleId, role);
+    }, 2000);
+
+    this.healthMetricsIntervals.set(intervalKey, interval);
+  }
+
+  stopHealthMetricsInterval(feedId, role) {
+    const intervalKey = role === 'publisher' ? feedId : `sub-${feedId}`;
+    const interval = this.healthMetricsIntervals.get(intervalKey);
+
+    if (interval) {
+      clearInterval(interval);
+      this.healthMetricsIntervals.delete(intervalKey);
+      this.healthMetricsState.delete(intervalKey);
+      console.log(`🛑 Stopped health metrics interval for ${intervalKey}`);
+    }
+  }
+
+  async collectAndSendHealthMetrics(feedId, peerConnection, handleId, role) {
+    try {
+      const stats = await peerConnection.getStats();
+      const intervalKey = role === 'publisher' ? feedId : `sub-${feedId}`;
+      const prevState = this.healthMetricsState.get(intervalKey);
+
+      if (!prevState) {
+        console.warn(`⚠️ No previous state found for ${intervalKey}`);
+        return;
+      }
+
+      const now = Date.now();
+      const intervalSeconds = (now - prevState.lastTimestamp) / 1000;
+      const prevBytes = role === 'publisher' ? prevState.bytesSent : prevState.bytesReceived;
+
+      let statJson = {
+        subtype: 'interval',
+        role: role,
+        timestamp: new Date().toISOString()
+      };
+
+      let videoStats = {};
+      let remoteInboundStats = null;
+      let networkStats = {};
+
+      stats.forEach((report) => {
+        // Get candidate-pair stats for network metrics
+        if (report.type === 'candidate-pair' && report.state === 'succeeded' && report.nominated) {
+          networkStats.currentRoundTripTime = report.currentRoundTripTime || 0;
+          networkStats.availableOutgoingBitrate = report.availableOutgoingBitrate || 0;
+        }
+
+        if (role === 'publisher') {
+          // Publisher: get outbound-rtp for video
+          if (report.type === 'outbound-rtp' && report.kind === 'video') {
+            const bytesSentDelta = report.bytesSent - prevState.bytesSent;
+            const bitrateKbps = prevBytes > 0 ? ((bytesSentDelta * 8) / intervalSeconds / 1000) : 0;
+
+            videoStats = {
+              frameWidth: report.frameWidth || 0,
+              frameHeight: report.frameHeight || 0,
+              framesPerSecond: report.framesPerSecond || 0,
+              bitrateKbps: Math.round(bitrateKbps),
+              packetsSentDelta: report.packetsSent - prevState.packetsSent,
+              qualityLimitationReason: report.qualityLimitationReason || 'none',
+              nackCountDelta: (report.nackCount || 0) - prevState.nackCount,
+              pliCountDelta: (report.pliCount || 0) - prevState.pliCount
+            };
+          }
+
+          // Publisher: get remote-inbound-rtp for remote metrics
+          if (report.type === 'remote-inbound-rtp' && report.kind === 'video') {
+            remoteInboundStats = {
+              packetsLostDelta: report.packetsLost - prevState.packetsLost,
+              jitter: report.jitter || 0,
+              roundTripTime: report.roundTripTime || 0,
+              fractionLost: report.fractionLost || 0
+            };
+          }
+        } else {
+          // Subscriber: get inbound-rtp for video
+          if (report.type === 'inbound-rtp' && report.kind === 'video') {
+            const bytesReceivedDelta = report.bytesReceived - prevState.bytesReceived;
+            const bitrateKbps = prevBytes > 0 ? ((bytesReceivedDelta * 8) / intervalSeconds / 1000) : 0;
+
+            videoStats = {
+              frameWidth: report.frameWidth || 0,
+              frameHeight: report.frameHeight || 0,
+              framesPerSecond: report.framesPerSecond || 0,
+              bitrateKbps: Math.round(bitrateKbps),
+              packetsReceivedDelta: report.packetsReceived - prevState.packetsReceived,
+              packetsLostDelta: report.packetsLost - prevState.packetsLost,
+              framesDecodedDelta: report.framesDecoded - prevState.framesDecoded,
+              jitter: report.jitter || 0,
+              nackCountDelta: (report.nackCount || 0) - prevState.nackCount,
+              pliCountDelta: (report.pliCount || 0) - prevState.pliCount
+            };
+          }
+        }
+      });
+
+      statJson.video = videoStats;
+      if (role === 'publisher' && remoteInboundStats) {
+        statJson.remoteInbound = remoteInboundStats;
+      }
+      statJson.network = networkStats;
+
+      // Update state for next interval
+      stats.forEach((report) => {
+        if (role === 'publisher') {
+          if (report.type === 'outbound-rtp' && report.kind === 'video') {
+            prevState.bytesSent = report.bytesSent;
+            prevState.packetsSent = report.packetsSent;
+            prevState.nackCount = report.nackCount || 0;
+            prevState.pliCount = report.pliCount || 0;
+          }
+          if (report.type === 'remote-inbound-rtp' && report.kind === 'video') {
+            prevState.packetsLost = report.packetsLost;
+          }
+        } else {
+          if (report.type === 'inbound-rtp' && report.kind === 'video') {
+            prevState.bytesReceived = report.bytesReceived;
+            prevState.packetsReceived = report.packetsReceived;
+            prevState.packetsLost = report.packetsLost;
+            prevState.framesDecoded = report.framesDecoded;
+            prevState.nackCount = report.nackCount || 0;
+            prevState.pliCount = report.pliCount || 0;
+          }
+        }
+      });
+      prevState.lastTimestamp = now;
+
+      this.sendMessage(EVENTS.INGEST_STATS, {
+        handleId: handleId,
+        stats: statJson,
+        type: 'health_metrics'
+      });
+
+      console.log(`📊 Sent health metrics for ${role} feedId: ${feedId}`, statJson);
+    } catch (error) {
+      console.error(`❌ Error collecting health metrics for ${role} feedId: ${feedId}`, error);
     }
   }
 
