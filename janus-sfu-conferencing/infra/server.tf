@@ -26,7 +26,7 @@ resource "aws_security_group" "server" {
 
 resource "aws_instance" "server" {
   ami           = data.aws_ami.al2023.id
-  instance_type = "t3.micro"
+  instance_type = "t3.small"
 
   vpc_security_group_ids = [aws_security_group.server.id]
   key_name               = "loadtest-server"
