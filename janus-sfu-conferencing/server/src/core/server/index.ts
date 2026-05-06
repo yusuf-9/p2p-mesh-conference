@@ -9,6 +9,7 @@ import AuthService from "../auth/index.js";
 import { ErrorResponseType } from "./types/index.js";
 import CustomError from "../../utility-types/error.js";
 import RoomRouter from "./routers/room/index.js";
+import StatsRouter from "./routers/stats/index.js";
 import PubSubService from "../pubsub/index.js";
 
 export default class Server {
@@ -99,10 +100,12 @@ export default class Server {
     // Router setup
     const healthRouter = new HealthRouter(this.dbService, this.serverId);
     const roomRouter = new RoomRouter(this.dbService, this.authService, this.pubSubService);
+    const statsRouter = new StatsRouter(this.dbService);
 
     // Mount routers
     this.app.use("/api/health", healthRouter.getRouter());
     this.app.use("/api/room", roomRouter.getRouter());
+    this.app.use("/api/stats", statsRouter.getRouter());
 
     // 404 handler for unmatched routes
     this.app.use("*", (req: Request, res: Response) => {

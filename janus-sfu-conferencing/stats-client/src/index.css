@@ -1,0 +1,694 @@
+* {
+  box-sizing: border-box;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  margin: 0;
+  padding: 20px;
+  background: #f5f5f5;
+  color: #333;
+}
+
+.stats-container {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.stats-container h1 {
+  font-size: 24px;
+  margin-bottom: 20px;
+}
+
+.stats-container h2 {
+  font-size: 20px;
+  margin: 16px 0 12px;
+}
+
+.stats-container h3 {
+  font-size: 18px;
+  margin: 16px 0 8px;
+}
+
+.stats-container h4 {
+  font-size: 16px;
+  margin: 12px 0 8px;
+}
+
+.back-button {
+  background: none;
+  border: 1px solid #ddd;
+  padding: 8px 16px;
+  cursor: pointer;
+  margin-bottom: 16px;
+  border-radius: 4px;
+}
+
+.back-button:hover {
+  background: #eee;
+}
+
+/* Room List */
+.room-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.room-item {
+  background: white;
+  border: 1px solid #ddd;
+  padding: 12px;
+  margin-bottom: 8px;
+  cursor: pointer;
+  border-radius: 4px;
+}
+
+.room-item:hover {
+  background: #f9f9f9;
+}
+
+.room-name {
+  font-weight: 600;
+  font-size: 16px;
+}
+
+.room-meta {
+  font-size: 14px;
+  color: #666;
+  margin-top: 4px;
+}
+
+/* Session List */
+.session-list {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 0 20px;
+}
+
+.session-item {
+  background: white;
+  border: 1px solid #ddd;
+  padding: 12px;
+  margin-bottom: 8px;
+  cursor: pointer;
+  border-radius: 4px;
+}
+
+.session-item:hover {
+  background: #f9f9f9;
+}
+
+.session-id {
+  font-weight: 600;
+  font-size: 14px;
+  font-family: monospace;
+}
+
+.session-meta {
+  font-size: 13px;
+  color: #666;
+  margin-top: 4px;
+}
+
+/* Participant Accordion */
+.participant-accordion {
+  margin: 0 0 0 40px;
+}
+
+.accordion-item {
+  border: 1px solid #ddd;
+  margin-bottom: 8px;
+  border-radius: 4px;
+  background: white;
+}
+
+.accordion-header {
+  padding: 12px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.accordion-header:hover {
+  background: #f9f9f9;
+}
+
+.participant-name {
+  font-weight: 600;
+}
+
+.handle-count {
+  font-size: 13px;
+  color: #666;
+}
+
+.accordion-toggle {
+  margin-left: auto;
+  font-size: 18px;
+}
+
+.accordion-content {
+  padding: 8px 12px 12px;
+  border-top: 1px solid #ddd;
+}
+
+.handle-item {
+  padding: 8px;
+  cursor: pointer;
+  border: 1px solid #eee;
+  margin-bottom: 4px;
+  border-radius: 3px;
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.handle-item:hover {
+  background: #f0f7ff;
+  border-color: #b3d9ff;
+}
+
+.handle-type {
+  font-weight: 600;
+  text-transform: capitalize;
+}
+
+.handle-role {
+  font-size: 12px;
+  color: #666;
+  text-transform: uppercase;
+}
+
+.feed-id {
+  font-size: 12px;
+  color: #999;
+  font-family: monospace;
+}
+
+/* Handle Stats */
+.handle-stats {
+  margin: 0 0 0 60px;
+}
+
+.stats-section {
+  background: white;
+  border: 1px solid #ddd;
+  padding: 16px;
+  margin-bottom: 16px;
+  border-radius: 4px;
+}
+
+/* Connection Stats */
+.connection-stats {
+  font-size: 14px;
+}
+
+.stat-row {
+  display: flex;
+  padding: 4px 0;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.stat-label {
+  font-weight: 600;
+  min-width: 180px;
+}
+
+.stat-value {
+  word-break: break-all;
+}
+
+.device-info {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid #ddd;
+}
+
+.device-info h5 {
+  margin: 0 0 8px;
+  font-size: 14px;
+}
+
+.raw-dump {
+  margin-top: 12px;
+}
+
+.raw-dump summary {
+  cursor: pointer;
+  font-weight: 600;
+  padding: 8px 0;
+}
+
+.raw-dump pre {
+  background: #f5f5f5;
+  padding: 12px;
+  overflow: auto;
+  max-height: 300px;
+  font-size: 12px;
+  border-radius: 4px;
+}
+
+/* Health Chart */
+.health-chart {
+  width: 100%;
+  margin-top: 12px;
+}
+
+/* State Change Log */
+.state-change-log {
+  margin-top: 12px;
+  overflow-x: auto;
+}
+
+.events-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
+.events-table th,
+.events-table td {
+  border: 1px solid #ddd;
+  padding: 8px;
+  text-align: left;
+}
+
+.events-table th {
+  background: #f5f5f5;
+  font-weight: 600;
+}
+
+.state-badge {
+  padding: 2px 8px;
+  border-radius: 3px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.state-badge.connected {
+  background: #d4edda;
+  color: #155724;
+}
+
+.state-badge.disconnected,
+.state-badge.failed {
+  background: #f8d7da;
+  color: #721c24;
+}
+
+.state-badge.checking {
+  background: #fff3cd;
+  color: #856404;
+}
+
+/* Loading and Empty States */
+.loading,
+.empty {
+  padding: 20px;
+  text-align: center;
+  color: #666;
+}
+
+.no-data {
+  color: #999;
+  font-style: italic;
+  padding: 8px 0;
+}
+
+/* Connection Stats */
+.connection-stats {
+  font-size: 14px;
+}
+
+/* Section 1: Session Header */
+.session-header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+
+.handle-id {
+  font-weight: 600;
+}
+
+.handle-id code {
+  background: #f0f0f0;
+  padding: 2px 6px;
+  border-radius: 3px;
+  font-size: 13px;
+}
+
+.timestamp {
+  color: #666;
+  font-size: 13px;
+}
+
+.role-badge {
+  padding: 3px 10px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.role-badge.publisher {
+  background: #d4edda;
+  color: #155724;
+}
+
+.role-badge.subscriber {
+  background: #d1ecf1;
+  color: #0c5460;
+}
+
+.role-badge.unknown {
+  background: #e2e3e5;
+  color: #383d41;
+}
+
+/* Section 2: Status Row */
+.status-row {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+
+.status-badge {
+  padding: 4px 10px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 600;
+  background: #e2e3e5;
+  color: #383d41;
+}
+
+.status-badge.ice-connected,
+.status-badge.dtls-connected {
+  background: #d4edda;
+  color: #155724;
+}
+
+.status-badge.ice-failed,
+.status-badge.dtls-failed {
+  background: #f8d7da;
+  color: #721c24;
+}
+
+.status-badge.ice-disconnected {
+  background: #fff3cd;
+  color: #856404;
+}
+
+.status-badge.dtls-connecting {
+  background: #fff3cd;
+  color: #856404;
+}
+
+/* Section 3: Candidate Pair */
+.candidate-pair-section {
+  margin-bottom: 16px;
+}
+
+.candidate-pair-section h5 {
+  margin: 0 0 8px;
+  font-size: 14px;
+}
+
+.candidate-cards {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
+.candidate-card {
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  padding: 12px;
+  background: #fafafa;
+}
+
+.card-title {
+  font-weight: 600;
+  font-size: 12px;
+  text-transform: uppercase;
+  color: #666;
+  margin-bottom: 8px;
+}
+
+.candidate-type-badge {
+  padding: 2px 8px;
+  border-radius: 3px;
+  font-size: 12px;
+  font-weight: 600;
+  display: inline-block;
+  margin-bottom: 8px;
+}
+
+.candidate-type-badge.host {
+  background: #e2e3e5;
+  color: #383d41;
+}
+
+.candidate-type-badge.srflx {
+  background: #d1ecf1;
+  color: #0c5460;
+}
+
+.candidate-type-badge.relay {
+  background: #fff3cd;
+  color: #856404;
+}
+
+.candidate-detail {
+  font-size: 13px;
+  padding: 2px 0;
+  font-family: monospace;
+}
+
+.relay-note {
+  font-size: 13px;
+  padding: 8px;
+  border-radius: 4px;
+  background: #f8d7da;
+  color: #721c24;
+}
+
+.relay-note:has(✓) {
+  background: #d4edda;
+  color: #155724;
+}
+
+/* Section 4: Metric Row */
+.metric-row {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.metric-box {
+  flex: 1;
+  text-align: center;
+  padding: 12px;
+  background: white;
+  border:1px solid #ddd;
+  border-radius: 4px;
+}
+
+.metric-value {
+  font-size: 24px;
+  font-weight: 700;
+  color: #333;
+}
+
+.metric-label {
+  font-size: 12px;
+  color: #666;
+  text-transform: uppercase;
+  margin-top: 4px;
+}
+
+/* Section 5: Codecs */
+.codec-section {
+  margin-bottom: 16px;
+}
+
+.codec-section h5 {
+  margin: 0 0 8px;
+  font-size: 14px;
+}
+
+.codec-cards {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.codec-card {
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  padding: 12px;
+  background: #fafafa;
+}
+
+.codec-detail {
+  font-size: 13px;
+  padding: 2px 0;
+}
+
+.fmtp {
+  font-size: 11px;
+  color: #666;
+  font-family: monospace;
+  word-break: break-all;
+}
+
+.rtx-note {
+  margin-top: 8px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #666;
+}
+
+/* Section 6: Simulcast */
+.simulcast-section {
+  margin-bottom: 16px;
+}
+
+.simulcast-section h5 {
+  margin: 0 0 8px;
+  font-size: 14px;
+}
+
+.simulcast-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+.simulcast-table th,
+.simulcast-table td {
+  border: 1px solid #ddd;
+  padding: 8px;
+  text-align: left;
+}
+
+.simulcast-table th {
+  background: #f5f5f5;
+  font-weight: 600;
+}
+
+.rid-badge {
+  padding: 2px 8px;
+  border-radius: 3px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.rid-badge.high {
+  background: #d4edda;
+  color: #155724;
+}
+
+.rid-badge.medium {
+  background: #d1ecf1;
+  color: #0c5460;
+}
+
+.rid-badge.low {
+  background: #e2e3e5;
+  color: #383d41;
+}
+
+.rid-badge.none {
+  background: #f5f5f5;
+  color: #999;
+}
+
+.no-simulcast {
+  padding: 8px;
+  color: #666;
+  font-style: italic;
+}
+
+/* Individual Candidate Lists */
+.candidate-list {
+  margin: 8px 0 16px;
+  padding: 12px;
+  background: #fafafa;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+
+.candidate-list h6 {
+  margin: 0 0 8px;
+  font-size: 13px;
+  font-weight: 600;
+  text-transform: uppercase;
+  color: #666;
+}
+
+.candidates-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+}
+
+.candidates-table th,
+.candidates-table td {
+  border: 1px solid #e0e0e0;
+  padding: 6px 8px;
+  text-align: left;
+}
+
+.candidates-table th {
+  background: #f0f0f0;
+  font-weight: 600;
+}
+
+.candidates-table code {
+  font-size: 11px;
+}
+
+/* Section 7: Media Source */
+.media-source-section {
+  margin-bottom: 16px;
+}
+
+.media-source-section h5 {
+  margin: 0 0 8px;
+  font-size: 14px;
+}
+
+.source-details {
+  font-size: 13px;
+}
+
+.source-details div {
+  padding: 2px 0;
+}
+
+/* Section 8: Device Info */
+.device-section {
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid #ddd;
+}
+
+.device-section h5 {
+  margin: 0 0 8px;
+  font-size: 14px;
+}
+
+.device-details {
+  font-size: 13px;
+}
+
+.device-details div {
+  padding: 2px 0;
+}
