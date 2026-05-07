@@ -1,19 +1,18 @@
-import useStatsStore from "../../store/statsStore";
+import { useNavigate, useParams } from "react-router-dom";
 
 export default function BackButton() {
-  const selectedRoomId = useStatsStore((s) => s.selectedRoomId);
-  const selectedSessionId = useStatsStore((s) => s.selectedSessionId);
-  const clearSelection = useStatsStore((s) => s.clearSelection);
-  const selectRoom = useStatsStore((s) => s.selectRoom);
-  const selectSession = useStatsStore((s) => s.selectSession);
+  const navigate = useNavigate();
+  const { roomId, sessionId, handleId } = useParams();
 
-  if (!selectedRoomId) return null;
+  if (!roomId) return null;
 
   const handleBack = () => {
-    if (selectedSessionId) {
-      selectSession(null);
+    if (handleId) {
+      navigate(`/room/${roomId}/session/${sessionId}`);
+    } else if (sessionId) {
+      navigate(`/room/${roomId}`);
     } else {
-      clearSelection();
+      navigate("/");
     }
   };
 

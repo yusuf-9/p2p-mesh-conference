@@ -355,15 +355,13 @@ class RoomManager {
       console.log('📡 Stored ICE servers from subscription:', this.iceServers);
     }
 
-    const store = useStore.getState();
     const feedId = data.feedId;
-    const peerData = store.peers.get(`sub-${feedId}`);
+    const handleId = data.handleId;
 
-    // Store the handleId for stats reporting
-    if (data.handleId && peerData) {
-      peerData.handleId = data.handleId;
-      console.log('📡 Stored subscriber handleId:', data.handleId);
-    }
+    // Create subscriber peer connection now that we have the handleId
+    // This returns the peerData with the peerConnection
+    const peerData = this.createSubscriberPeerConnection(feedId, handleId);
+    console.log('📡 Debug: peerData from createSubscriberPeerConnection:', peerData);
 
     if (peerData && peerData.peerConnection && data.jsep) {
       // Set remote description from server
@@ -1093,9 +1091,8 @@ class RoomManager {
 
     console.log("📡 Subscribing to user feed:", feedId);
 
-    // Create subscriber peer connection first
-    this.createSubscriberPeerConnection(feedId);
-    // Then send subscription request
+    // Send subscription request - peer connection will be created in handleSubscribedToUserFeed
+    // after we receive the handleId from the server
     return this.sendMessage(EVENTS.SUBSCRIBE_TO_USER_FEED, {
       feedId: feedId,
     });
@@ -1540,9 +1537,10 @@ class RoomManager {
     }
   }
 
-  createSubscriberPeerConnection(feedId) {
+  createSubscriberPeerConnection(feedId, handleId) {
+    console.log("glorious handle ID", handleId)
     const iceServers = this.iceServers?.iceServers;
-    console.log('📡 Creating subscriber peer connection with ICE servers:', iceServers);
+    console.log('📡 Creating subscriber peer connection with ICE servers:', iceServers, 'handleId:', handleId);
     const peerConnection = new RTCPeerConnection({
       iceServers,
       iceTransportPolicy: this.forceRelayIce ? 'relay' : 'all',
@@ -1550,14 +1548,18 @@ class RoomManager {
 
     const store = useStore.getState();
 
-    // Store peer connection
-    store.addPeer(`sub-${feedId}`, {
+    // Store peer connection with handleId available from the start
+    const peerData = {
       peerConnection,
       candidates: [],
       iceCompleted: false,
       type: 'subscriber',
-      feedId
-    });
+      feedId,
+      handleId
+    };
+    store.addPeer(`sub-${feedId}`, peerData);
+
+    console.log('📡 Debug: Added peer with key:', `sub-${feedId}`, 'peerData:', peerData);
 
     // Handle incoming stream - THIS IS CRITICAL!
     peerConnection.ontrack = (event) => {
@@ -1578,31 +1580,30 @@ class RoomManager {
       if (event.target.iceConnectionState === "connected") {
         const currentStore = useStore.getState();
         const currentPeerData = currentStore.peers.get(`sub-${feedId}`);
-        const handleId = currentPeerData?.handleId;
 
-        if (handleId) {
-          const stats = await peerConnection.getStats();
-          const rawDump = {};
-          stats.forEach((report, id) => { rawDump[id] = report; });
+        console.log(`📡 ICE connection state changed for subscriber handleId: ${handleId}`, currentPeerData);
 
-          this.sendMessage(EVENTS.INGEST_STATS, {
-            handleId: handleId,
-            stats: {
-              timestamp: new Date().toISOString(),
-              rawStatsDump: rawDump,
-              device: {
-                userAgent: navigator.userAgent,
-                hardwareConcurrency: navigator.hardwareConcurrency ?? null,
-                deviceMemory: navigator.deviceMemory ?? null,
-                effectiveType: navigator.connection?.effectiveType ?? null,
-              }
-            },
-            type: "session_start",
-          });
+        const stats = await peerConnection.getStats();
+        const rawDump = {};
+        stats.forEach((report, id) => { rawDump[id] = report; });
 
-          // Start health metrics interval for subscriber
-          this.startHealthMetricsInterval(feedId, peerConnection, handleId, 'subscriber');
-        }
+        this.sendMessage(EVENTS.INGEST_STATS, {
+          handleId: handleId,
+          stats: {
+            timestamp: new Date().toISOString(),
+            rawStatsDump: rawDump,
+            device: {
+              userAgent: navigator.userAgent,
+              hardwareConcurrency: navigator.hardwareConcurrency ?? null,
+              deviceMemory: navigator.deviceMemory ?? null,
+              effectiveType: navigator.connection?.effectiveType ?? null,
+            }
+          },
+          type: "session_start",
+        });
+
+        // Start health metrics interval for subscriber
+        this.startHealthMetricsInterval(feedId, peerConnection, handleId, 'subscriber');
       }
     };
 
@@ -1615,27 +1616,26 @@ class RoomManager {
 
       const currentStore = useStore.getState();
       const currentPeerData = currentStore.peers.get(`sub-${feedId}`);
-      const handleId = currentPeerData?.handleId;
 
-      if (handleId) {
-        const pc = event.target;
-        const stats = await pc.getStats();
-        const rawDump = {};
-        stats.forEach((report, id) => { rawDump[id] = report; });
+      console.log(`📡 Connection state changed for subscriber handleId: ${handleId}`, currentPeerData);
 
-        this.sendMessage(EVENTS.INGEST_STATS, {
-          handleId: handleId,
-          stats: {
-            timestamp: new Date().toISOString(),
-            connectionState: pc.connectionState,
-            iceConnectionState: pc.iceConnectionState,
-            iceGatheringState: pc.iceGatheringState,
-            signalingState: pc.signalingState,
-            rawStatsDump: rawDump,
-          },
-          type: "state_change",
-        });
-      }
+      const pc = event.target;
+      const stats = await pc.getStats();
+      const rawDump = {};
+      stats.forEach((report, id) => { rawDump[id] = report; });
+
+      this.sendMessage(EVENTS.INGEST_STATS, {
+        handleId: handleId,
+        stats: {
+          timestamp: new Date().toISOString(),
+          connectionState: pc.connectionState,
+          iceConnectionState: pc.iceConnectionState,
+          iceGatheringState: pc.iceGatheringState,
+          signalingState: pc.signalingState,
+          rawStatsDump: rawDump,
+        },
+        type: "state_change",
+      });
     };
 
     // Handle ICE candidates
@@ -1670,7 +1670,7 @@ class RoomManager {
     };
 
     console.log("📡 Created subscriber peer connection for feedId:", feedId);
-    return peerConnection;
+    return peerData;
   }
 
   // Helper method to get local stream

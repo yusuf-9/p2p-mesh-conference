@@ -214,6 +214,20 @@ export default class MediaRoomRepository {
     return handle?.[0] ?? null;
   }
 
+  public async getHandleByFeedIdAndUserId(userId: string, feedId: number, type: MediaHandleType) {
+    const conditions = [eq(mediaHandles.feedId, feedId), eq(mediaHandles.active, true), eq(mediaHandles.userId, userId)];
+    if (type) {
+      conditions.push(eq(mediaHandles.type, type));
+    }
+    const handle = await this.dbService
+      .getDb()
+      .select()
+      .from(mediaHandles)
+      .where(and(...conditions));
+    return handle?.[0] ?? null;
+  }
+
+
   public async getManagerHandleOfRoom(roomId: string) {
     const result = await this.dbService
       .getDb()

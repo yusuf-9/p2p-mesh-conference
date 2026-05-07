@@ -231,7 +231,7 @@ export default class SfuManager {
           console.log("subscriber attached event", eventPayload);
           const subscriberAttachedEvent = eventPayload as VideoroomSubscriberAttachedEvent;
           await this.linkEventToTransaction(subscriberAttachedEvent.transaction, async (userId: string, feedId?: number) => {
-            const subscriberHandle = await this.dbService.mediaRoomRepository.getHandleByFeedId(feedId!, "subscriber");
+            const subscriberHandle = await this.dbService.mediaRoomRepository.getHandleByFeedIdAndUserId(userId, feedId!, "subscriber");
             await this.emitSfuEvent(userId, EVENTS.SUBSCRIBED_TO_USER_FEED, {
               room: subscriberAttachedEvent.plugindata.data.room,
               handleId: subscriberHandle?.id,

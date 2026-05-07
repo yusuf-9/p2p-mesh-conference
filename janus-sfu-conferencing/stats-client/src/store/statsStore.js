@@ -31,9 +31,7 @@ const useStatsStore = create((set, get) => ({
     }
   },
 
-  async selectRoom(roomId) {
-    set({ selectedRoomId: roomId, selectedSessionId: null, selectedHandleId: null, sessions: [], handles: [], stats: [] });
-    if (!roomId) return;
+  async loadSessions(roomId) {
     set({ loadingSessions: true });
     try {
       const sessions = await statsApi.fetchRoomSessions(roomId);
@@ -44,9 +42,13 @@ const useStatsStore = create((set, get) => ({
     }
   },
 
-  async selectSession(sessionId) {
-    set({ selectedSessionId: sessionId, selectedHandleId: null, handles: [], stats: [] });
-    if (!sessionId) return;
+  async selectRoom(roomId) {
+    set({ selectedRoomId: roomId, selectedSessionId: null, selectedHandleId: null, sessions: [], handles: [], stats: [] });
+    if (!roomId) return;
+    await get().loadSessions(roomId);
+  },
+
+  async loadHandles(sessionId) {
     set({ loadingHandles: true });
     try {
       const handles = await statsApi.fetchSessionHandles(sessionId);
@@ -57,10 +59,14 @@ const useStatsStore = create((set, get) => ({
     }
   },
 
-  async selectHandle(handleId) {
-    set({ selectedHandleId: handleId, stats: [] });
-    if (!handleId) return;
-    set({ loadingStats: true });
+  async selectSession(sessionId) {
+    set({ selectedSessionId: sessionId, selectedHandleId: null, handles: [], stats: [] });
+    if (!sessionId) return;
+    await get().loadHandles(sessionId);
+  },
+
+  async loadHandleStats(roomId, sessionId, handleId) {
+    set({ selectedRoomId: roomId, selectedSessionId: sessionId, selectedHandleId: handleId, loadingStats: true });
     try {
       const stats = await statsApi.fetchHandleStats(handleId);
       set({ stats, loadingStats: false });
@@ -68,6 +74,12 @@ const useStatsStore = create((set, get) => ({
       console.error(err);
       set({ loadingStats: false });
     }
+  },
+
+  async selectHandle(handleId) {
+    set({ selectedHandleId: handleId, stats: [] });
+    if (!handleId) return;
+    await get().loadHandleStats(null, null, handleId);
   },
 
   clearSelection() {

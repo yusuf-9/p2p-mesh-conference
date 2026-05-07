@@ -1,17 +1,16 @@
 import { useState } from "react";
+import { Link } from "react-router-dom";
 import useStatsStore from "../store/statsStore";
 
-export default function ParticipantAccordion() {
+export default function ParticipantAccordion({ roomId, sessionId }) {
   const handles = useStatsStore((s) => s.handles);
   const loading = useStatsStore((s) => s.loadingHandles);
-  const selectHandle = useStatsStore((s) => s.selectHandle);
 
   const [expandedUserId, setExpandedUserId] = useState(null);
 
   if (loading) return <div className="loading">Loading participants...</div>;
   if (!handles.length) return <div className="empty">No participants found.</div>;
 
-  // Group handles by userId
   const participantsMap = {};
   handles.forEach((h) => {
     const uid = h.userId || "unknown";
@@ -44,18 +43,15 @@ export default function ParticipantAccordion() {
             {isExpanded && (
               <div className="accordion-content">
                 {p.handles.map((h) => (
-                  <div
+                  <Link
                     key={h.id}
+                    to={`/room/${roomId}/session/${sessionId}/handle/${h.id}`}
                     className="handle-item"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      selectHandle(h.id);
-                    }}
                   >
                     <span className="handle-type">{h.feedType || "camera"}</span>
                     <span className="handle-role">{h.type}</span>
                     {h.feedId && <span className="feed-id">Feed: {h.feedId}</span>}
-                  </div>
+                  </Link>
                 ))}
               </div>
             )}
