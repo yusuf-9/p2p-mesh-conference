@@ -170,6 +170,58 @@ body {
   border-color: #b3d9ff;
 }
 
+.handle-expand-toggle {
+  margin-left: auto;
+  font-size: 16px;
+  font-weight: bold;
+}
+
+.user-handle-controls {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 8px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid #eee;
+}
+
+.expand-all-btn,
+.collapse-all-btn {
+  padding: 4px 10px;
+  border: 1px solid #ddd;
+  background: white;
+  border-radius: 3px;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.expand-all-btn:hover {
+  background: #e3f2fd;
+  border-color: #90caf9;
+}
+
+.collapse-all-btn:hover:not(:disabled) {
+  background: #fce4ec;
+  border-color: #f48fb1;
+}
+
+.collapse-all-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.handle-item-wrapper {
+  margin-bottom: 4px;
+}
+
+.handle-item-stats {
+  margin: 8px 0 8px 24px;
+  padding: 8px;
+  background: #fafafa;
+  border: 1px solid #eee;
+  border-radius: 3px;
+}
+
 .handle-type {
   font-weight: 600;
   text-transform: capitalize;

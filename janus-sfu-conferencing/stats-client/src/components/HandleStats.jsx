@@ -4,12 +4,10 @@ import ConnectionStats from "./stats/ConnectionStats";
 import HealthMetrics from "./stats/HealthMetrics";
 import StateChangeLog from "./stats/StateChangeLog";
 
-export default function HandleStats() {
-  const stats = useStatsStore((s) => s.stats);
-  const loading = useStatsStore((s) => s.loadingStats);
-  const selectedHandleId = useStatsStore((s) => s.selectedHandleId);
+export default function HandleStats({ stats: externalStats }) {
+  const storeStats = useStatsStore((s) => s.stats);
+  const stats = externalStats || storeStats;
 
-  // All hooks must be called before any conditional returns
   const sessionStart = stats?.find((s) => s.type === "session_start");
   const stateChanges = stats?.filter((s) => s.type === "state_change") || [];
   const healthMetrics = useMemo(
@@ -17,21 +15,15 @@ export default function HandleStats() {
     [stats]
   );
 
-  // Get latest health data
   const latestHealth = useMemo(() => {
     if (!healthMetrics.length) return null;
     return healthMetrics[healthMetrics.length - 1];
   }, [healthMetrics]);
 
-  // Conditional returns AFTER all hooks
-  if (!selectedHandleId) return null;
-  if (loading) return <div className="loading">Loading stats...</div>;
-  if (!stats?.length) return <div className="empty">No stats found for this handle.</div>;
+  if (!stats || !stats.length) return null;
 
   return (
     <div className="handle-stats">
-      <h3>Stats for Handle</h3>
-
       {sessionStart && (
         <section className="stats-section">
           <h4>Connection Info</h4>
