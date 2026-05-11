@@ -36,6 +36,7 @@ export interface SfuConfig {
 
 export interface RtcStatsConfig {
   uploadDir: string;
+  processedDir: string;
 }
 
 export interface TurnConfig {
@@ -112,7 +113,8 @@ export default class Config {
 
   private validateRtcStatsConfig(): RtcStatsConfig {
     const uploadDir = process.env.RTC_STATS_UPLOAD_DIR || "upload";
-    return { uploadDir };
+    const processedDir = process.env.RTC_STATS_PROCESSED_DIR || "processed";
+    return { uploadDir, processedDir };
   }
 
   private validateTurnConfig(): TurnConfig {

@@ -17,6 +17,11 @@ async function main() {
     await fs.mkdir(path.resolve(uploadDir), { recursive: true });
     console.log(`📁 RTC stats upload directory ready: ${uploadDir}`);
 
+    // Initialize processed directory for RTC stats features
+    const processedDir = appConfig.rtcStats.processedDir;
+    await fs.mkdir(path.resolve(processedDir), { recursive: true });
+    console.log(`📁 RTC stats processed directory ready: ${processedDir}`);
+
     // Initialize database service with config
     const dbService = new DatabaseService(appConfig);
     await dbService.connect();

@@ -22,6 +22,7 @@ import { CHANNELS, EVENTS } from "./constants.js";
 import SfuManager from "../sfu-manager/index.js";
 import ConfigService from "../config/index.js";
 import { createUserFriendlyErrorMessage } from "./utils.js"
+import { extract } from "../../lib/rtcstats-features/index.js";
 
 export default class SocketServer {
   private httpServer: http.Server;
@@ -91,10 +92,17 @@ export default class SocketServer {
 
     const lastMessage = this.rtcStatsLastMessageTime.get(userId) || Date.now();
     writeStream.write(JSON.stringify(['close', null, closeCode || null, Date.now() - lastMessage]) + '\n');
-    writeStream.end();
+
+    const filePath = path.join(this.configService.rtcStats.uploadDir, `${userId}.log`);
 
     this.rtcStatsWriteStreams.delete(userId);
     this.rtcStatsLastMessageTime.delete(userId);
+
+    writeStream.end(() => {
+      console.log(`📊 Processing RTC stats for user ${userId}`);
+      const processedDir = this.configService.rtcStats.processedDir;
+      extract(userId, filePath, processedDir);
+    });
 
     console.log(`📁 RTC stats file closed for user ${userId}`);
   }
