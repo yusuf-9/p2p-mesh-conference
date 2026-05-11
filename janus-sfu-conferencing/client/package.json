@@ -10,11 +10,10 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@peermetrics/sdk": "^2.7.2",
-    "@peermetrics/webrtc-stats": "^5.7.1",
     "@tailwindcss/vite": "^4.1.11",
     "react": "^19.1.1",
     "react-dom": "^19.1.1",
+    "sdp": "^3.2.2",
     "tailwind": "^4.0.0",
     "zustand": "^5.0.7"
   },

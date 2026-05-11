@@ -34,6 +34,10 @@ export interface SfuConfig {
   uri: string;
 }
 
+export interface RtcStatsConfig {
+  uploadDir: string;
+}
+
 export interface TurnConfig {
   serverUrl: string;
   serverPort: string;
@@ -46,6 +50,7 @@ export default class Config {
   public readonly server: ServerConfig;
   public readonly app: AppConfig;
   public readonly sfu: SfuConfig;
+  public readonly rtcStats: RtcStatsConfig;
   public readonly turn: TurnConfig;
   public readonly swagger: ReturnType<typeof swaggerJSDoc>;
 
@@ -57,6 +62,7 @@ export default class Config {
     this.app = this.validateAppConfig();
     this.swagger = this.validateSwaggerConfig();
     this.sfu = this.validateSfuConfig();
+    this.rtcStats = this.validateRtcStatsConfig();
     this.turn = this.validateTurnConfig();
   }
 
@@ -102,6 +108,11 @@ export default class Config {
     return {
       uri: sfuWebsocketUri
     }
+  }
+
+  private validateRtcStatsConfig(): RtcStatsConfig {
+    const uploadDir = process.env.RTC_STATS_UPLOAD_DIR || "upload";
+    return { uploadDir };
   }
 
   private validateTurnConfig(): TurnConfig {

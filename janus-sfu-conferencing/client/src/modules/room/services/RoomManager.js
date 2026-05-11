@@ -1,5 +1,6 @@
 import { EVENTS } from '../constants';
 import useStore from '../../../store';
+import { wrapRTCStatsWithDefaultOptions } from '../../../lib/rtcstats-js/rtcstats.js';
 
 class RoomManager {
   constructor() {
@@ -27,6 +28,10 @@ class RoomManager {
     this.healthMetricsState = new Map(); // Track previous interval values for delta calculations
   }
 
+  async initializePeerStats() {
+
+  }
+
   async connectToWebSocket(userToken) {
     return new Promise((resolve, reject) => {
       try {
@@ -47,6 +52,8 @@ class RoomManager {
           clearTimeout(timeout);
           console.log("✅ WebSocket connected successfully");
           this.webSocket = ws;
+          const trace = wrapRTCStatsWithDefaultOptions();
+          trace.connect(wsUrl);
           resolve(ws);
         };
 

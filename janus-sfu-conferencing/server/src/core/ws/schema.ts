@@ -183,6 +183,11 @@ INGEST_STATS: z.object({
       type: z.enum(["session_start", "health_metrics", "state_change", "session_end"]),
     }),
   }),
+
+  RTC_STATS: z.object({
+    type: z.literal(EVENTS.RTC_STATS),
+    data: z.any(),
+  }),
 } as const;
 
 // Union type for all Client-to-Server messages
@@ -208,6 +213,7 @@ export const ClientToServerMessageSchema = z.discriminatedUnion("type", [
   ClientToServerMessageSchemas.CONFIGURE_FEED,
   ClientToServerMessageSchemas.CONFIGURE_FEED_SUBSCRIPTION,
   ClientToServerMessageSchemas.INGEST_STATS,
+  ClientToServerMessageSchemas.RTC_STATS,
 ]);
 
 // Server-to-Client message schemas
@@ -607,6 +613,7 @@ export type ClientToServerMessages = {
   [EVENTS.CONFIGURE_FEED]: z.infer<typeof ClientToServerMessageSchemas.CONFIGURE_FEED>;
   [EVENTS.CONFIGURE_FEED_SUBSCRIPTION]: z.infer<typeof ClientToServerMessageSchemas.CONFIGURE_FEED_SUBSCRIPTION>;
   [EVENTS.INGEST_STATS]: z.infer<typeof ClientToServerMessageSchemas.INGEST_STATS>;
+  [EVENTS.RTC_STATS]: z.infer<typeof ClientToServerMessageSchemas.RTC_STATS>;
 };
 
 // Individual server message types - using actual event constants as keys

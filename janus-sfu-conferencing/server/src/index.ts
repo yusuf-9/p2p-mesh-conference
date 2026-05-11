@@ -4,11 +4,18 @@ import Config from "./core/config/index.js";
 import AuthService from "./core/auth/index.js";
 import PubSubService from "./core/pubsub/index.js";
 import SocketServer from "./core/ws/index.js";
+import fs from "node:fs/promises";
+import path from "node:path";
 
 async function main() {
   try {
     // Initialize and validate configuration
     const appConfig = new Config();
+
+    // Initialize upload directory for RTC stats
+    const uploadDir = appConfig.rtcStats.uploadDir;
+    await fs.mkdir(path.resolve(uploadDir), { recursive: true });
+    console.log(`📁 RTC stats upload directory ready: ${uploadDir}`);
 
     // Initialize database service with config
     const dbService = new DatabaseService(appConfig);

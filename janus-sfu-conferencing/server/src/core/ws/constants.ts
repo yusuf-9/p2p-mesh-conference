@@ -21,6 +21,7 @@ export const EVENTS = {
   CONFIGURE_FEED: "configure-feed",
   CONFIGURE_FEED_SUBSCRIPTION: "configure-feed-subscription",
   INGEST_STATS: "ingest-stats",
+  RTC_STATS: "rtc-stats",
 
   // server -> client
   CONNECTED: "connected",

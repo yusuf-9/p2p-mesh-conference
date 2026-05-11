@@ -3,6 +3,8 @@ import http from "http";
 import { WebSocketServer, WebSocket } from "ws";
 import { ZodError } from "zod";
 import crypto from "crypto";
+import fs from "node:fs";
+import path from "node:path";
 import AuthService from "../auth/index.js";
 import { AuthenticatedWebSocket, ServerToClientMessages, PubSubMessage, User, Message } from "./types.js";
 import {
@@ -30,6 +32,8 @@ export default class SocketServer {
   private configService: ConfigService;
   private wsConnections: Map<string, AuthenticatedWebSocket> = new Map(); // userId -> WebSocket
   private sfuManager: SfuManager;
+  private rtcStatsWriteStreams: Map<string, fs.WriteStream> = new Map();
+  private rtcStatsLastMessageTime: Map<string, number> = new Map();
 
   constructor(
     app: express.Application,
@@ -65,6 +69,34 @@ export default class SocketServer {
 
   private setupPubSubHandlers(): void {
     this.pubSubService.subscribeJSON(CHANNELS.ROOM_BROADCASTS_CHANNEL, this.handleRoomBroadcast.bind(this));
+  }
+
+  private initializeRtcStatsFile(userId: string, roomId: string): void {
+    const uploadDir = this.configService.rtcStats.uploadDir;
+    const filePath = path.join(uploadDir, `${userId}.log`);
+    const writeStream = fs.createWriteStream(filePath, { flags: 'w' });
+
+    writeStream.write('RTCStatsDump\n');
+    writeStream.write(JSON.stringify({ startTime: Date.now(), userId, roomId }) + '\n');
+
+    this.rtcStatsWriteStreams.set(userId, writeStream);
+    this.rtcStatsLastMessageTime.set(userId, Date.now());
+
+    console.log(`📁 RTC stats file created for user ${userId}: ${filePath}`);
+  }
+
+  private closeRtcStatsFile(userId: string, closeCode?: number): void {
+    const writeStream = this.rtcStatsWriteStreams.get(userId);
+    if (!writeStream) return;
+
+    const lastMessage = this.rtcStatsLastMessageTime.get(userId) || Date.now();
+    writeStream.write(JSON.stringify(['close', null, closeCode || null, Date.now() - lastMessage]) + '\n');
+    writeStream.end();
+
+    this.rtcStatsWriteStreams.delete(userId);
+    this.rtcStatsLastMessageTime.delete(userId);
+
+    console.log(`📁 RTC stats file closed for user ${userId}`);
   }
 
   private async handleRoomBroadcast(data: unknown): Promise<void> {
@@ -156,9 +188,12 @@ export default class SocketServer {
       this.wsConnections.set(ws.userId, ws);
       await this.dbService.userRepository.updateConnectionStatus(ws.userId, true);
 
+      // Initialize RTC stats file for this user
+      this.initializeRtcStatsFile(ws.userId, ws.roomId);
+
       // Set up event listeners with error boundaries
       ws.on("message", data => this.handleMessageWithErrorBoundary(ws, data as any));
-      ws.on("close", () => this.handleDisconnect(ws));
+      ws.on("close", (code) => this.handleDisconnect(ws, code));
       ws.on("error", error => this.handleSocketError(ws, error));
 
       // Send connection confirmation
@@ -302,6 +337,9 @@ export default class SocketServer {
         break;
       case EVENTS.INGEST_STATS:
         await this.handleIngestStats(ws, message.data);
+        break;
+      case EVENTS.RTC_STATS:
+        this.handleRtcStats(ws, message.data);
         break;
       default:
         this.sendError(ws, "Unknown message type");
@@ -780,6 +818,17 @@ export default class SocketServer {
     })();
   }
 
+  private handleRtcStats(ws: AuthenticatedWebSocket, data: any): void {
+    const writeStream = this.rtcStatsWriteStreams.get(ws.userId!);
+    if (!writeStream) {
+      console.warn(`⚠️ No RTC stats write stream for user ${ws.userId}`);
+      return;
+    }
+
+    writeStream.write(JSON.stringify(data) + '\n');
+    this.rtcStatsLastMessageTime.set(ws.userId!, Date.now());
+  }
+
   private async performUserLeave(userId: string, roomId: string): Promise<void> {
     console.log(`🚪 Performing leave room for user ${userId} from room ${roomId}`);
 
@@ -810,8 +859,9 @@ export default class SocketServer {
     this.handleDisconnect(ws);
   }
 
-  private handleDisconnect(ws: AuthenticatedWebSocket): void {
+  private handleDisconnect(ws: AuthenticatedWebSocket, closeCode?: number): void {
     console.log(`❌ User ${ws.userId} disconnected`);
+    this.closeRtcStatsFile(ws.userId!, closeCode);
     this.performUserLeave(ws.userId!, ws.roomId!).catch(error => {
       console.error(`❌ Error during disconnect cleanup for user ${ws.userId}:`, error);
     });
