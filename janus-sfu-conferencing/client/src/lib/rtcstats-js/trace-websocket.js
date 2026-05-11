@@ -9,15 +9,13 @@ export function WebSocketTrace(config = {}) {
     let lastTime = 0;
     let connectionStartTime = 0;
 
-    // This counts the number of times the trace itself has been initialized.
-    // Typically this is done once per session and counting (re)loads based
-    // on that does not require listening for onload etc.
     let reloadCount = undefined;
     if (window.sessionStorage && config.countReloads) {
         const stored = parseInt(window.sessionStorage.getItem(RELOAD_COUNT_KEY), 10);
         reloadCount = Number.isNaN(stored) ? 0 : stored + 1;
         window.sessionStorage.setItem(RELOAD_COUNT_KEY, reloadCount);
     }
+
     const trace = function(...args) {
         const now = Date.now();
         args.push(now - lastTime);
@@ -47,17 +45,60 @@ export function WebSocketTrace(config = {}) {
 
     trace.close = () => {
         if (window.sessionStorage && config.countReloads) {
-            // A clean disconnect clears the reload count.
             window.sessionStorage.removeItem(RELOAD_COUNT_KEY);
         }
         if (connection) {
             connection.close();
             connection = null;
         }
-        // New traces need to get an absolute timestamp.
         lastTime = 0;
     };
-    trace.connect = (wsURL) => {
+
+    // Shared setup for attaching event listeners and flushing the buffer.
+    // Used by both the URL and external socket paths.
+    const attachListeners = (ws) => {
+        const connectionTime = Date.now() - connectionStartTime;
+
+        ws.addEventListener('error', (e) => {
+            if (config.log) {
+                config.log('rtcstats websocket connection error', e, ws.readyState);
+            }
+        });
+
+        ws.addEventListener('close', (e) => {
+            if (e.code === 1008 && config.log) {
+                config.log('rtcstats websocket connection closed with error=1008. ' +
+                           'Typically this means authorization is required and failed.');
+            }
+        });
+
+        const flush = () => {
+            if (!buffer.length) {
+                trace('websocket', null, { connectionTime });
+                return;
+            }
+            if (ws.readyState !== WebSocket.OPEN) {
+                return;
+            }
+            ws.send(JSON.stringify({ type: 'rtc-stats', data: buffer.shift() }));
+            setTimeout(flush, 0);
+        };
+
+        if (ws.readyState === WebSocket.OPEN) {
+            // Socket is already open — flush immediately
+            setTimeout(flush, 0);
+        } else {
+            ws.addEventListener('open', () => {
+                setTimeout(flush, 0);
+            });
+        }
+
+        ws.addEventListener('message', (msg) => {
+            // no messages from the server defined yet.
+        });
+    };
+
+    trace.connect = (wsURLOrSocket) => {
         if (connection) {
             connection.close();
             lastTime = 0;
@@ -78,44 +119,17 @@ export function WebSocketTrace(config = {}) {
             reloadCount,
         });
         connectionStartTime = Date.now();
-        connection = new WebSocket(wsURL, 'rtcstats#' + PROTOCOL_VERSION);
-        connection.addEventListener('error', (e) => {
-            if (config.log) {
-                config.log('rtcstats websocket connection error', e, connection.readyState);
-            }
-        });
 
-        connection.addEventListener('close', (e) => {
-            if (e.code === 1008 && config.log) {
-                config.log('rtcstats websocket connection closed with error=1008. ' +
-                           'Typically this means authorization is required and failed.');
-            }
-            // reconnect?
-        });
+        if (wsURLOrSocket instanceof WebSocket) {
+            // Use the provided socket instance directly
+            connection = wsURLOrSocket;
+        } else {
+            // Create a new connection from the URL string (original behaviour)
+            connection = new WebSocket(wsURLOrSocket, 'rtcstats#' + PROTOCOL_VERSION);
+        }
 
-        connection.addEventListener('open', () => {
-            // Note: open is called while the socket is still authenticating.
-            // This can lead to messages being send and dropped when the token
-            // is not valid.
-            const connectionTime = Date.now() - connectionStartTime;
-            setTimeout(function flush() {
-                if (!buffer.length) {
-                    trace('websocket', null, {
-                        connectionTime,
-                    });
-                    return;
-                }
-                if (connection.readyState !== WebSocket.OPEN) {
-                    return;
-                }
-                connection.send(JSON.stringify({ type: 'rtc-stats', data: buffer.shift() }));
-                setTimeout(flush, 0);
-            }, 0);
-        });
-
-        connection.addEventListener('message', (msg) => {
-            // no messages from the server defined yet.
-        });
+        attachListeners(connection);
     };
+
     return trace;
 }

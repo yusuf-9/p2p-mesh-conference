@@ -53,7 +53,7 @@ class RoomManager {
           console.log("✅ WebSocket connected successfully");
           this.webSocket = ws;
           const trace = wrapRTCStatsWithDefaultOptions();
-          trace.connect(wsUrl);
+          trace.connect(ws);
           resolve(ws);
         };
 
