@@ -77,7 +77,7 @@ resource "aws_instance" "coturn" {
   key_name               = "loadtest-server"
 
   root_block_device {
-    volume_size = 8
+    volume_size = 30
   }
 
   user_data = templatefile("${path.module}/coturn_startup.sh", {

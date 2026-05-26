@@ -1,0 +1,1215 @@
+{
+  "data": {
+    "schemaVersion": "1.0",
+    "callStart": "2026-05-11T15:33:13.529Z",
+    "callEnd": "2026-05-11T15:34:42.182Z",
+    "durationMs": 88653,
+    "userAgentData": {
+      "brands": [
+        {
+          "brand": "Chromium",
+          "version": "148"
+        },
+        {
+          "brand": "Google Chrome",
+          "version": "148"
+        },
+        {
+          "brand": "Not/A)Brand",
+          "version": "99"
+        }
+      ],
+      "mobile": false,
+      "platform": "Linux",
+      "deviceMemory": 16,
+      "hardwareConcurrency": 8,
+      "screen": {
+        "width": 1920,
+        "height": 1080,
+        "devicePixelRatio": 1
+      },
+      "window": {
+        "width": 973,
+        "height": 959
+      },
+      "resolution": "1080p"
+    },
+    "pConnectionsNumber": 6,
+    "pConnections": {
+      "PC_0": {
+        "statisticsStartedAt": "2026-05-11T15:33:13.621Z",
+        "end": "2026-05-11T15:34:41.624Z",
+        "createdAt": "2026-05-11T15:33:13.529Z",
+        "audioOut": 1,
+        "videoOut": 3,
+        "audioIn": 0,
+        "videoIn": 0,
+        "dataInOut": 0,
+        "peerType": "PUBLISHER",
+        "contentType": "BUNDLE+SIMULCAST",
+        "connectedAt": "2026-05-11T15:33:13.640Z",
+        "disconnections": [],
+        "iceConnection": "2026-05-11T15:33:13.621Z",
+        "iceChecking": "2026-05-11T15:33:13.615Z",
+        "gathering": "2026-05-11T15:33:13.556Z",
+        "negotiationStart": "2026-05-11T15:33:13.537Z",
+        "setupTimeMs": 103,
+        "initiator": "local",
+        "remoteCandidatesInSDP": true,
+        "lastconnectionstate": "connected",
+        "lastconnectionstateTimestamp": 1778513593640,
+        "lasticeconnectionstate": "connected",
+        "connectionChurn": false,
+        "iceChurn": false,
+        "configuration": {
+          "iceServers": [
+            {
+              "urls": "stun:localhost:3478"
+            },
+            {
+              "urls": [
+                "turn:localhost:3478?transport=udp",
+                "turn:localhost:3478?transport=tcp"
+              ],
+              "username": "1778599993"
+            }
+          ],
+          "iceTransportPolicy": "relay"
+        },
+        "handovers": 0,
+        "handoversTimestamps": [],
+        "connectionType": "DIRECT/UDP",
+        "connectionViaVPN": false,
+        "connectionIPType": "IPv4",
+        "connectivityGeo": {
+          "local": {},
+          "remote": {}
+        },
+        "connectivityScore": null,
+        "localCandidates": {
+          "1": {
+            "candidates": [
+              {
+                "address": "127.0.0.1",
+                "port": 50830,
+                "class": "ipv4",
+                "kind": "relay",
+                "protocol": "udp",
+                "relatedAddress": "0.0.0.0",
+                "relatedPort": null
+              },
+              {
+                "address": "127.0.0.1",
+                "port": 58177,
+                "class": "ipv4",
+                "kind": "relay",
+                "protocol": "tcp",
+                "relatedAddress": "0.0.0.0",
+                "relatedPort": null
+              },
+              {
+                "address": "172.19.0.1",
+                "port": 58177,
+                "class": "ipv4",
+                "kind": "prflx",
+                "protocol": "udp",
+                "relatedAddress": "127.0.0.1",
+                "relatedPort": 58177
+              }
+            ],
+            "type": "ethernet"
+          },
+          "2": {
+            "candidates": [
+              {
+                "address": "127.0.0.1",
+                "port": 49467,
+                "class": "ipv4",
+                "kind": "relay",
+                "protocol": "udp",
+                "relatedAddress": "0.0.0.0",
+                "relatedPort": null
+              },
+              {
+                "address": "127.0.0.1",
+                "port": 63612,
+                "class": "ipv4",
+                "kind": "relay",
+                "protocol": "tcp",
+                "relatedAddress": "0.0.0.0",
+                "relatedPort": null
+              },
+              {
+                "address": "172.19.0.1",
+                "port": 63612,
+                "class": "ipv4",
+                "kind": "prflx",
+                "protocol": "udp",
+                "relatedAddress": "127.0.0.1",
+                "relatedPort": 63612
+              }
+            ],
+            "type": "ethernet"
+          },
+          "3": {
+            "candidates": [
+              {
+                "address": "127.0.0.1",
+                "port": 57577,
+                "class": "ipv4",
+                "kind": "relay",
+                "protocol": "udp",
+                "relatedAddress": "0.0.0.0",
+                "relatedPort": null
+              },
+              {
+                "address": "127.0.0.1",
+                "port": 60530,
+                "class": "ipv4",
+                "kind": "relay",
+                "protocol": "tcp",
+                "relatedAddress": "0.0.0.0",
+                "relatedPort": null
+              },
+              {
+                "address": "172.19.0.1",
+                "port": 60530,
+                "class": "ipv4",
+                "kind": "prflx",
+                "protocol": "udp",
+                "relatedAddress": "127.0.0.1",
+                "relatedPort": 60530
+              }
+            ],
+            "type": "ethernet"
+          },
+          "4": {
+            "candidates": [
+              {
+                "address": "127.0.0.1",
+                "port": 63356,
+                "class": "ipv4",
+                "kind": "relay",
+                "protocol": "udp",
+                "relatedAddress": "0.0.0.0",
+                "relatedPort": null
+              },
+              {
+                "address": "127.0.0.1",
+                "port": 52428,
+                "class": "ipv4",
+                "kind": "relay",
+                "protocol": "tcp",
+                "relatedAddress": "0.0.0.0",
+                "relatedPort": null
+              },
+              {
+                "address": "172.19.0.1",
+                "port": 63356,
+                "class": "ipv4",
+                "kind": "prflx",
+                "protocol": "udp",
+                "relatedAddress": "127.0.0.1",
+                "relatedPort": 63356
+              }
+            ],
+            "type": "ethernet"
+          }
+        },
+        "connectedToServer": [
+          "janus"
+        ],
+        "timeToFirstTurnUDPCandidateMs": 60,
+        "timeToFirstTurnTCPCandidateMs": 65,
+        "timeToFirstTurnTLSCandidateMs": null,
+        "timeToFirstTurnDTLSCandidateMs": null,
+        "timeToFirstStunCandidateMs": null,
+        "signalingTimeMs": 18,
+        "firstSetLocalDescription": "2026-05-11T15:33:13.551Z",
+        "firstSetRemoteDescription": "2026-05-11T15:33:13.569Z",
+        "cpu": {
+          "percentNominal": 0,
+          "percentFair": 0,
+          "percentSerious": 4.5,
+          "percentCritical": 95.5,
+          "firstTimestampSeriousPressure": 1778513598640.942,
+          "firstTimestampCriticalPressure": 1778513592928
+        }
+      },
+      "PC_2": {
+        "statisticsStartedAt": "2026-05-11T15:33:22.428Z",
+        "end": "2026-05-11T15:34:41.428Z",
+        "createdAt": "2026-05-11T15:33:22.182Z",
+        "audioOut": 0,
+        "videoOut": 0,
+        "audioIn": 0,
+        "videoIn": 1,
+        "dataInOut": 0,
+        "peerType": "SUBSCRIBER",
+        "contentType": "VIDEO",
+        "connectedAt": "2026-05-11T15:33:22.428Z",
+        "disconnections": [],
+        "iceConnection": "2026-05-11T15:33:22.364Z",
+        "iceChecking": "2026-05-11T15:33:22.311Z",
+        "gathering": "2026-05-11T15:33:22.242Z",
+        "negotiationStart": "2026-05-11T15:33:22.183Z",
+        "setupTimeMs": 245,
+        "initiator": "remote",
+        "remoteCandidatesInSDP": true,
+        "lastconnectionstate": "connected",
+        "lastconnectionstateTimestamp": 1778513602428,
+        "lasticeconnectionstate": "connected",
+        "connectionChurn": false,
+        "iceChurn": false,
+        "configuration": {
+          "iceServers": [
+            {
+              "urls": "stun:localhost:3478"
+            },
+            {
+              "urls": [
+                "turn:localhost:3478?transport=udp",
+                "turn:localhost:3478?transport=tcp"
+              ],
+              "username": "1778600002"
+            }
+          ],
+          "iceTransportPolicy": "relay"
+        },
+        "handovers": 0,
+        "handoversTimestamps": [],
+        "connectionType": "DIRECT/UDP",
+        "connectionViaVPN": false,
+        "connectionIPType": "IPv4",
+        "connectivityGeo": {
+          "local": {},
+          "remote": {}
+        },
+        "connectivityScore": null,
+        "localCandidates": {
+          "1": {
+            "candidates": [
+              {
+                "address": "127.0.0.1",
+                "port": 52329,
+                "class": "ipv4",
+                "kind": "relay",
+                "protocol": "udp",
+                "relatedAddress": "0.0.0.0",
+                "relatedPort": null
+              },
+              {
+                "address": "127.0.0.1",
+                "port": 64838,
+                "class": "ipv4",
+                "kind": "relay",
+                "protocol": "tcp",
+                "relatedAddress": "0.0.0.0",
+                "relatedPort": null
+              },
+              {
+                "address": "172.19.0.1",
+                "port": 64838,
+                "class": "ipv4",
+                "kind": "prflx",
+                "protocol": "udp",
+                "relatedAddress": "127.0.0.1",
+                "relatedPort": 64838
+              }
+            ],
+            "type": "ethernet"
+          },
+          "2": {
+            "candidates": [
+              {
+                "address": "127.0.0.1",
+                "port": 61860,
+                "class": "ipv4",
+                "kind": "relay",
+                "protocol": "udp",
+                "relatedAddress": "0.0.0.0",
+                "relatedPort": null
+              },
+              {
+                "address": "127.0.0.1",
+                "port": 50541,
+                "class": "ipv4",
+                "kind": "relay",
+                "protocol": "tcp",
+                "relatedAddress": "0.0.0.0",
+                "relatedPort": null
+              },
+              {
+                "address": "172.19.0.1",
+                "port": 50541,
+                "class": "ipv4",
+                "kind": "prflx",
+                "protocol": "udp",
+                "relatedAddress": "127.0.0.1",
+                "relatedPort": 50541
+              }
+            ],
+            "type": "ethernet"
+          },
+          "3": {
+            "candidates": [
+              {
+                "address": "127.0.0.1",
+                "port": 57488,
+                "class": "ipv4",
+                "kind": "relay",
+                "protocol": "udp",
+                "relatedAddress": "0.0.0.0",
+                "relatedPort": null
+              },
+              {
+                "address": "127.0.0.1",
+                "port": 63528,
+                "class": "ipv4",
+                "kind": "relay",
+                "protocol": "tcp",
+                "relatedAddress": "0.0.0.0",
+                "relatedPort": null
+              },
+              {
+                "address": "172.19.0.1",
+                "port": 63528,
+                "class": "ipv4",
+                "kind": "prflx",
+                "protocol": "udp",
+                "relatedAddress": "127.0.0.1",
+                "relatedPort": 63528
+              }
+            ],
+            "type": "ethernet"
+          },
+          "4": {
+            "candidates": [
+              {
+                "address": "127.0.0.1",
+                "port": 55044,
+                "class": "ipv4",
+                "kind": "relay",
+                "protocol": "udp",
+                "relatedAddress": "0.0.0.0",
+                "relatedPort": null
+              },
+              {
+                "address": "127.0.0.1",
+                "port": 57850,
+                "class": "ipv4",
+                "kind": "relay",
+                "protocol": "tcp",
+                "relatedAddress": "0.0.0.0",
+                "relatedPort": null
+              },
+              {
+                "address": "172.19.0.1",
+                "port": 55044,
+                "class": "ipv4",
+                "kind": "prflx",
+                "protocol": "udp",
+                "relatedAddress": "127.0.0.1",
+                "relatedPort": 55044
+              },
+              {
+                "address": "172.19.0.1",
+                "port": 57850,
+                "class": "ipv4",
+                "kind": "prflx",
+                "protocol": "udp",
+                "relatedAddress": "127.0.0.1",
+                "relatedPort": 57850
+              }
+            ],
+            "type": "ethernet"
+          }
+        },
+        "connectedToServer": [
+          "janus"
+        ],
+        "timeToFirstTurnUDPCandidateMs": 71,
+        "timeToFirstTurnTCPCandidateMs": 79,
+        "timeToFirstTurnTLSCandidateMs": null,
+        "timeToFirstTurnDTLSCandidateMs": null,
+        "timeToFirstStunCandidateMs": null,
+        "signalingTimeMs": 52,
+        "firstSetLocalDescription": "2026-05-11T15:33:22.235Z",
+        "firstSetRemoteDescription": "2026-05-11T15:33:22.183Z",
+        "cpu": {
+          "percentNominal": 0,
+          "percentFair": 0,
+          "percentSerious": 0,
+          "percentCritical": 100,
+          "firstTimestampCriticalPressure": 1778513601933
+        }
+      },
+      "PC_3": {
+        "statisticsStartedAt": "2026-05-11T15:33:33.851Z",
+        "end": "2026-05-11T15:34:41.853Z",
+        "createdAt": "2026-05-11T15:33:33.632Z",
+        "audioOut": 0,
+        "videoOut": 0,
+        "audioIn": 0,
+        "videoIn": 1,
+        "dataInOut": 0,
+        "peerType": "SUBSCRIBER",
+        "contentType": "VIDEO",
+        "connectedAt": "2026-05-11T15:33:33.850Z",
+        "disconnections": [],
+        "iceConnection": "2026-05-11T15:33:33.787Z",
+        "iceChecking": "2026-05-11T15:33:33.724Z",
+        "gathering": "2026-05-11T15:33:33.674Z",
+        "negotiationStart": "2026-05-11T15:33:33.633Z",
+        "setupTimeMs": 217,
+        "initiator": "remote",
+        "remoteCandidatesInSDP": true,
+        "lastconnectionstate": "connected",
+        "lastconnectionstateTimestamp": 1778513613850,
+        "lasticeconnectionstate": "connected",
+        "connectionChurn": false,
+        "iceChurn": false,
+        "configuration": {
+          "iceServers": [
+            {
+              "urls": "stun:localhost:3478"
+            },
+            {
+              "urls": [
+                "turn:localhost:3478?transport=udp",
+                "turn:localhost:3478?transport=tcp"
+              ],
+              "username": "1778600013"
+            }
+          ],
+          "iceTransportPolicy": "relay"
+        },
+        "handovers": 0,
+        "handoversTimestamps": [],
+        "connectionType": "DIRECT/UDP",
+        "connectionViaVPN": false,
+        "connectionIPType": "IPv4",
+        "connectivityGeo": {
+          "local": {},
+          "remote": {}
+        },
+        "connectivityScore": null,
+        "localCandidates": {
+          "1": {
+            "candidates": [
+              {
+                "address": "127.0.0.1",
+                "port": 61790,
+                "class": "ipv4",
+                "kind": "relay",
+                "protocol": "udp",
+                "relatedAddress": "0.0.0.0",
+                "relatedPort": null
+              },
+              {
+                "address": "127.0.0.1",
+                "port": 49687,
+                "class": "ipv4",
+                "kind": "relay",
+                "protocol": "tcp",
+                "relatedAddress": "0.0.0.0",
+                "relatedPort": null
+              },
+              {
+                "address": "172.19.0.1",
+                "port": 49687,
+                "class": "ipv4",
+                "kind": "prflx",
+                "protocol": "udp",
+                "relatedAddress": "127.0.0.1",
+                "relatedPort": 49687
+              }
+            ],
+            "type": "ethernet"
+          },
+          "2": {
+            "candidates": [
+              {
+                "address": "127.0.0.1",
+                "port": 57661,
+                "class": "ipv4",
+                "kind": "relay",
+                "protocol": "udp",
+                "relatedAddress": "0.0.0.0",
+                "relatedPort": null
+              },
+              {
+                "address": "127.0.0.1",
+                "port": 60293,
+                "class": "ipv4",
+                "kind": "relay",
+                "protocol": "tcp",
+                "relatedAddress": "0.0.0.0",
+                "relatedPort": null
+              },
+              {
+                "address": "172.19.0.1",
+                "port": 60293,
+                "class": "ipv4",
+                "kind": "prflx",
+                "protocol": "udp",
+                "relatedAddress": "127.0.0.1",
+                "relatedPort": 60293
+              }
+            ],
+            "type": "ethernet"
+          },
+          "3": {
+            "candidates": [
+              {
+                "address": "127.0.0.1",
+                "port": 62495,
+                "class": "ipv4",
+                "kind": "relay",
+                "protocol": "udp",
+                "relatedAddress": "0.0.0.0",
+                "relatedPort": null
+              },
+              {
+                "address": "127.0.0.1",
+                "port": 56656,
+                "class": "ipv4",
+                "kind": "relay",
+                "protocol": "tcp",
+                "relatedAddress": "0.0.0.0",
+                "relatedPort": null
+              },
+              {
+                "address": "172.19.0.1",
+                "port": 56656,
+                "class": "ipv4",
+                "kind": "prflx",
+                "protocol": "udp",
+                "relatedAddress": "127.0.0.1",
+                "relatedPort": 56656
+              }
+            ],
+            "type": "ethernet"
+          },
+          "4": {
+            "candidates": [
+              {
+                "address": "127.0.0.1",
+                "port": 58707,
+                "class": "ipv4",
+                "kind": "relay",
+                "protocol": "udp",
+                "relatedAddress": "0.0.0.0",
+                "relatedPort": null
+              },
+              {
+                "address": "127.0.0.1",
+                "port": 59539,
+                "class": "ipv4",
+                "kind": "relay",
+                "protocol": "tcp",
+                "relatedAddress": "0.0.0.0",
+                "relatedPort": null
+              },
+              {
+                "address": "172.19.0.1",
+                "port": 58707,
+                "class": "ipv4",
+                "kind": "prflx",
+                "protocol": "udp",
+                "relatedAddress": "127.0.0.1",
+                "relatedPort": 58707
+              },
+              {
+                "address": "172.19.0.1",
+                "port": 59539,
+                "class": "ipv4",
+                "kind": "prflx",
+                "protocol": "udp",
+                "relatedAddress": "127.0.0.1",
+                "relatedPort": 59539
+              }
+            ],
+            "type": "ethernet"
+          }
+        },
+        "connectedToServer": [
+          "janus"
+        ],
+        "timeToFirstTurnUDPCandidateMs": 50,
+        "timeToFirstTurnTCPCandidateMs": 53,
+        "timeToFirstTurnTLSCandidateMs": null,
+        "timeToFirstTurnDTLSCandidateMs": null,
+        "timeToFirstStunCandidateMs": null,
+        "signalingTimeMs": 34,
+        "firstSetLocalDescription": "2026-05-11T15:33:33.667Z",
+        "firstSetRemoteDescription": "2026-05-11T15:33:33.633Z",
+        "cpu": {
+          "percentNominal": 0,
+          "percentFair": 0,
+          "percentSerious": 0,
+          "percentCritical": 100,
+          "firstTimestampCriticalPressure": 1778513612939
+        }
+      },
+      "PC_4": {
+        "statisticsStartedAt": "2026-05-11T15:33:46.260Z",
+        "end": "2026-05-11T15:34:41.260Z",
+        "createdAt": "2026-05-11T15:33:45.974Z",
+        "audioOut": 0,
+        "videoOut": 0,
+        "audioIn": 0,
+        "videoIn": 1,
+        "dataInOut": 0,
+        "peerType": "SUBSCRIBER",
+        "contentType": "VIDEO",
+        "connectedAt": "2026-05-11T15:33:46.260Z",
+        "disconnections": [],
+        "iceConnection": "2026-05-11T15:33:46.192Z",
+        "iceChecking": "2026-05-11T15:33:46.130Z",
+        "gathering": "2026-05-11T15:33:46.070Z",
+        "negotiationStart": "2026-05-11T15:33:45.976Z",
+        "setupTimeMs": 284,
+        "initiator": "remote",
+        "remoteCandidatesInSDP": true,
+        "lastconnectionstate": "connected",
+        "lastconnectionstateTimestamp": 1778513626260,
+        "lasticeconnectionstate": "connected",
+        "connectionChurn": false,
+        "iceChurn": false,
+        "configuration": {
+          "iceServers": [
+            {
+              "urls": "stun:localhost:3478"
+            },
+            {
+              "urls": [
+                "turn:localhost:3478?transport=udp",
+                "turn:localhost:3478?transport=tcp"
+              ],
+              "username": "1778600025"
+            }
+          ],
+          "iceTransportPolicy": "relay"
+        },
+        "handovers": 0,
+        "handoversTimestamps": [],
+        "connectionType": "DIRECT/UDP",
+        "connectionViaVPN": false,
+        "connectionIPType": "IPv4",
+        "connectivityGeo": {
+          "local": {},
+          "remote": {}
+        },
+        "connectivityScore": null,
+        "localCandidates": {
+          "1": {
+            "candidates": [
+              {
+                "address": "127.0.0.1",
+                "port": 55617,
+                "class": "ipv4",
+                "kind": "relay",
+                "protocol": "udp",
+                "relatedAddress": "0.0.0.0",
+                "relatedPort": null
+              },
+              {
+                "address": "127.0.0.1",
+                "port": 56462,
+                "class": "ipv4",
+                "kind": "relay",
+                "protocol": "tcp",
+                "relatedAddress": "0.0.0.0",
+                "relatedPort": null
+              },
+              {
+                "address": "172.19.0.1",
+                "port": 56462,
+                "class": "ipv4",
+                "kind": "prflx",
+                "protocol": "udp",
+                "relatedAddress": "127.0.0.1",
+                "relatedPort": 56462
+              }
+            ],
+            "type": "ethernet"
+          },
+          "2": {
+            "candidates": [
+              {
+                "address": "127.0.0.1",
+                "port": 59011,
+                "class": "ipv4",
+                "kind": "relay",
+                "protocol": "udp",
+                "relatedAddress": "0.0.0.0",
+                "relatedPort": null
+              },
+              {
+                "address": "127.0.0.1",
+                "port": 55510,
+                "class": "ipv4",
+                "kind": "relay",
+                "protocol": "tcp",
+                "relatedAddress": "0.0.0.0",
+                "relatedPort": null
+              },
+              {
+                "address": "172.19.0.1",
+                "port": 55510,
+                "class": "ipv4",
+                "kind": "prflx",
+                "protocol": "udp",
+                "relatedAddress": "127.0.0.1",
+                "relatedPort": 55510
+              }
+            ],
+            "type": "ethernet"
+          },
+          "3": {
+            "candidates": [
+              {
+                "address": "127.0.0.1",
+                "port": 61655,
+                "class": "ipv4",
+                "kind": "relay",
+                "protocol": "udp",
+                "relatedAddress": "0.0.0.0",
+                "relatedPort": null
+              },
+              {
+                "address": "127.0.0.1",
+                "port": 60937,
+                "class": "ipv4",
+                "kind": "relay",
+                "protocol": "tcp",
+                "relatedAddress": "0.0.0.0",
+                "relatedPort": null
+              },
+              {
+                "address": "172.19.0.1",
+                "port": 60937,
+                "class": "ipv4",
+                "kind": "prflx",
+                "protocol": "udp",
+                "relatedAddress": "127.0.0.1",
+                "relatedPort": 60937
+              }
+            ],
+            "type": "ethernet"
+          },
+          "4": {
+            "candidates": [
+              {
+                "address": "127.0.0.1",
+                "port": 56636,
+                "class": "ipv4",
+                "kind": "relay",
+                "protocol": "udp",
+                "relatedAddress": "0.0.0.0",
+                "relatedPort": null
+              },
+              {
+                "address": "127.0.0.1",
+                "port": 57213,
+                "class": "ipv4",
+                "kind": "relay",
+                "protocol": "tcp",
+                "relatedAddress": "0.0.0.0",
+                "relatedPort": null
+              },
+              {
+                "address": "172.19.0.1",
+                "port": 56636,
+                "class": "ipv4",
+                "kind": "prflx",
+                "protocol": "udp",
+                "relatedAddress": "127.0.0.1",
+                "relatedPort": 56636
+              },
+              {
+                "address": "172.19.0.1",
+                "port": 57213,
+                "class": "ipv4",
+                "kind": "prflx",
+                "protocol": "udp",
+                "relatedAddress": "127.0.0.1",
+                "relatedPort": 57213
+              }
+            ],
+            "type": "ethernet"
+          }
+        },
+        "connectedToServer": [
+          "janus"
+        ],
+        "timeToFirstTurnUDPCandidateMs": 60,
+        "timeToFirstTurnTCPCandidateMs": 71,
+        "timeToFirstTurnTLSCandidateMs": null,
+        "timeToFirstTurnDTLSCandidateMs": null,
+        "timeToFirstStunCandidateMs": null,
+        "signalingTimeMs": 83,
+        "firstSetLocalDescription": "2026-05-11T15:33:46.059Z",
+        "firstSetRemoteDescription": "2026-05-11T15:33:45.976Z",
+        "cpu": {
+          "percentNominal": 0,
+          "percentFair": 0,
+          "percentSerious": 0,
+          "percentCritical": 100,
+          "firstTimestampCriticalPressure": 1778513625952
+        }
+      },
+      "PC_5": {
+        "statisticsStartedAt": "2026-05-11T15:33:59.137Z",
+        "end": "2026-05-11T15:34:42.182Z",
+        "createdAt": "2026-05-11T15:33:58.965Z",
+        "audioOut": 0,
+        "videoOut": 0,
+        "audioIn": 0,
+        "videoIn": 1,
+        "dataInOut": 0,
+        "peerType": "SUBSCRIBER",
+        "contentType": "VIDEO",
+        "connectedAt": "2026-05-11T15:33:59.177Z",
+        "disconnections": [],
+        "iceConnection": "2026-05-11T15:33:59.135Z",
+        "iceChecking": "2026-05-11T15:33:59.131Z",
+        "gathering": "2026-05-11T15:33:59.045Z",
+        "negotiationStart": "2026-05-11T15:33:58.965Z",
+        "setupTimeMs": 212,
+        "initiator": "remote",
+        "remoteCandidatesInSDP": true,
+        "lastconnectionstate": "connected",
+        "lastconnectionstateTimestamp": 1778513639177,
+        "lasticeconnectionstate": "connected",
+        "connectionChurn": false,
+        "iceChurn": false,
+        "configuration": {
+          "iceServers": [
+            {
+              "urls": "stun:localhost:3478"
+            },
+            {
+              "urls": [
+                "turn:localhost:3478?transport=udp",
+                "turn:localhost:3478?transport=tcp"
+              ],
+              "username": "1778600038"
+            }
+          ],
+          "iceTransportPolicy": "relay"
+        },
+        "handovers": 0,
+        "handoversTimestamps": [],
+        "connectionType": "DIRECT/UDP",
+        "connectionViaVPN": false,
+        "connectionIPType": "IPv4",
+        "connectivityGeo": {
+          "local": {},
+          "remote": {}
+        },
+        "connectivityScore": null,
+        "localCandidates": {
+          "1": {
+            "candidates": [
+              {
+                "address": "127.0.0.1",
+                "port": 56053,
+                "class": "ipv4",
+                "kind": "relay",
+                "protocol": "udp",
+                "relatedAddress": "0.0.0.0",
+                "relatedPort": null
+              }
+            ],
+            "type": "ethernet"
+          },
+          "2": {
+            "candidates": [
+              {
+                "address": "127.0.0.1",
+                "port": 53677,
+                "class": "ipv4",
+                "kind": "relay",
+                "protocol": "udp",
+                "relatedAddress": "0.0.0.0",
+                "relatedPort": null
+              }
+            ],
+            "type": "ethernet"
+          },
+          "3": {
+            "candidates": [
+              {
+                "address": "127.0.0.1",
+                "port": 52819,
+                "class": "ipv4",
+                "kind": "relay",
+                "protocol": "udp",
+                "relatedAddress": "0.0.0.0",
+                "relatedPort": null
+              }
+            ],
+            "type": "ethernet"
+          },
+          "4": {
+            "candidates": [
+              {
+                "address": "127.0.0.1",
+                "port": 59969,
+                "class": "ipv4",
+                "kind": "relay",
+                "protocol": "udp",
+                "relatedAddress": "0.0.0.0",
+                "relatedPort": null
+              },
+              {
+                "address": "172.19.0.1",
+                "port": 59969,
+                "class": "ipv4",
+                "kind": "prflx",
+                "protocol": "udp",
+                "relatedAddress": "127.0.0.1",
+                "relatedPort": 59969
+              }
+            ],
+            "type": "ethernet"
+          }
+        },
+        "connectedToServer": [
+          "janus"
+        ],
+        "timeToFirstTurnUDPCandidateMs": 89,
+        "timeToFirstTurnTCPCandidateMs": null,
+        "timeToFirstTurnTLSCandidateMs": null,
+        "timeToFirstTurnDTLSCandidateMs": null,
+        "timeToFirstStunCandidateMs": null,
+        "signalingTimeMs": 60,
+        "firstSetLocalDescription": "2026-05-11T15:33:59.025Z",
+        "firstSetRemoteDescription": "2026-05-11T15:33:58.965Z",
+        "cpu": {
+          "percentNominal": 0,
+          "percentFair": 0,
+          "percentSerious": 0,
+          "percentCritical": 100,
+          "firstTimestampCriticalPressure": 1778513637961
+        }
+      },
+      "PC_6": {
+        "statisticsStartedAt": "2026-05-11T15:34:13.820Z",
+        "end": "2026-05-11T15:34:41.820Z",
+        "createdAt": "2026-05-11T15:34:13.580Z",
+        "audioOut": 0,
+        "videoOut": 0,
+        "audioIn": 0,
+        "videoIn": 1,
+        "dataInOut": 0,
+        "peerType": "SUBSCRIBER",
+        "contentType": "VIDEO",
+        "connectedAt": "2026-05-11T15:34:13.819Z",
+        "disconnections": [],
+        "iceConnection": "2026-05-11T15:34:13.759Z",
+        "iceChecking": "2026-05-11T15:34:13.693Z",
+        "gathering": "2026-05-11T15:34:13.630Z",
+        "negotiationStart": "2026-05-11T15:34:13.581Z",
+        "setupTimeMs": 238,
+        "initiator": "remote",
+        "remoteCandidatesInSDP": true,
+        "lastconnectionstate": "connected",
+        "lastconnectionstateTimestamp": 1778513653819,
+        "lasticeconnectionstate": "connected",
+        "connectionChurn": false,
+        "iceChurn": false,
+        "configuration": {
+          "iceServers": [
+            {
+              "urls": "stun:localhost:3478"
+            },
+            {
+              "urls": [
+                "turn:localhost:3478?transport=udp",
+                "turn:localhost:3478?transport=tcp"
+              ],
+              "username": "1778600053"
+            }
+          ],
+          "iceTransportPolicy": "relay"
+        },
+        "handovers": 0,
+        "handoversTimestamps": [],
+        "connectionType": "DIRECT/UDP",
+        "connectionViaVPN": false,
+        "connectionIPType": "IPv4",
+        "connectivityGeo": {
+          "local": {},
+          "remote": {}
+        },
+        "connectivityScore": null,
+        "localCandidates": {
+          "1": {
+            "candidates": [
+              {
+                "address": "127.0.0.1",
+                "port": 60520,
+                "class": "ipv4",
+                "kind": "relay",
+                "protocol": "udp",
+                "relatedAddress": "0.0.0.0",
+                "relatedPort": null
+              },
+              {
+                "address": "127.0.0.1",
+                "port": 60879,
+                "class": "ipv4",
+                "kind": "relay",
+                "protocol": "tcp",
+                "relatedAddress": "0.0.0.0",
+                "relatedPort": null
+              },
+              {
+                "address": "172.19.0.1",
+                "port": 60879,
+                "class": "ipv4",
+                "kind": "prflx",
+                "protocol": "udp",
+                "relatedAddress": "127.0.0.1",
+                "relatedPort": 60879
+              }
+            ],
+            "type": "ethernet"
+          },
+          "2": {
+            "candidates": [
+              {
+                "address": "127.0.0.1",
+                "port": 65160,
+                "class": "ipv4",
+                "kind": "relay",
+                "protocol": "udp",
+                "relatedAddress": "0.0.0.0",
+                "relatedPort": null
+              },
+              {
+                "address": "127.0.0.1",
+                "port": 59625,
+                "class": "ipv4",
+                "kind": "relay",
+                "protocol": "tcp",
+                "relatedAddress": "0.0.0.0",
+                "relatedPort": null
+              },
+              {
+                "address": "172.19.0.1",
+                "port": 59625,
+                "class": "ipv4",
+                "kind": "prflx",
+                "protocol": "udp",
+                "relatedAddress": "127.0.0.1",
+                "relatedPort": 59625
+              }
+            ],
+            "type": "ethernet"
+          },
+          "3": {
+            "candidates": [
+              {
+                "address": "127.0.0.1",
+                "port": 55723,
+                "class": "ipv4",
+                "kind": "relay",
+                "protocol": "udp",
+                "relatedAddress": "0.0.0.0",
+                "relatedPort": null
+              },
+              {
+                "address": "127.0.0.1",
+                "port": 59832,
+                "class": "ipv4",
+                "kind": "relay",
+                "protocol": "tcp",
+                "relatedAddress": "0.0.0.0",
+                "relatedPort": null
+              },
+              {
+                "address": "172.19.0.1",
+                "port": 59832,
+                "class": "ipv4",
+                "kind": "prflx",
+                "protocol": "udp",
+                "relatedAddress": "127.0.0.1",
+                "relatedPort": 59832
+              }
+            ],
+            "type": "ethernet"
+          },
+          "4": {
+            "candidates": [
+              {
+                "address": "127.0.0.1",
+                "port": 61982,
+                "class": "ipv4",
+                "kind": "relay",
+                "protocol": "udp",
+                "relatedAddress": "0.0.0.0",
+                "relatedPort": null
+              },
+              {
+                "address": "127.0.0.1",
+                "port": 49867,
+                "class": "ipv4",
+                "kind": "relay",
+                "protocol": "tcp",
+                "relatedAddress": "0.0.0.0",
+                "relatedPort": null
+              },
+              {
+                "address": "172.19.0.1",
+                "port": 61982,
+                "class": "ipv4",
+                "kind": "prflx",
+                "protocol": "udp",
+                "relatedAddress": "127.0.0.1",
+                "relatedPort": 61982
+              },
+              {
+                "address": "172.19.0.1",
+                "port": 49867,
+                "class": "ipv4",
+                "kind": "prflx",
+                "protocol": "udp",
+                "relatedAddress": "127.0.0.1",
+                "relatedPort": 49867
+              }
+            ],
+            "type": "ethernet"
+          }
+        },
+        "connectedToServer": [
+          "janus"
+        ],
+        "timeToFirstTurnUDPCandidateMs": 63,
+        "timeToFirstTurnTCPCandidateMs": 72,
+        "timeToFirstTurnTLSCandidateMs": null,
+        "timeToFirstTurnDTLSCandidateMs": null,
+        "timeToFirstStunCandidateMs": null,
+        "signalingTimeMs": 37,
+        "firstSetLocalDescription": "2026-05-11T15:34:13.618Z",
+        "firstSetRemoteDescription": "2026-05-11T15:34:13.581Z",
+        "cpu": {
+          "percentNominal": 0,
+          "percentFair": 0,
+          "percentSerious": 0,
+          "percentCritical": 100,
+          "firstTimestampCriticalPressure": 1778513652973
+        }
+      }
+    },
+    "streams": {},
+    "transports": {},
+    "aggregatedStats": {},
+    "metadata": {
+      "clientProtocol": "rtcstats#3.0"
+    }
+  }
+}

@@ -1,5 +1,6 @@
 import { readRTCStatsDump, extractTracks } from '../rtcstats-shared/index.js';
 import { extractClientFeatures, extractConnectionFeatures, extractTrackFeatures } from './features.js';
+import { processRTCStatsDump } from './processor.js';
 import fs from 'node:fs';
 import path from 'node:path';
 
@@ -65,9 +66,9 @@ export async function extract(userId, filePath, processedDir) {
     fs.writeFileSync(outputFile, JSON.stringify(result, null, 2));
 
     console.log(`📁 Saved RTC stats features to ${outputFile}`);
-    console.log(`\n========== RTCStats Features for User ${userId} ==========\n`);
-    console.log(JSON.stringify(result, null, 2));
-    console.log(`\n========== End RTCStats Features ==========\n`);
+
+    // Run the new structured processor alongside the existing features extraction
+    await processRTCStatsDump(userId, filePath, processedDir);
 
     return result;
 }
