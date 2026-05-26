@@ -1,4 +1,7 @@
 import { readRTCStatsDump } from '../rtcstats-shared/index.js';
+import { extractStreams } from './streams.js';
+import { extractAggregatedStats, computeConnectivityScore } from './aggregated-stats.js';
+import { extractTransports } from './transports.js';
 import fs from 'node:fs';
 import path from 'node:path';
 
@@ -645,7 +648,8 @@ function extractIceCandidateData(trace, createdAtMs) {
                 const local = localCandidatesMap.get(String(pair.localCandidateId));
                 if (local) {
                     const isDirect = ['host', 'srflx', 'prflx'].includes(local.candidateType);
-                    connectionType = `${isDirect ? 'DIRECT' : 'RELAY'}/${(local.protocol || '').toUpperCase()}`;
+                    const transportProto = (local.relayProtocol || local.protocol || '').toUpperCase();
+                    connectionType = `${isDirect ? 'DIRECT' : 'RELAY'}/${transportProto}`;
                     connectionViaVPN = local.vpn === true;
                     connectionIPType = local.address?.includes(':') ? 'IPv6' : 'IPv4';
                 }
@@ -722,7 +726,7 @@ function extractPeerConnectionMetadata(trace) {
         connectionViaVPN: iceData.connectionViaVPN,
         connectionIPType: iceData.connectionIPType,
         connectivityGeo: { local: {}, remote: {} },
-        connectivityScore: null,
+        connectivityScore: computeConnectivityScore(iceData.connectionType, setupTimeMs),
         localCandidates: iceData.localCandidates,
         connectedToServer: iceData.connectedToServer,
         timeToFirstTurnUDPCandidateMs: iceData.timeToFirstTurnUDPCandidateMs,
@@ -761,15 +765,17 @@ export async function processRTCStatsDump(userId, filePath, processedDir) {
     }
 
     const sessionMeta = extractSessionMetadata(dump, includedPCIds);
+    const streams = extractStreams(dump, includedPCIds);
+    const transports = extractTransports(dump, includedPCIds);
+    const aggregatedStats = extractAggregatedStats(dump, includedPCIds, streams, pConnections);
 
     const result = {
         data: {
             ...sessionMeta,
             pConnections,
-            // Phase 3+: streams, transports, aggregatedStats
-            streams: {},
-            transports: {},
-            aggregatedStats: {},
+            streams,
+            transports,
+            aggregatedStats,
             metadata: { clientProtocol: 'rtcstats#3.0' },
         },
     };

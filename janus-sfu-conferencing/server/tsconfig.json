@@ -9,6 +9,7 @@
     "esModuleInterop": true,
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
+    "allowJs": true,
     "typeRoots": ["./node_modules/@types", "./src/core/server/types", "./src/core/sfu-client"]
   },
   "include": [

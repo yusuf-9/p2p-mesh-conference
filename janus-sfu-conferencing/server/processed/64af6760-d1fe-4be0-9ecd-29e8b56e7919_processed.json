@@ -1,0 +1,1962 @@
+{
+  "data": {
+    "schemaVersion": "1.0",
+    "callStart": "2026-05-26T15:00:33.481Z",
+    "callEnd": "2026-05-26T15:01:12.667Z",
+    "durationMs": 39187,
+    "userAgentData": {
+      "brands": [
+        {
+          "brand": "Chromium",
+          "version": "139"
+        },
+        {
+          "brand": "Not;A=Brand",
+          "version": "99"
+        }
+      ],
+      "mobile": false,
+      "platform": "Linux",
+      "deviceMemory": 8,
+      "hardwareConcurrency": 8,
+      "screen": {
+        "width": 800,
+        "height": 600,
+        "devicePixelRatio": 1
+      },
+      "window": {
+        "width": 640,
+        "height": 480
+      },
+      "resolution": "480p"
+    },
+    "pConnectionsNumber": 4,
+    "pConnections": {
+      "PC_0": {
+        "statisticsStartedAt": "2026-05-26T15:00:33.578Z",
+        "end": "2026-05-26T15:01:12.597Z",
+        "createdAt": "2026-05-26T15:00:33.481Z",
+        "audioOut": 1,
+        "videoOut": 3,
+        "audioIn": 1,
+        "videoIn": 1,
+        "dataInOut": 0,
+        "peerType": "PUBLISHER",
+        "contentType": "BUNDLE+SIMULCAST",
+        "connectedAt": "2026-05-26T15:00:33.596Z",
+        "disconnections": [],
+        "iceConnection": "2026-05-26T15:00:33.578Z",
+        "iceChecking": "2026-05-26T15:00:33.568Z",
+        "gathering": "2026-05-26T15:00:33.526Z",
+        "negotiationStart": "2026-05-26T15:00:33.489Z",
+        "setupTimeMs": 107,
+        "initiator": "local",
+        "remoteCandidatesInSDP": true,
+        "lastconnectionstate": "connected",
+        "lastconnectionstateTimestamp": 1779807633596,
+        "lasticeconnectionstate": "connected",
+        "connectionChurn": false,
+        "iceChurn": false,
+        "configuration": {
+          "iceServers": [
+            {
+              "urls": "stun:localhost:3478"
+            },
+            {
+              "urls": [
+                "turn:localhost:3478?transport=udp",
+                "turn:localhost:3478?transport=tcp"
+              ],
+              "username": "1779894033"
+            }
+          ],
+          "iceTransportPolicy": "all"
+        },
+        "handovers": 1,
+        "handoversTimestamps": [
+          1779807633578.221
+        ],
+        "connectionType": "DIRECT/UDP",
+        "connectionViaVPN": false,
+        "connectionIPType": "IPv4",
+        "connectivityGeo": {
+          "local": {},
+          "remote": {}
+        },
+        "connectivityScore": null,
+        "localCandidates": {
+          "1": {
+            "candidates": [
+              {
+                "address": "172.18.0.1",
+                "port": 32804,
+                "class": "ipv4",
+                "kind": "host",
+                "protocol": "udp",
+                "relatedAddress": null,
+                "relatedPort": null
+              },
+              {
+                "address": "172.18.0.1",
+                "port": 32990,
+                "class": "ipv4",
+                "kind": "host",
+                "protocol": "udp",
+                "relatedAddress": null,
+                "relatedPort": null
+              },
+              {
+                "address": "127.0.0.1",
+                "port": 32804,
+                "class": "ipv4",
+                "kind": "srflx",
+                "protocol": "udp",
+                "relatedAddress": "172.18.0.1",
+                "relatedPort": 32804
+              },
+              {
+                "address": "127.0.0.1",
+                "port": 32990,
+                "class": "ipv4",
+                "kind": "srflx",
+                "protocol": "udp",
+                "relatedAddress": "172.18.0.1",
+                "relatedPort": 32990
+              },
+              {
+                "address": "127.0.0.1",
+                "port": 55138,
+                "class": "ipv4",
+                "kind": "relay",
+                "protocol": "udp",
+                "relatedAddress": "127.0.0.1",
+                "relatedPort": 32804
+              },
+              {
+                "address": "172.19.0.1",
+                "port": 32804,
+                "class": "ipv4",
+                "kind": "prflx",
+                "protocol": "udp",
+                "relatedAddress": "172.18.0.1",
+                "relatedPort": 32804
+              }
+            ],
+            "type": "ethernet"
+          },
+          "2": {
+            "candidates": [
+              {
+                "address": "172.19.0.1",
+                "port": 48309,
+                "class": "ipv4",
+                "kind": "host",
+                "protocol": "udp",
+                "relatedAddress": null,
+                "relatedPort": null
+              },
+              {
+                "address": "172.19.0.1",
+                "port": 59845,
+                "class": "ipv4",
+                "kind": "host",
+                "protocol": "udp",
+                "relatedAddress": null,
+                "relatedPort": null
+              },
+              {
+                "address": "127.0.0.1",
+                "port": 48309,
+                "class": "ipv4",
+                "kind": "srflx",
+                "protocol": "udp",
+                "relatedAddress": "172.19.0.1",
+                "relatedPort": 48309
+              },
+              {
+                "address": "127.0.0.1",
+                "port": 59845,
+                "class": "ipv4",
+                "kind": "srflx",
+                "protocol": "udp",
+                "relatedAddress": "172.19.0.1",
+                "relatedPort": 59845
+              },
+              {
+                "address": "127.0.0.1",
+                "port": 50965,
+                "class": "ipv4",
+                "kind": "relay",
+                "protocol": "udp",
+                "relatedAddress": "127.0.0.1",
+                "relatedPort": 48309
+              }
+            ],
+            "type": "ethernet"
+          },
+          "3": {
+            "candidates": [
+              {
+                "address": "192.168.0.8",
+                "port": 56802,
+                "class": "ipv4",
+                "kind": "host",
+                "protocol": "udp",
+                "relatedAddress": null,
+                "relatedPort": null
+              },
+              {
+                "address": "192.168.0.8",
+                "port": 47292,
+                "class": "ipv4",
+                "kind": "host",
+                "protocol": "udp",
+                "relatedAddress": null,
+                "relatedPort": null
+              },
+              {
+                "address": "127.0.0.1",
+                "port": 56802,
+                "class": "ipv4",
+                "kind": "srflx",
+                "protocol": "udp",
+                "relatedAddress": "192.168.0.8",
+                "relatedPort": 56802
+              },
+              {
+                "address": "127.0.0.1",
+                "port": 47292,
+                "class": "ipv4",
+                "kind": "srflx",
+                "protocol": "udp",
+                "relatedAddress": "192.168.0.8",
+                "relatedPort": 47292
+              },
+              {
+                "address": "127.0.0.1",
+                "port": 64991,
+                "class": "ipv4",
+                "kind": "relay",
+                "protocol": "udp",
+                "relatedAddress": "127.0.0.1",
+                "relatedPort": 56802
+              }
+            ],
+            "type": "wifi"
+          },
+          "4": {
+            "candidates": [
+              {
+                "address": "2406:b400:d4:cc3c:7a71:3fc:aa5f:b7ab",
+                "port": 55383,
+                "class": "ipv6",
+                "kind": "host",
+                "protocol": "udp",
+                "relatedAddress": null,
+                "relatedPort": null
+              },
+              {
+                "address": "2406:b400:d4:cc3c:7a71:3fc:aa5f:b7ab",
+                "port": 42959,
+                "class": "ipv6",
+                "kind": "host",
+                "protocol": "udp",
+                "relatedAddress": null,
+                "relatedPort": null
+              },
+              {
+                "address": "127.0.0.1",
+                "port": 57100,
+                "class": "ipv4",
+                "kind": "relay",
+                "protocol": "udp",
+                "relatedAddress": "2406:b400:d4:cc3c:7a71:3fc:aa5f:b7ab",
+                "relatedPort": 55383
+              },
+              {
+                "address": "172.19.0.1",
+                "port": 57100,
+                "class": "ipv4",
+                "kind": "prflx",
+                "protocol": "udp",
+                "relatedAddress": "127.0.0.1",
+                "relatedPort": 57100
+              }
+            ],
+            "type": "wifi"
+          }
+        },
+        "connectedToServer": [
+          "janus"
+        ],
+        "timeToFirstTurnUDPCandidateMs": 51,
+        "timeToFirstTurnTCPCandidateMs": null,
+        "timeToFirstTurnTLSCandidateMs": null,
+        "timeToFirstTurnDTLSCandidateMs": null,
+        "timeToFirstStunCandidateMs": 50,
+        "signalingTimeMs": 56,
+        "firstSetLocalDescription": "2026-05-26T15:00:33.499Z",
+        "firstSetRemoteDescription": "2026-05-26T15:00:33.555Z",
+        "cpu": {
+          "percentNominal": 5.4,
+          "percentFair": 86.5,
+          "percentSerious": 8.1,
+          "percentCritical": 0,
+          "firstTimestampSeriousPressure": 1779807639585.478
+        }
+      },
+      "PC_2": {
+        "statisticsStartedAt": "2026-05-26T15:00:33.647Z",
+        "end": "2026-05-26T15:01:12.647Z",
+        "createdAt": "2026-05-26T15:00:33.515Z",
+        "audioOut": 0,
+        "videoOut": 0,
+        "audioIn": 1,
+        "videoIn": 1,
+        "dataInOut": 0,
+        "peerType": "SUBSCRIBER",
+        "contentType": "VIDEO",
+        "connectedAt": "2026-05-26T15:00:33.647Z",
+        "disconnections": [],
+        "iceConnection": "2026-05-26T15:00:33.586Z",
+        "iceChecking": "2026-05-26T15:00:33.579Z",
+        "gathering": "2026-05-26T15:00:33.578Z",
+        "negotiationStart": "2026-05-26T15:00:33.516Z",
+        "setupTimeMs": 131,
+        "initiator": "remote",
+        "remoteCandidatesInSDP": true,
+        "lastconnectionstate": "connected",
+        "lastconnectionstateTimestamp": 1779807633647,
+        "lasticeconnectionstate": "connected",
+        "connectionChurn": false,
+        "iceChurn": false,
+        "configuration": {
+          "iceServers": [
+            {
+              "urls": "stun:localhost:3478"
+            },
+            {
+              "urls": [
+                "turn:localhost:3478?transport=udp",
+                "turn:localhost:3478?transport=tcp"
+              ],
+              "username": "1779894033"
+            }
+          ],
+          "iceTransportPolicy": "all"
+        },
+        "handovers": 1,
+        "handoversTimestamps": [
+          1779807633647.645
+        ],
+        "connectionType": "DIRECT/UDP",
+        "connectionViaVPN": false,
+        "connectionIPType": "IPv4",
+        "connectivityGeo": {
+          "local": {},
+          "remote": {}
+        },
+        "connectivityScore": null,
+        "localCandidates": {
+          "1": {
+            "candidates": [
+              {
+                "address": "172.18.0.1",
+                "port": 34450,
+                "class": "ipv4",
+                "kind": "host",
+                "protocol": "udp",
+                "relatedAddress": null,
+                "relatedPort": null
+              },
+              {
+                "address": "172.19.0.1",
+                "port": 34450,
+                "class": "ipv4",
+                "kind": "prflx",
+                "protocol": "udp",
+                "relatedAddress": "172.18.0.1",
+                "relatedPort": 34450
+              }
+            ],
+            "type": "ethernet"
+          },
+          "2": {
+            "candidates": [
+              {
+                "address": "172.19.0.1",
+                "port": 36605,
+                "class": "ipv4",
+                "kind": "host",
+                "protocol": "udp",
+                "relatedAddress": null,
+                "relatedPort": null
+              }
+            ],
+            "type": "ethernet"
+          },
+          "3": {
+            "candidates": [
+              {
+                "address": "192.168.0.8",
+                "port": 38258,
+                "class": "ipv4",
+                "kind": "host",
+                "protocol": "udp",
+                "relatedAddress": null,
+                "relatedPort": null
+              }
+            ],
+            "type": "wifi"
+          },
+          "4": {
+            "candidates": [
+              {
+                "address": "2406:b400:d4:cc3c:7a71:3fc:aa5f:b7ab",
+                "port": 51297,
+                "class": "ipv6",
+                "kind": "host",
+                "protocol": "udp",
+                "relatedAddress": null,
+                "relatedPort": null
+              }
+            ],
+            "type": "unknown"
+          }
+        },
+        "connectedToServer": [
+          "janus"
+        ],
+        "timeToFirstTurnUDPCandidateMs": null,
+        "timeToFirstTurnTCPCandidateMs": null,
+        "timeToFirstTurnTLSCandidateMs": null,
+        "timeToFirstTurnDTLSCandidateMs": null,
+        "timeToFirstStunCandidateMs": null,
+        "signalingTimeMs": 38,
+        "firstSetLocalDescription": "2026-05-26T15:00:33.554Z",
+        "firstSetRemoteDescription": "2026-05-26T15:00:33.516Z",
+        "cpu": {
+          "percentNominal": 5.4,
+          "percentFair": 86.5,
+          "percentSerious": 8.1,
+          "percentCritical": 0,
+          "firstTimestampSeriousPressure": 1779807639647.71
+        }
+      },
+      "PC_3": {
+        "statisticsStartedAt": "2026-05-26T15:00:46.346Z",
+        "end": "2026-05-26T15:01:12.349Z",
+        "createdAt": "2026-05-26T15:00:46.177Z",
+        "audioOut": 0,
+        "videoOut": 0,
+        "audioIn": 1,
+        "videoIn": 1,
+        "dataInOut": 0,
+        "peerType": "SUBSCRIBER",
+        "contentType": "VIDEO",
+        "connectedAt": "2026-05-26T15:00:46.346Z",
+        "disconnections": [],
+        "iceConnection": "2026-05-26T15:00:46.294Z",
+        "iceChecking": "2026-05-26T15:00:46.289Z",
+        "gathering": "2026-05-26T15:00:46.289Z",
+        "negotiationStart": "2026-05-26T15:00:46.178Z",
+        "setupTimeMs": 168,
+        "initiator": "remote",
+        "remoteCandidatesInSDP": true,
+        "lastconnectionstate": "connected",
+        "lastconnectionstateTimestamp": 1779807646346,
+        "lasticeconnectionstate": "connected",
+        "connectionChurn": false,
+        "iceChurn": false,
+        "configuration": {
+          "iceServers": [
+            {
+              "urls": "stun:localhost:3478"
+            },
+            {
+              "urls": [
+                "turn:localhost:3478?transport=udp",
+                "turn:localhost:3478?transport=tcp"
+              ],
+              "username": "1779894046"
+            }
+          ],
+          "iceTransportPolicy": "all"
+        },
+        "handovers": 1,
+        "handoversTimestamps": [
+          1779807646346.196
+        ],
+        "connectionType": "DIRECT/UDP",
+        "connectionViaVPN": false,
+        "connectionIPType": "IPv4",
+        "connectivityGeo": {
+          "local": {},
+          "remote": {}
+        },
+        "connectivityScore": null,
+        "localCandidates": {
+          "1": {
+            "candidates": [
+              {
+                "address": "172.18.0.1",
+                "port": 45118,
+                "class": "ipv4",
+                "kind": "host",
+                "protocol": "udp",
+                "relatedAddress": null,
+                "relatedPort": null
+              },
+              {
+                "address": "127.0.0.1",
+                "port": 45118,
+                "class": "ipv4",
+                "kind": "srflx",
+                "protocol": "udp",
+                "relatedAddress": "172.18.0.1",
+                "relatedPort": 45118
+              },
+              {
+                "address": "172.19.0.1",
+                "port": 45118,
+                "class": "ipv4",
+                "kind": "prflx",
+                "protocol": "udp",
+                "relatedAddress": "172.18.0.1",
+                "relatedPort": 45118
+              }
+            ],
+            "type": "ethernet"
+          },
+          "2": {
+            "candidates": [
+              {
+                "address": "172.19.0.1",
+                "port": 41540,
+                "class": "ipv4",
+                "kind": "host",
+                "protocol": "udp",
+                "relatedAddress": null,
+                "relatedPort": null
+              }
+            ],
+            "type": "ethernet"
+          },
+          "3": {
+            "candidates": [
+              {
+                "address": "192.168.0.8",
+                "port": 39644,
+                "class": "ipv4",
+                "kind": "host",
+                "protocol": "udp",
+                "relatedAddress": null,
+                "relatedPort": null
+              }
+            ],
+            "type": "wifi"
+          },
+          "4": {
+            "candidates": [
+              {
+                "address": "2406:b400:d4:cc3c:7a71:3fc:aa5f:b7ab",
+                "port": 56025,
+                "class": "ipv6",
+                "kind": "host",
+                "protocol": "udp",
+                "relatedAddress": null,
+                "relatedPort": null
+              }
+            ],
+            "type": "unknown"
+          }
+        },
+        "connectedToServer": [
+          "janus"
+        ],
+        "timeToFirstTurnUDPCandidateMs": null,
+        "timeToFirstTurnTCPCandidateMs": null,
+        "timeToFirstTurnTLSCandidateMs": null,
+        "timeToFirstTurnDTLSCandidateMs": null,
+        "timeToFirstStunCandidateMs": 5,
+        "signalingTimeMs": 101,
+        "firstSetLocalDescription": "2026-05-26T15:00:46.279Z",
+        "firstSetRemoteDescription": "2026-05-26T15:00:46.178Z",
+        "cpu": {
+          "percentNominal": 0,
+          "percentFair": 100,
+          "percentSerious": 0,
+          "percentCritical": 0
+        }
+      },
+      "PC_4": {
+        "statisticsStartedAt": "2026-05-26T15:00:58.666Z",
+        "end": "2026-05-26T15:01:12.667Z",
+        "createdAt": "2026-05-26T15:00:58.317Z",
+        "audioOut": 0,
+        "videoOut": 0,
+        "audioIn": 1,
+        "videoIn": 1,
+        "dataInOut": 0,
+        "peerType": "SUBSCRIBER",
+        "contentType": "VIDEO",
+        "connectedAt": "2026-05-26T15:00:58.662Z",
+        "disconnections": [],
+        "iceConnection": "2026-05-26T15:00:58.477Z",
+        "iceChecking": "2026-05-26T15:00:58.474Z",
+        "gathering": "2026-05-26T15:00:58.473Z",
+        "negotiationStart": "2026-05-26T15:00:58.318Z",
+        "setupTimeMs": 344,
+        "initiator": "remote",
+        "remoteCandidatesInSDP": true,
+        "lastconnectionstate": "connected",
+        "lastconnectionstateTimestamp": 1779807658662,
+        "lasticeconnectionstate": "connected",
+        "connectionChurn": false,
+        "iceChurn": false,
+        "configuration": {
+          "iceServers": [
+            {
+              "urls": "stun:localhost:3478"
+            },
+            {
+              "urls": [
+                "turn:localhost:3478?transport=udp",
+                "turn:localhost:3478?transport=tcp"
+              ],
+              "username": "1779894058"
+            }
+          ],
+          "iceTransportPolicy": "all"
+        },
+        "handovers": 1,
+        "handoversTimestamps": [
+          1779807658666.304
+        ],
+        "connectionType": "DIRECT/UDP",
+        "connectionViaVPN": false,
+        "connectionIPType": "IPv4",
+        "connectivityGeo": {
+          "local": {},
+          "remote": {}
+        },
+        "connectivityScore": null,
+        "localCandidates": {
+          "1": {
+            "candidates": [
+              {
+                "address": "172.18.0.1",
+                "port": 50087,
+                "class": "ipv4",
+                "kind": "host",
+                "protocol": "udp",
+                "relatedAddress": null,
+                "relatedPort": null
+              },
+              {
+                "address": "172.19.0.1",
+                "port": 50087,
+                "class": "ipv4",
+                "kind": "prflx",
+                "protocol": "udp",
+                "relatedAddress": "172.18.0.1",
+                "relatedPort": 50087
+              }
+            ],
+            "type": "ethernet"
+          },
+          "2": {
+            "candidates": [
+              {
+                "address": "172.19.0.1",
+                "port": 41102,
+                "class": "ipv4",
+                "kind": "host",
+                "protocol": "udp",
+                "relatedAddress": null,
+                "relatedPort": null
+              }
+            ],
+            "type": "ethernet"
+          },
+          "3": {
+            "candidates": [
+              {
+                "address": "192.168.0.8",
+                "port": 34988,
+                "class": "ipv4",
+                "kind": "host",
+                "protocol": "udp",
+                "relatedAddress": null,
+                "relatedPort": null
+              }
+            ],
+            "type": "wifi"
+          },
+          "4": {
+            "candidates": [
+              {
+                "address": "2406:b400:d4:cc3c:7a71:3fc:aa5f:b7ab",
+                "port": 60772,
+                "class": "ipv6",
+                "kind": "host",
+                "protocol": "udp",
+                "relatedAddress": null,
+                "relatedPort": null
+              }
+            ],
+            "type": "unknown"
+          }
+        },
+        "connectedToServer": [
+          "janus"
+        ],
+        "timeToFirstTurnUDPCandidateMs": null,
+        "timeToFirstTurnTCPCandidateMs": null,
+        "timeToFirstTurnTLSCandidateMs": null,
+        "timeToFirstTurnDTLSCandidateMs": null,
+        "timeToFirstStunCandidateMs": null,
+        "signalingTimeMs": 108,
+        "firstSetLocalDescription": "2026-05-26T15:00:58.426Z",
+        "firstSetRemoteDescription": "2026-05-26T15:00:58.318Z",
+        "cpu": {
+          "percentNominal": 0,
+          "percentFair": 100,
+          "percentSerious": 0,
+          "percentCritical": 0
+        }
+      }
+    },
+    "streams": {
+      "PC_0-16": {
+        "peerId": "PC_0",
+        "ssrc": 2244765910,
+        "ssrcId": "16",
+        "direction": "inbound",
+        "kind": "audio",
+        "start": "2026-05-26T15:00:33.578Z",
+        "end": "2026-05-26T15:01:12.597Z",
+        "codecName": null,
+        "avgBytesPerSecond": 0,
+        "used": true,
+        "avgMos": 4.41,
+        "simulcast": false,
+        "stalled": false
+      },
+      "PC_0-17": {
+        "peerId": "PC_0",
+        "ssrc": 2714123803,
+        "ssrcId": "17",
+        "direction": "inbound",
+        "kind": "video",
+        "start": "2026-05-26T15:00:33.578Z",
+        "end": "2026-05-26T15:01:12.597Z",
+        "codecName": null,
+        "avgBytesPerSecond": 0,
+        "used": true,
+        "avgMos": null,
+        "simulcast": false,
+        "stalled": false
+      },
+      "PC_0-25": {
+        "peerId": "PC_0",
+        "ssrc": 3201315434,
+        "ssrcId": "25",
+        "direction": "outbound",
+        "kind": "audio",
+        "start": "2026-05-26T15:00:33.578Z",
+        "end": "2026-05-26T15:01:12.597Z",
+        "codecName": "opus",
+        "avgBytesPerSecond": 0,
+        "used": true,
+        "avgMos": 4.4,
+        "simulcast": false
+      },
+      "PC_0-26": {
+        "peerId": "PC_0",
+        "ssrc": 2727437073,
+        "ssrcId": "26",
+        "direction": "outbound",
+        "kind": "video",
+        "start": "2026-05-26T15:00:33.578Z",
+        "end": "2026-05-26T15:01:12.597Z",
+        "codecName": "VP8",
+        "avgBytesPerSecond": 123162.22677443885,
+        "used": true,
+        "avgMos": 3.42,
+        "simulcast": true,
+        "resolution": "1280x720",
+        "framerate": 30,
+        "periods": [
+          {
+            "category": "Poor",
+            "startTimestamp": 1779807633578.221,
+            "endTimestamp": 1779807634597.23
+          },
+          {
+            "category": "Poor",
+            "startTimestamp": 1779807657585.457,
+            "endTimestamp": 1779807659585.44
+          }
+        ],
+        "rid": "high",
+        "scalabilityMode": "L1T3"
+      },
+      "PC_0-35": {
+        "peerId": "PC_0",
+        "ssrc": 1838392183,
+        "ssrcId": "35",
+        "direction": "outbound",
+        "kind": "video",
+        "start": "2026-05-26T15:00:34.597Z",
+        "end": "2026-05-26T15:01:12.597Z",
+        "codecName": "VP8",
+        "avgBytesPerSecond": 60525.618276356116,
+        "used": true,
+        "avgMos": 3.78,
+        "simulcast": true,
+        "resolution": "640x360",
+        "framerate": 15,
+        "rid": "medium",
+        "scalabilityMode": "L1T3"
+      },
+      "PC_0-36": {
+        "peerId": "PC_0",
+        "ssrc": 4142573186,
+        "ssrcId": "36",
+        "direction": "outbound",
+        "kind": "video",
+        "start": "2026-05-26T15:00:34.597Z",
+        "end": "2026-05-26T15:01:12.597Z",
+        "codecName": "VP8",
+        "avgBytesPerSecond": 19133.86202198037,
+        "used": true,
+        "avgMos": 3.93,
+        "simulcast": true,
+        "resolution": "320x180",
+        "framerate": 15,
+        "rid": "low",
+        "scalabilityMode": "L1T3"
+      },
+      "PC_2-8": {
+        "peerId": "PC_2",
+        "ssrc": 3242657047,
+        "ssrcId": "8",
+        "direction": "inbound",
+        "kind": "audio",
+        "start": "2026-05-26T15:00:33.647Z",
+        "end": "2026-05-26T15:01:12.647Z",
+        "codecName": "opus",
+        "avgBytesPerSecond": 3488.1929223459797,
+        "used": true,
+        "avgMos": 4.37,
+        "simulcast": false,
+        "stalled": false
+      },
+      "PC_2-9": {
+        "peerId": "PC_2",
+        "ssrc": 738484090,
+        "ssrcId": "9",
+        "direction": "inbound",
+        "kind": "video",
+        "start": "2026-05-26T15:00:33.647Z",
+        "end": "2026-05-26T15:01:12.647Z",
+        "codecName": "VP8",
+        "avgBytesPerSecond": 125136.38559600328,
+        "used": true,
+        "avgMos": 2.01,
+        "simulcast": false,
+        "resolution": "1280x720",
+        "framerate": 10,
+        "periods": [
+          {
+            "category": "Poor",
+            "startTimestamp": 1779807633647.645,
+            "endTimestamp": 1779807672647.804
+          }
+        ],
+        "stalled": false
+      },
+      "PC_3-9": {
+        "peerId": "PC_3",
+        "ssrc": 614674212,
+        "ssrcId": "9",
+        "direction": "inbound",
+        "kind": "audio",
+        "start": "2026-05-26T15:00:46.346Z",
+        "end": "2026-05-26T15:01:12.349Z",
+        "codecName": null,
+        "avgBytesPerSecond": 0,
+        "used": true,
+        "avgMos": 4.41,
+        "simulcast": false,
+        "stalled": false
+      },
+      "PC_3-10": {
+        "peerId": "PC_3",
+        "ssrc": 170695362,
+        "ssrcId": "10",
+        "direction": "inbound",
+        "kind": "video",
+        "start": "2026-05-26T15:00:46.346Z",
+        "end": "2026-05-26T15:01:12.349Z",
+        "codecName": "VP8",
+        "avgBytesPerSecond": 120094.64381213702,
+        "used": true,
+        "avgMos": 3.38,
+        "simulcast": false,
+        "resolution": "1280x720",
+        "framerate": 30,
+        "periods": [
+          {
+            "category": "Poor",
+            "startTimestamp": 1779807646346.196,
+            "endTimestamp": 1779807647346.247
+          },
+          {
+            "category": "Poor",
+            "startTimestamp": 1779807658425.586,
+            "endTimestamp": 1779807659349.929
+          }
+        ],
+        "stalled": false
+      },
+      "PC_4-5": {
+        "peerId": "PC_4",
+        "ssrc": 2297834793,
+        "ssrcId": "5",
+        "direction": "inbound",
+        "kind": "audio",
+        "start": "2026-05-26T15:00:58.666Z",
+        "end": "2026-05-26T15:01:12.667Z",
+        "codecName": null,
+        "avgBytesPerSecond": 0,
+        "used": true,
+        "avgMos": 4.41,
+        "simulcast": false,
+        "stalled": false
+      },
+      "PC_4-6": {
+        "peerId": "PC_4",
+        "ssrc": 1940064851,
+        "ssrcId": "6",
+        "direction": "inbound",
+        "kind": "video",
+        "start": "2026-05-26T15:00:58.666Z",
+        "end": "2026-05-26T15:01:12.667Z",
+        "codecName": "VP8",
+        "avgBytesPerSecond": 121992.58645559059,
+        "used": true,
+        "avgMos": 3.34,
+        "simulcast": false,
+        "resolution": "1280x720",
+        "framerate": 30,
+        "periods": [
+          {
+            "category": "Poor",
+            "startTimestamp": 1779807658666.304,
+            "endTimestamp": 1779807659666.13
+          },
+          {
+            "category": "Poor",
+            "startTimestamp": 1779807668666.113,
+            "endTimestamp": 1779807669666.018
+          }
+        ],
+        "stalled": false
+      }
+    },
+    "transports": {
+      "PC_0": {
+        "30": {
+          "start": "2026-05-26T15:00:33.578Z",
+          "end": "2026-05-26T15:01:12.597Z",
+          "selectedPairs": [
+            "8",
+            "5"
+          ],
+          "iceRole": "controlling",
+          "pairs": {
+            "3": {
+              "start": "2026-05-26T15:00:33.578Z",
+              "end": "2026-05-26T15:01:12.597Z",
+              "state": "succeeded",
+              "totalBytesReceived": 0,
+              "totalBytesSent": 0,
+              "priority": 8655919583266881000,
+              "type": "DIRECT/UDP",
+              "local": {
+                "address": "192.168.0.8",
+                "port": 56802,
+                "candidateType": "host",
+                "protocol": "udp",
+                "priority": 2122063615,
+                "relatedAddress": "",
+                "relatedPort": 0,
+                "networkType": "wifi",
+                "vpn": null
+              },
+              "remote": {
+                "address": "172.19.0.2",
+                "port": 10151,
+                "candidateType": "host",
+                "protocol": "udp",
+                "priority": 2015363327,
+                "relatedAddress": "",
+                "relatedPort": 0
+              },
+              "rtt": 0.5,
+              "iceRole": "controlling",
+              "writable": true,
+              "nominated": false,
+              "states": [
+                {
+                  "start": 1779807633578.221,
+                  "state": "waiting",
+                  "writable": false,
+                  "selected": false
+                },
+                {
+                  "start": 1779807634597.23,
+                  "state": "succeeded",
+                  "writable": true,
+                  "selected": false
+                }
+              ]
+            },
+            "4": {
+              "start": "2026-05-26T15:00:33.578Z",
+              "end": "2026-05-26T15:00:43.585Z",
+              "state": "waiting",
+              "totalBytesReceived": 0,
+              "totalBytesSent": 0,
+              "priority": 179898793737585150,
+              "type": "RELAY/UDP",
+              "local": {
+                "address": "127.0.0.1",
+                "port": 55138,
+                "candidateType": "relay",
+                "protocol": "udp",
+                "priority": 41885951,
+                "relatedAddress": "127.0.0.1",
+                "relatedPort": 32804,
+                "networkType": "ethernet",
+                "vpn": null,
+                "relatedChain": [
+                  {
+                    "address": "127.0.0.1",
+                    "port": 32804,
+                    "candidateType": "srflx"
+                  },
+                  {
+                    "address": "172.18.0.1",
+                    "port": 32804,
+                    "candidateType": "host"
+                  }
+                ]
+              },
+              "remote": {
+                "address": "172.19.0.2",
+                "port": 10151,
+                "candidateType": "host",
+                "protocol": "udp",
+                "priority": 2015363327,
+                "relatedAddress": "",
+                "relatedPort": 0
+              },
+              "rtt": null,
+              "iceRole": "controlling",
+              "writable": false,
+              "nominated": false,
+              "states": [
+                {
+                  "start": 1779807633578.221,
+                  "state": "waiting",
+                  "writable": false,
+                  "selected": false
+                }
+              ]
+            },
+            "5": {
+              "start": "2026-05-26T15:00:33.578Z",
+              "end": "2026-05-26T15:01:12.597Z",
+              "state": "succeeded",
+              "totalBytesReceived": 22548,
+              "totalBytesSent": 8077295,
+              "priority": 8655919583267143000,
+              "type": "DIRECT/UDP",
+              "local": {
+                "address": "172.19.0.1",
+                "port": 48309,
+                "candidateType": "host",
+                "protocol": "udp",
+                "priority": 2122194687,
+                "relatedAddress": "",
+                "relatedPort": 0,
+                "networkType": "ethernet",
+                "vpn": null
+              },
+              "remote": {
+                "address": "172.19.0.2",
+                "port": 10151,
+                "candidateType": "host",
+                "protocol": "udp",
+                "priority": 2015363327,
+                "relatedAddress": "",
+                "relatedPort": 0
+              },
+              "rtt": 0.9473684210526315,
+              "iceRole": "controlling",
+              "writable": true,
+              "nominated": true,
+              "states": [
+                {
+                  "start": 1779807633578.221,
+                  "state": "waiting",
+                  "writable": false,
+                  "selected": false
+                },
+                {
+                  "start": 1779807634597.23,
+                  "state": "succeeded",
+                  "writable": true,
+                  "selected": true
+                }
+              ]
+            },
+            "6": {
+              "start": "2026-05-26T15:00:33.578Z",
+              "end": "2026-05-26T15:00:33.578Z",
+              "state": "waiting",
+              "totalBytesReceived": 0,
+              "totalBytesSent": 0,
+              "priority": 179335843784163840,
+              "type": "RELAY/UDP",
+              "local": {
+                "address": "127.0.0.1",
+                "port": 57100,
+                "candidateType": "relay",
+                "protocol": "udp",
+                "priority": 41754879,
+                "relatedAddress": "2406:b400:d4:cc3c:7a71:3fc:aa5f:b7ab",
+                "relatedPort": 55383,
+                "networkType": "wifi",
+                "vpn": null,
+                "relatedChain": [
+                  {
+                    "address": "2406:b400:d4:cc3c:7a71:3fc:aa5f:b7ab",
+                    "port": 55383,
+                    "candidateType": "host"
+                  }
+                ]
+              },
+              "remote": {
+                "address": "172.19.0.2",
+                "port": 10151,
+                "candidateType": "host",
+                "protocol": "udp",
+                "priority": 2015363327,
+                "relatedAddress": "",
+                "relatedPort": 0
+              },
+              "rtt": null,
+              "iceRole": "controlling",
+              "writable": false,
+              "nominated": false,
+              "states": [
+                {
+                  "start": 1779807633578.221,
+                  "state": "waiting",
+                  "writable": false,
+                  "selected": false
+                }
+              ]
+            },
+            "7": {
+              "start": "2026-05-26T15:00:33.578Z",
+              "end": "2026-05-26T15:00:43.585Z",
+              "state": "waiting",
+              "totalBytesReceived": 0,
+              "totalBytesSent": 0,
+              "priority": 179054368807453200,
+              "type": "RELAY/UDP",
+              "local": {
+                "address": "127.0.0.1",
+                "port": 64991,
+                "candidateType": "relay",
+                "protocol": "udp",
+                "priority": 41689343,
+                "relatedAddress": "127.0.0.1",
+                "relatedPort": 56802,
+                "networkType": "wifi",
+                "vpn": null,
+                "relatedChain": [
+                  {
+                    "address": "127.0.0.1",
+                    "port": 56802,
+                    "candidateType": "srflx"
+                  },
+                  {
+                    "address": "192.168.0.8",
+                    "port": 56802,
+                    "candidateType": "host"
+                  }
+                ]
+              },
+              "remote": {
+                "address": "172.19.0.2",
+                "port": 10151,
+                "candidateType": "host",
+                "protocol": "udp",
+                "priority": 2015363327,
+                "relatedAddress": "",
+                "relatedPort": 0
+              },
+              "rtt": null,
+              "iceRole": "controlling",
+              "writable": false,
+              "nominated": false,
+              "states": [
+                {
+                  "start": 1779807633578.221,
+                  "state": "waiting",
+                  "writable": false,
+                  "selected": false
+                }
+              ]
+            },
+            "8": {
+              "start": "2026-05-26T15:00:33.578Z",
+              "end": "2026-05-26T15:01:12.597Z",
+              "state": "succeeded",
+              "totalBytesReceived": 783,
+              "totalBytesSent": 16855,
+              "priority": 7962116750810546000,
+              "type": "DIRECT/UDP",
+              "local": {
+                "address": "172.19.0.1",
+                "port": 32804,
+                "candidateType": "prflx",
+                "protocol": "udp",
+                "priority": 1853824767,
+                "relatedAddress": "172.18.0.1",
+                "relatedPort": 32804,
+                "networkType": "ethernet",
+                "vpn": null,
+                "relatedChain": [
+                  {
+                    "address": "172.18.0.1",
+                    "port": 32804,
+                    "candidateType": "host"
+                  }
+                ]
+              },
+              "remote": {
+                "address": "172.19.0.2",
+                "port": 10151,
+                "candidateType": "host",
+                "protocol": "udp",
+                "priority": 2015363327,
+                "relatedAddress": "",
+                "relatedPort": 0
+              },
+              "rtt": 9,
+              "iceRole": "controlling",
+              "writable": true,
+              "nominated": true,
+              "states": [
+                {
+                  "start": 1779807633578.221,
+                  "state": "succeeded",
+                  "writable": true,
+                  "selected": true
+                },
+                {
+                  "start": 1779807634597.23,
+                  "state": "succeeded",
+                  "writable": true,
+                  "selected": false
+                }
+              ]
+            },
+            "9": {
+              "start": "2026-05-26T15:00:33.578Z",
+              "end": "2026-05-26T15:00:43.585Z",
+              "state": "waiting",
+              "totalBytesReceived": 0,
+              "totalBytesSent": 0,
+              "priority": 179617318760874500,
+              "type": "RELAY/UDP",
+              "local": {
+                "address": "127.0.0.1",
+                "port": 50965,
+                "candidateType": "relay",
+                "protocol": "udp",
+                "priority": 41820415,
+                "relatedAddress": "127.0.0.1",
+                "relatedPort": 48309,
+                "networkType": "ethernet",
+                "vpn": null,
+                "relatedChain": [
+                  {
+                    "address": "127.0.0.1",
+                    "port": 48309,
+                    "candidateType": "srflx"
+                  },
+                  {
+                    "address": "172.19.0.1",
+                    "port": 48309,
+                    "candidateType": "host"
+                  }
+                ]
+              },
+              "remote": {
+                "address": "172.19.0.2",
+                "port": 10151,
+                "candidateType": "host",
+                "protocol": "udp",
+                "priority": 2015363327,
+                "relatedAddress": "",
+                "relatedPort": 0
+              },
+              "rtt": null,
+              "iceRole": "controlling",
+              "writable": false,
+              "nominated": false,
+              "states": [
+                {
+                  "start": 1779807633578.221,
+                  "state": "waiting",
+                  "writable": false,
+                  "selected": false
+                }
+              ]
+            },
+            "31": {
+              "start": "2026-05-26T15:00:34.597Z",
+              "end": "2026-05-26T15:01:03.585Z",
+              "state": "waiting",
+              "totalBytesReceived": 0,
+              "totalBytesSent": 0,
+              "priority": 7935343642887994000,
+              "type": "DIRECT/UDP",
+              "local": {
+                "address": "172.18.0.1",
+                "port": 32804,
+                "candidateType": "host",
+                "protocol": "udp",
+                "priority": 2122260223,
+                "relatedAddress": "",
+                "relatedPort": 0,
+                "networkType": "ethernet",
+                "vpn": null
+              },
+              "remote": {
+                "address": "",
+                "port": 19943,
+                "candidateType": "prflx",
+                "protocol": "udp",
+                "priority": 1847591167,
+                "relatedAddress": "",
+                "relatedPort": 0
+              },
+              "rtt": null,
+              "iceRole": "controlling",
+              "writable": false,
+              "nominated": false,
+              "states": [
+                {
+                  "start": 1779807634597.23,
+                  "state": "waiting",
+                  "writable": false,
+                  "selected": false
+                }
+              ]
+            },
+            "32": {
+              "start": "2026-05-26T15:00:34.597Z",
+              "end": "2026-05-26T15:01:12.597Z",
+              "state": "succeeded",
+              "totalBytesReceived": 0,
+              "totalBytesSent": 0,
+              "priority": 7961555999880380000,
+              "type": "DIRECT/UDP",
+              "local": {
+                "address": "172.19.0.1",
+                "port": 57100,
+                "candidateType": "prflx",
+                "protocol": "udp",
+                "priority": 1853694207,
+                "relatedAddress": "127.0.0.1",
+                "relatedPort": 57100,
+                "networkType": "wifi",
+                "vpn": null,
+                "relatedChain": [
+                  {
+                    "address": "127.0.0.1",
+                    "port": 57100,
+                    "candidateType": "relay"
+                  },
+                  {
+                    "address": "2406:b400:d4:cc3c:7a71:3fc:aa5f:b7ab",
+                    "port": 55383,
+                    "candidateType": "host"
+                  }
+                ]
+              },
+              "remote": {
+                "address": "172.19.0.2",
+                "port": 10151,
+                "candidateType": "host",
+                "protocol": "udp",
+                "priority": 2015363327,
+                "relatedAddress": "",
+                "relatedPort": 0
+              },
+              "rtt": 2.5,
+              "iceRole": "controlling",
+              "writable": true,
+              "nominated": false,
+              "states": [
+                {
+                  "start": 1779807634597.23,
+                  "state": "succeeded",
+                  "writable": true,
+                  "selected": false
+                }
+              ]
+            }
+          }
+        }
+      },
+      "PC_2": {
+        "14": {
+          "start": "2026-05-26T15:00:33.647Z",
+          "end": "2026-05-26T15:01:12.647Z",
+          "selectedPairs": [
+            "3",
+            "4"
+          ],
+          "iceRole": "controlled",
+          "pairs": {
+            "1": {
+              "start": "2026-05-26T15:00:33.647Z",
+              "end": "2026-05-26T15:01:12.647Z",
+              "state": "succeeded",
+              "totalBytesReceived": 0,
+              "totalBytesSent": 0,
+              "priority": 8655919583266881000,
+              "type": "DIRECT/UDP",
+              "local": {
+                "address": "192.168.0.8",
+                "port": 38258,
+                "candidateType": "host",
+                "protocol": "udp",
+                "priority": 2122063615,
+                "relatedAddress": "",
+                "relatedPort": 0,
+                "networkType": "wifi",
+                "vpn": null
+              },
+              "remote": {
+                "address": "172.19.0.2",
+                "port": 10141,
+                "candidateType": "host",
+                "protocol": "udp",
+                "priority": 2015363327,
+                "relatedAddress": "",
+                "relatedPort": 0
+              },
+              "rtt": 0,
+              "iceRole": "controlled",
+              "writable": true,
+              "nominated": false,
+              "states": [
+                {
+                  "start": 1779807633647.645,
+                  "state": "waiting",
+                  "writable": false,
+                  "selected": false
+                },
+                {
+                  "start": 1779807634647.715,
+                  "state": "succeeded",
+                  "writable": true,
+                  "selected": false
+                }
+              ]
+            },
+            "2": {
+              "start": "2026-05-26T15:00:33.647Z",
+              "end": "2026-05-26T15:01:02.650Z",
+              "state": "waiting",
+              "totalBytesReceived": 0,
+              "totalBytesSent": 0,
+              "priority": 7935343642887994000,
+              "type": "DIRECT/UDP",
+              "local": {
+                "address": "172.18.0.1",
+                "port": 34450,
+                "candidateType": "host",
+                "protocol": "udp",
+                "priority": 2122260223,
+                "relatedAddress": "",
+                "relatedPort": 0,
+                "networkType": "ethernet",
+                "vpn": null
+              },
+              "remote": {
+                "address": "",
+                "port": 21602,
+                "candidateType": "prflx",
+                "protocol": "udp",
+                "priority": 1847591167,
+                "relatedAddress": "",
+                "relatedPort": 0
+              },
+              "rtt": null,
+              "iceRole": "controlled",
+              "writable": false,
+              "nominated": true,
+              "states": [
+                {
+                  "start": 1779807633647.645,
+                  "state": "waiting",
+                  "writable": false,
+                  "selected": false
+                }
+              ]
+            },
+            "3": {
+              "start": "2026-05-26T15:00:33.647Z",
+              "end": "2026-05-26T15:01:12.647Z",
+              "state": "succeeded",
+              "totalBytesReceived": 3868,
+              "totalBytesSent": 1054,
+              "priority": 7962116750810546000,
+              "type": "DIRECT/UDP",
+              "local": {
+                "address": "172.19.0.1",
+                "port": 34450,
+                "candidateType": "prflx",
+                "protocol": "udp",
+                "priority": 1853824767,
+                "relatedAddress": "172.18.0.1",
+                "relatedPort": 34450,
+                "networkType": "ethernet",
+                "vpn": null,
+                "relatedChain": [
+                  {
+                    "address": "172.18.0.1",
+                    "port": 34450,
+                    "candidateType": "host"
+                  }
+                ]
+              },
+              "remote": {
+                "address": "172.19.0.2",
+                "port": 10141,
+                "candidateType": "host",
+                "protocol": "udp",
+                "priority": 2015363327,
+                "relatedAddress": "",
+                "relatedPort": 0
+              },
+              "rtt": 8.25,
+              "iceRole": "controlled",
+              "writable": true,
+              "nominated": true,
+              "states": [
+                {
+                  "start": 1779807633647.645,
+                  "state": "succeeded",
+                  "writable": true,
+                  "selected": true
+                },
+                {
+                  "start": 1779807634647.715,
+                  "state": "succeeded",
+                  "writable": true,
+                  "selected": false
+                }
+              ]
+            },
+            "4": {
+              "start": "2026-05-26T15:00:33.647Z",
+              "end": "2026-05-26T15:01:12.647Z",
+              "state": "succeeded",
+              "totalBytesReceived": 5296987,
+              "totalBytesSent": 23664,
+              "priority": 8655919583267143000,
+              "type": "DIRECT/UDP",
+              "local": {
+                "address": "172.19.0.1",
+                "port": 36605,
+                "candidateType": "host",
+                "protocol": "udp",
+                "priority": 2122194687,
+                "relatedAddress": "",
+                "relatedPort": 0,
+                "networkType": "ethernet",
+                "vpn": null
+              },
+              "remote": {
+                "address": "172.19.0.2",
+                "port": 10141,
+                "candidateType": "host",
+                "protocol": "udp",
+                "priority": 2015363327,
+                "relatedAddress": "",
+                "relatedPort": 0
+              },
+              "rtt": 0.8947368421052633,
+              "iceRole": "controlled",
+              "writable": true,
+              "nominated": true,
+              "states": [
+                {
+                  "start": 1779807633647.645,
+                  "state": "waiting",
+                  "writable": false,
+                  "selected": false
+                },
+                {
+                  "start": 1779807634647.715,
+                  "state": "succeeded",
+                  "writable": true,
+                  "selected": true
+                }
+              ]
+            }
+          }
+        }
+      },
+      "PC_3": {
+        "13": {
+          "start": "2026-05-26T15:00:46.346Z",
+          "end": "2026-05-26T15:01:12.349Z",
+          "selectedPairs": [
+            "3",
+            "2"
+          ],
+          "iceRole": "controlled",
+          "pairs": {
+            "1": {
+              "start": "2026-05-26T15:00:46.346Z",
+              "end": "2026-05-26T15:01:12.349Z",
+              "state": "succeeded",
+              "totalBytesReceived": 0,
+              "totalBytesSent": 0,
+              "priority": 8655919583266881000,
+              "type": "DIRECT/UDP",
+              "local": {
+                "address": "192.168.0.8",
+                "port": 39644,
+                "candidateType": "host",
+                "protocol": "udp",
+                "priority": 2122063615,
+                "relatedAddress": "",
+                "relatedPort": 0,
+                "networkType": "wifi",
+                "vpn": null
+              },
+              "remote": {
+                "address": "172.19.0.2",
+                "port": 10165,
+                "candidateType": "host",
+                "protocol": "udp",
+                "priority": 2015363327,
+                "relatedAddress": "",
+                "relatedPort": 0
+              },
+              "rtt": 0.5,
+              "iceRole": "controlled",
+              "writable": true,
+              "nominated": false,
+              "states": [
+                {
+                  "start": 1779807646346.196,
+                  "state": "waiting",
+                  "writable": false,
+                  "selected": false
+                },
+                {
+                  "start": 1779807647346.247,
+                  "state": "succeeded",
+                  "writable": true,
+                  "selected": false
+                }
+              ]
+            },
+            "2": {
+              "start": "2026-05-26T15:00:46.346Z",
+              "end": "2026-05-26T15:01:12.349Z",
+              "state": "succeeded",
+              "totalBytesReceived": 3178741,
+              "totalBytesSent": 22076,
+              "priority": 8655919583267143000,
+              "type": "DIRECT/UDP",
+              "local": {
+                "address": "172.19.0.1",
+                "port": 41540,
+                "candidateType": "host",
+                "protocol": "udp",
+                "priority": 2122194687,
+                "relatedAddress": "",
+                "relatedPort": 0,
+                "networkType": "ethernet",
+                "vpn": null
+              },
+              "remote": {
+                "address": "172.19.0.2",
+                "port": 10165,
+                "candidateType": "host",
+                "protocol": "udp",
+                "priority": 2015363327,
+                "relatedAddress": "",
+                "relatedPort": 0
+              },
+              "rtt": 0.9285714285714286,
+              "iceRole": "controlled",
+              "writable": true,
+              "nominated": true,
+              "states": [
+                {
+                  "start": 1779807646346.196,
+                  "state": "waiting",
+                  "writable": false,
+                  "selected": false
+                },
+                {
+                  "start": 1779807647346.247,
+                  "state": "succeeded",
+                  "writable": true,
+                  "selected": true
+                }
+              ]
+            },
+            "3": {
+              "start": "2026-05-26T15:00:46.346Z",
+              "end": "2026-05-26T15:01:12.349Z",
+              "state": "succeeded",
+              "totalBytesReceived": 4744,
+              "totalBytesSent": 1060,
+              "priority": 7962116750810546000,
+              "type": "DIRECT/UDP",
+              "local": {
+                "address": "172.19.0.1",
+                "port": 45118,
+                "candidateType": "prflx",
+                "protocol": "udp",
+                "priority": 1853824767,
+                "relatedAddress": "172.18.0.1",
+                "relatedPort": 45118,
+                "networkType": "ethernet",
+                "vpn": null,
+                "relatedChain": [
+                  {
+                    "address": "172.18.0.1",
+                    "port": 45118,
+                    "candidateType": "host"
+                  }
+                ]
+              },
+              "remote": {
+                "address": "172.19.0.2",
+                "port": 10165,
+                "candidateType": "host",
+                "protocol": "udp",
+                "priority": 2015363327,
+                "relatedAddress": "",
+                "relatedPort": 0
+              },
+              "rtt": 0.25,
+              "iceRole": "controlled",
+              "writable": true,
+              "nominated": true,
+              "states": [
+                {
+                  "start": 1779807646346.196,
+                  "state": "succeeded",
+                  "writable": true,
+                  "selected": true
+                },
+                {
+                  "start": 1779807647346.247,
+                  "state": "succeeded",
+                  "writable": true,
+                  "selected": false
+                }
+              ]
+            }
+          }
+        }
+      },
+      "PC_4": {
+        "11": {
+          "start": "2026-05-26T15:00:58.666Z",
+          "end": "2026-05-26T15:01:12.667Z",
+          "selectedPairs": [
+            "1",
+            "2"
+          ],
+          "iceRole": "controlled",
+          "pairs": {
+            "1": {
+              "start": "2026-05-26T15:00:58.666Z",
+              "end": "2026-05-26T15:01:12.667Z",
+              "state": "succeeded",
+              "totalBytesReceived": 802,
+              "totalBytesSent": 1227,
+              "priority": 7962116750810546000,
+              "type": "DIRECT/UDP",
+              "local": {
+                "address": "172.19.0.1",
+                "port": 50087,
+                "candidateType": "prflx",
+                "protocol": "udp",
+                "priority": 1853824767,
+                "relatedAddress": "172.18.0.1",
+                "relatedPort": 50087,
+                "networkType": "ethernet",
+                "vpn": null,
+                "relatedChain": [
+                  {
+                    "address": "172.18.0.1",
+                    "port": 50087,
+                    "candidateType": "host"
+                  }
+                ]
+              },
+              "remote": {
+                "address": "172.19.0.2",
+                "port": 10065,
+                "candidateType": "host",
+                "protocol": "udp",
+                "priority": 2015363327,
+                "relatedAddress": "",
+                "relatedPort": 0
+              },
+              "rtt": 5.999999999999999,
+              "iceRole": "controlled",
+              "writable": true,
+              "nominated": true,
+              "states": [
+                {
+                  "start": 1779807658666.304,
+                  "state": "succeeded",
+                  "writable": true,
+                  "selected": true
+                },
+                {
+                  "start": 1779807659666.13,
+                  "state": "succeeded",
+                  "writable": true,
+                  "selected": false
+                }
+              ]
+            },
+            "2": {
+              "start": "2026-05-26T15:00:58.666Z",
+              "end": "2026-05-26T15:01:12.667Z",
+              "state": "succeeded",
+              "totalBytesReceived": 1688758,
+              "totalBytesSent": 11788,
+              "priority": 8655919583267143000,
+              "type": "DIRECT/UDP",
+              "local": {
+                "address": "172.19.0.1",
+                "port": 41102,
+                "candidateType": "host",
+                "protocol": "udp",
+                "priority": 2122194687,
+                "relatedAddress": "",
+                "relatedPort": 0,
+                "networkType": "ethernet",
+                "vpn": null
+              },
+              "remote": {
+                "address": "172.19.0.2",
+                "port": 10065,
+                "candidateType": "host",
+                "protocol": "udp",
+                "priority": 2015363327,
+                "relatedAddress": "",
+                "relatedPort": 0
+              },
+              "rtt": 1.6666666666666665,
+              "iceRole": "controlled",
+              "writable": true,
+              "nominated": true,
+              "states": [
+                {
+                  "start": 1779807658666.304,
+                  "state": "succeeded",
+                  "writable": true,
+                  "selected": false
+                },
+                {
+                  "start": 1779807659666.13,
+                  "state": "succeeded",
+                  "writable": true,
+                  "selected": true
+                }
+              ]
+            },
+            "3": {
+              "start": "2026-05-26T15:00:58.666Z",
+              "end": "2026-05-26T15:01:12.667Z",
+              "state": "succeeded",
+              "totalBytesReceived": 0,
+              "totalBytesSent": 0,
+              "priority": 8655919583266881000,
+              "type": "DIRECT/UDP",
+              "local": {
+                "address": "192.168.0.8",
+                "port": 34988,
+                "candidateType": "host",
+                "protocol": "udp",
+                "priority": 2122063615,
+                "relatedAddress": "",
+                "relatedPort": 0,
+                "networkType": "wifi",
+                "vpn": null
+              },
+              "remote": {
+                "address": "172.19.0.2",
+                "port": 10065,
+                "candidateType": "host",
+                "protocol": "udp",
+                "priority": 2015363327,
+                "relatedAddress": "",
+                "relatedPort": 0
+              },
+              "rtt": 14,
+              "iceRole": "controlled",
+              "writable": true,
+              "nominated": false,
+              "states": [
+                {
+                  "start": 1779807658666.304,
+                  "state": "waiting",
+                  "writable": false,
+                  "selected": false
+                },
+                {
+                  "start": 1779807659666.13,
+                  "state": "succeeded",
+                  "writable": true,
+                  "selected": false
+                }
+              ]
+            }
+          }
+        }
+      }
+    },
+    "aggregatedStats": {},
+    "metadata": {
+      "clientProtocol": "rtcstats#3.0"
+    }
+  }
+}

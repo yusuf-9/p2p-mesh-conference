@@ -32,6 +32,7 @@
     "express": "^4.18.2",
     "jsonwebtoken": "^9.0.2",
     "postgres": "^3.4.3",
+    "rtcscore": "^0.0.2",
     "sdp": "^3.2.2",
     "swagger-jsdoc": "^6.2.8",
     "swagger-ui-express": "^5.0.1",
