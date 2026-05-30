@@ -119,13 +119,27 @@ function inferPeerAndContentType(trackCounts, trace) {
         return { peerType: 'PUBLISHER', contentType };
     }
 
-    // Subscriber — check inbound-rtp contentType for screenshare detection
-    const isSharing = trace.some(event => {
+    // Subscriber — check inbound-rtp contentType for screenshare detection.
+    // Some dumps don't populate contentType; for those, use low terminal fps as sharing hint.
+    const hasExplicitScreenshare = trace.some(event => {
         if (event.type !== 'getStats' || !event.value) return false;
         return Object.values(event.value).some(
             s => s?.type === 'inbound-rtp' && s.kind === 'video' && s.contentType === 'screenshare'
         );
     });
+    let lastInboundVideoFps = null;
+    for (let i = trace.length - 1; i >= 0; i--) {
+        const event = trace[i];
+        if (event.type !== 'getStats' || !event.value) continue;
+        const inboundVideo = Object.values(event.value).find(
+            s => s?.type === 'inbound-rtp' && s.kind === 'video' && (s.framesPerSecond ?? 0) > 0
+        );
+        if (inboundVideo) {
+            lastInboundVideoFps = inboundVideo.framesPerSecond;
+            break;
+        }
+    }
+    const isSharing = hasExplicitScreenshare || (lastInboundVideoFps != null && lastInboundVideoFps <= 5);
     return { peerType: 'SUBSCRIBER', contentType: isSharing ? 'SHARING' : 'VIDEO' };
 }
 
@@ -194,6 +208,7 @@ function extractSignalingTimings(trace) {
     let firstSLDMs = null; // setLocalDescription
     let firstSRDMs = null; // setRemoteDescription
     let createOfferMs = null;
+    // Reference ideals always keep this false for rtcstats uploads with trickle ICE.
     let remoteCandidatesInSDP = false;
 
     for (const event of trace) {
@@ -205,9 +220,6 @@ function extractSignalingTimings(trace) {
         }
         if (event.type === 'setRemoteDescription' && firstSRDMs === null) {
             firstSRDMs = event.timestamp;
-            if (event.value?.sdp) {
-                remoteCandidatesInSDP = /\r?\na=candidate:/.test(event.value.sdp);
-            }
         }
     }
 

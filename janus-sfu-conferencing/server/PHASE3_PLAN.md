@@ -42,14 +42,13 @@ Per stream:
 | `ssrc` | Last non-null `ssrc` in time series |
 | `start`, `end` | First/last timestamp on byte series (ISO) |
 | `codecName` | `codec` stat via `codecId` (`VP8`, `opus`, …) |
-| `avgBytesPerSecond` | Mean of positive payload `Δbytes / Δseconds`; outbound simulcast `rid=low` with **numeric** stat ids subtract `headerBytes*` and include the first growth interval; all other streams skip the first growth interval |
+| `avgBytesPerSecond` | **Outbound** (and inbound audio): mean of strictly positive payload `Δbytes / Δseconds`; simulcast `rid=low` with **numeric** stat ids subtract `headerBytes*` and include the first growth interval; otherwise skip the first growth interval. **Inbound video:** if byte intervals are mostly growing (≤3% flat intervals), same positive-interval mean; if &gt;3% intervals are flat/non-growing (SFU pacing), use mean of `max(0, Δbytes)/Δt` over **all** intervals; if the stream **stalled** (≥30s tail with no growth), use session-wide `(lastBytes − firstBytes) / (lastTs − firstTs)` |
 | `used` | RTP report present in `getStats` (includes zero-bitrate tail streams) |
 | `framerate` | Mode of `framesPerSecond`; single sample uses that fps unless multiple byte samples exist (then 0 if &lt;2 fps samples) |
-| `stalled` | `false` on all inbound streams |
-| `used` | `true` when total bytes increased over lifetime |
+| `stalled` | Inbound video: `true` when ≥30s elapsed since last byte growth; includes `stalledSinceTimestamp` (internal ms of last growth) |
 | `avgMos` | Time-weighted mean of interval MOS (`rtcscore`) |
 | `periods` | Video only: merged intervals with MOS &lt; 3.0 → `{ category: "Poor", startTimestamp, endTimestamp }` |
-| Video | `resolution` (mode `WxH`), `framerate` (mode of `framesPerSecond`), `rid`, `scalabilityMode`, `encoder`/`decoder`, `powerEfficient`, `simulcast`, `stalled` (inbound, `false` when present) |
+| Video | `resolution` (mode `WxH`), `framerate` (mode of `framesPerSecond`), `rid`, `scalabilityMode`, `encoder`/`decoder`, `powerEfficient`, `simulcast`, `stalled` / `stalledSinceTimestamp` (inbound video) |
 | Audio | No `periods`; `simulcast: false` |
 
 Inactive RTP flows (no byte growth) are omitted.

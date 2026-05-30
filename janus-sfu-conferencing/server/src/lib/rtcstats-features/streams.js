@@ -68,6 +68,87 @@ export function avgBytesPerSecond(bytesSeries, headerSeries, subtractHeader = fa
     return count > 0 ? sum / count : 0;
 }
 
+/**
+ * Fraction of consecutive getStats intervals where payload bytes did not grow.
+ * When this is high (subscriber bursty / SFU pacing), reference `avgBytesPerSecond` uses
+ * mean(max(0, dBytes) / dt) over **all** intervals — not only strictly positive-growth intervals.
+ */
+export function fractionNonGrowingByteIntervals(bytesSeries, headerSeries, subtractHeader = false) {
+    if (!bytesSeries || bytesSeries.length < 2) return 0;
+    let flat = 0;
+    let total = 0;
+    for (let i = 1; i < bytesSeries.length; i++) {
+        const dt = (bytesSeries[i][0] - bytesSeries[i - 1][0]) / 1000;
+        if (dt <= 0) continue;
+        total++;
+        let dBytes = bytesSeries[i][1] - bytesSeries[i - 1][1];
+        if (subtractHeader && headerSeries) {
+            dBytes -= (headerSeries[i][1] ?? 0) - (headerSeries[i - 1][1] ?? 0);
+        }
+        if (dBytes <= 0) flat++;
+    }
+    return total > 0 ? flat / total : 0;
+}
+
+/** Mean of max(0, payload rate) per interval; counts flat intervals as 0 kbps (reference analyzer). */
+export function avgBytesPerSecondAllNonNegativeIntervals(
+    bytesSeries,
+    headerSeries,
+    subtractHeader = false
+) {
+    if (!bytesSeries || bytesSeries.length < 2) return 0;
+
+    let sum = 0;
+    let count = 0;
+    for (let i = 1; i < bytesSeries.length; i++) {
+        const dt = (bytesSeries[i][0] - bytesSeries[i - 1][0]) / 1000;
+        if (dt <= 0) continue;
+        let dBytes = bytesSeries[i][1] - bytesSeries[i - 1][1];
+        if (subtractHeader && headerSeries) {
+            dBytes -= (headerSeries[i][1] ?? 0) - (headerSeries[i - 1][1] ?? 0);
+        }
+        sum += Math.max(0, dBytes) / dt;
+        count++;
+    }
+    return count > 0 ? sum / count : 0;
+}
+
+/** Above this flat-interval share, inbound video uses `avgBytesPerSecondAllNonNegativeIntervals`. */
+const INBOUND_VIDEO_FLAT_INTERVAL_THRESHOLD = 0.03;
+
+function globalAvgBytesPerSecond(bytesSeries, headerSeries, subtractHeader = false) {
+    if (!bytesSeries || bytesSeries.length < 2) return 0;
+    const t0 = bytesSeries[0][0];
+    const t1 = bytesSeries[bytesSeries.length - 1][0];
+    const dt = (t1 - t0) / 1000;
+    if (dt <= 0) return 0;
+
+    let dBytes = (bytesSeries[bytesSeries.length - 1][1] ?? 0) - (bytesSeries[0][1] ?? 0);
+    if (subtractHeader && headerSeries?.length >= bytesSeries.length) {
+        dBytes -=
+            (headerSeries[headerSeries.length - 1][1] ?? 0) -
+            (headerSeries[0][1] ?? 0);
+    }
+    return dBytes > 0 ? dBytes / dt : 0;
+}
+
+function detectStall(bytesSeries, thresholdMs = 30000) {
+    if (!bytesSeries || bytesSeries.length < 2) {
+        return { stalled: false, stalledSinceTimestamp: null };
+    }
+    let lastGrowthTs = bytesSeries[0][0];
+    for (let i = 1; i < bytesSeries.length; i++) {
+        if ((bytesSeries[i][1] ?? 0) > (bytesSeries[i - 1][1] ?? 0)) {
+            lastGrowthTs = bytesSeries[i][0];
+        }
+    }
+    const tailMs = bytesSeries[bytesSeries.length - 1][0] - lastGrowthTs;
+    if (tailMs >= thresholdMs) {
+        return { stalled: true, stalledSinceTimestamp: lastGrowthTs };
+    }
+    return { stalled: false, stalledSinceTimestamp: null };
+}
+
 /** @param {string} statId WebRTC-Stats report id (numeric or string). */
 export function shouldSubtractHeaderBytes(direction, rid, statId) {
     return direction === 'outbound' && rid === 'low' && /^\d+$/.test(String(statId));
@@ -156,11 +237,27 @@ function buildStreamEntry(pcId, statId, series, trace, direction, kind) {
     );
 
     const quality = computeStreamQuality(trace, series, statId, kind, direction);
-    const avgBps = avgBytesPerSecond(
-        bytesSeries,
-        series[statId][headerKey],
-        subtractHeader
-    );
+    const stall =
+        direction === 'inbound' && kind === 'video'
+            ? detectStall(bytesSeries)
+            : { stalled: false, stalledSinceTimestamp: null };
+    const headerSeries = series[statId][headerKey];
+    let avgBps;
+    if (stall.stalled) {
+        avgBps = globalAvgBytesPerSecond(bytesSeries, headerSeries, subtractHeader);
+    } else if (direction === 'inbound' && kind === 'video') {
+        const flatFrac = fractionNonGrowingByteIntervals(bytesSeries, headerSeries, subtractHeader);
+        avgBps =
+            flatFrac > INBOUND_VIDEO_FLAT_INTERVAL_THRESHOLD
+                ? avgBytesPerSecondAllNonNegativeIntervals(
+                      bytesSeries,
+                      headerSeries,
+                      subtractHeader
+                  )
+                : avgBytesPerSecond(bytesSeries, headerSeries, subtractHeader);
+    } else {
+        avgBps = avgBytesPerSecond(bytesSeries, headerSeries, subtractHeader);
+    }
 
     const entry = {
         peerId: pcId,
@@ -214,8 +311,11 @@ function buildStreamEntry(pcId, statId, series, trace, direction, kind) {
         }
     }
 
-    if (direction === 'inbound') {
-        entry.stalled = false;
+    if (direction === 'inbound' && kind === 'video') {
+        entry.stalled = stall.stalled;
+        if (stall.stalledSinceTimestamp != null) {
+            entry.stalledSinceTimestamp = stall.stalledSinceTimestamp;
+        }
     }
 
     return entry;

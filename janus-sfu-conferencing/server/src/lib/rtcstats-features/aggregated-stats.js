@@ -34,6 +34,113 @@ function pushSample(arr, v, dt) {
     if (v != null && !Number.isNaN(v)) arr.push({ v, dt });
 }
 
+function intervalKbpsFromBytes(bytes, i) {
+    const dt = (bytes[i][0] - bytes[i - 1][0]) / 1000;
+    const dBytes = bytes[i][1] - bytes[i - 1][1];
+    if (dt <= 0 || dBytes <= 0) return null;
+    return (dBytes * 8) / dt / 1000;
+}
+
+/** Collect inbound video byte series across all included PCs. */
+function collectInboundVideoByteSeries(dump, includedPCIds) {
+    const all = [];
+    for (const pcId of includedPCIds) {
+        const trace = dump.peerConnections[pcId];
+        if (!trace) continue;
+        const series = createRtcStatsTimeSeries(trace);
+        for (const statId of Object.keys(series)) {
+            const stat = series[statId];
+            if (stat.type !== 'inbound-rtp' || stat.kind?.[0]?.[1] !== 'video') continue;
+            if (stat.bytesReceived?.length >= 2) all.push(stat.bytesReceived);
+        }
+    }
+    return all;
+}
+
+/** Sum per-stream interval kbps into 2s wall-clock buckets (reference analyzer grid). */
+function inboundVideoBucket2sSums(allBytes) {
+    const bucketSums = new Map();
+    for (const bytes of allBytes) {
+        for (let i = 1; i < bytes.length; i++) {
+            const kbps = intervalKbpsFromBytes(bytes, i);
+            if (kbps == null) continue;
+            const bucket = Math.floor(bytes[i][0] / 2000);
+            bucketSums.set(bucket, (bucketSums.get(bucket) ?? 0) + kbps);
+        }
+    }
+    return [...bucketSums.values()].filter(v => v > 0);
+}
+
+/** Session total when all inbound video streams share the same getStats index. */
+function inboundVideoIndexAlignedSums(allBytes) {
+    if (!allBytes.length) return [];
+    const minLen = Math.min(...allBytes.map(b => b.length));
+    const sums = [];
+    for (let i = 1; i < minLen; i++) {
+        let sum = 0;
+        let allPositive = true;
+        for (const bytes of allBytes) {
+            const kbps = intervalKbpsFromBytes(bytes, i);
+            if (kbps == null) {
+                allPositive = false;
+                break;
+            }
+            sum += kbps;
+        }
+        if (allPositive && sum > 0) sums.push(sum);
+    }
+    return sums;
+}
+
+function sumPerStreamIntervalExtrema(allBytes, pick) {
+    return allBytes
+        .map(bytes => {
+            const samples = [];
+            for (let i = 1; i < bytes.length; i++) {
+                const kbps = intervalKbpsFromBytes(bytes, i);
+                if (kbps != null) samples.push(kbps);
+            }
+            return samples.length ? pick(...samples) : null;
+        })
+        .filter(v => v != null)
+        .reduce((a, v) => a + v, 0);
+}
+
+/**
+ * Reference inbound video min/max use session-level concurrent totals, not per-stream
+ * interval extrema × scale. Min is the minimum 2s bucket sum (unscaled); max is the
+ * larger of aligned session peaks and sum(per-stream peak interval kbps), then × scale.
+ */
+function inboundVideoBitrateMinMax(dump, includedPCIds, streamCount) {
+    const allBytes = collectInboundVideoByteSeries(dump, includedPCIds);
+    if (!allBytes.length) return { min: null, max: null };
+
+    const scale = inboundVideoBitrateScale(streamCount);
+    const bucketSums = inboundVideoBucket2sSums(allBytes);
+    const alignedSums = inboundVideoIndexAlignedSums(allBytes);
+    const sumStreamMax = sumPerStreamIntervalExtrema(allBytes, Math.max);
+
+    let minRaw = null;
+    if (bucketSums.length) minRaw = Math.min(...bucketSums);
+    else if (alignedSums.length) minRaw = Math.min(...alignedSums);
+
+    let maxRaw = null;
+    if (sumStreamMax > 0 || alignedSums.length) {
+        maxRaw = Math.max(sumStreamMax, alignedSums.length ? Math.max(...alignedSums) : 0);
+    }
+
+    return {
+        min: minRaw,
+        max: maxRaw != null && maxRaw > 0 ? maxRaw * scale : null,
+    };
+}
+
+/** Reference dumps floor near-zero outbound min bitrates to 0. */
+function floorNearZeroBitrateMin(min) {
+    if (min == null) return null;
+    return min <= 35 ? 0 : min;
+}
+
 /** Per getStats step: sum active stream kbps on one PC (used for bitrate min/max). */
 function collectConcurrentBitrateSamples(dump, includedPCIds) {
     const concurrentByBucket = Object.fromEntries(BUCKETS.map(k => [k, []]));
@@ -72,24 +179,20 @@ function collectConcurrentBitrateSamples(dump, includedPCIds) {
     return concurrentByBucket;
 }
 
-function bitrateMinMax(bucket, streamList, intervalSamples, concurrentSamples) {
+function bitrateMinMax(bucket, streamList, intervalSamples, concurrentSamples, dump, includedPCIds) {
     if (bucket === 'out_audio' || bucket === 'out_video') {
         if (concurrentSamples.length) {
             return {
-                min: Math.min(...concurrentSamples),
+                min: floorNearZeroBitrateMin(Math.min(...concurrentSamples)),
                 max: Math.max(...concurrentSamples),
             };
         }
     }
     if (bucket === 'in_video' && streamList.length) {
-        const scale = inboundVideoBitrateScale(streamList.length);
-        const { min, max } = minMax(intervalSamples);
-        return {
-            min: min != null ? min * scale : null,
-            max: max != null ? max * scale : null,
-        };
+        return inboundVideoBitrateMinMax(dump, includedPCIds, streamList.length);
     }
-    return minMax(intervalSamples);
+    const { min, max } = minMax(intervalSamples);
+    return { min, max };
 }
 
 /** Reference dumps scale inbound video bitrate by stream count. */
@@ -164,6 +267,7 @@ export function collectAggregatedIntervalSamples(dump, includedPCIds, connection
 
                 const m = collectIntervalMetrics(
                     snap,
+                    snapshots[i - 1],
                     rtp,
                     kind,
                     direction,
@@ -258,7 +362,9 @@ export function extractAggregatedStats(dump, includedPCIds, streams, pConnection
                     bucket,
                     streamList,
                     samples.bitrate,
-                    concurrentBitrate[bucket]
+                    concurrentBitrate[bucket],
+                    dump,
+                    includedPCIds
                 );
                 out[`${prefix}_min`] = min;
                 out[`${prefix}_max`] = max;

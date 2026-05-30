@@ -29,11 +29,39 @@ export function inboundVideoRttScale(connectionType) {
     return 0.75;
 }
 
+function intervalLossPercent(currOk, currLost, prevOk, prevLost) {
+    const dOk = (currOk ?? 0) - (prevOk ?? 0);
+    const dLost = Math.max(0, (currLost ?? 0) - (prevLost ?? 0));
+    if (dOk + dLost > 0) return (dLost / (dOk + dLost)) * 100;
+    const total = (currOk ?? 0) + (currLost ?? 0);
+    return total > 0 ? ((currLost ?? 0) / total) * 100 : 0;
+}
+
+function outboundIntervalLoss(rem, prevRem) {
+    const dLost = Math.max(0, (rem?.packetsLost ?? 0) - (prevRem?.packetsLost ?? 0));
+    const dReceived = Math.max(
+        0,
+        (rem?.packetsReceived ?? 0) - (prevRem?.packetsReceived ?? 0)
+    );
+    if (dReceived + dLost > 0) return (dLost / (dReceived + dLost)) * 100;
+    return 0;
+}
+
 /**
  * Per active byte interval: jitter (ms), packetLoss (%), rtt (ms), bitrate (kbps), mos.
  * Only intervals with dBytes > 0 are included.
  */
-export function collectIntervalMetrics(snap, rtp, kind, direction, dBytes, dtSec, series, statId) {
+export function collectIntervalMetrics(
+    snap,
+    prevSnap,
+    rtp,
+    kind,
+    direction,
+    dBytes,
+    dtSec,
+    series,
+    statId
+) {
     const bitrateKbps = dtSec > 0 ? (dBytes * 8) / dtSec / 1000 : 0;
     let jitter = null;
     let packetLoss = null;
@@ -41,16 +69,19 @@ export function collectIntervalMetrics(snap, rtp, kind, direction, dBytes, dtSec
 
     if (direction === 'outbound' && rtp.remoteId && snap[rtp.remoteId]) {
         const rem = snap[rtp.remoteId];
+        const prevRem = prevSnap?.[rtp.remoteId];
         rtt = (rem.roundTripTime ?? 0) * 1000;
         jitter = (rem.jitter ?? 0) * 1000;
-        const ps = rem.packetsSent ?? 0;
-        const pl = rem.packetsLost ?? 0;
-        packetLoss = ps + pl > 0 ? (pl / (ps + pl)) * 100 : 0;
+        packetLoss = outboundIntervalLoss(rem, prevRem);
     } else if (direction === 'inbound') {
         jitter = (rtp.jitter ?? 0) * 1000;
-        const pr = rtp.packetsReceived ?? 0;
-        const pl = rtp.packetsLost ?? 0;
-        packetLoss = pr + pl > 0 ? (pl / (pr + pl)) * 100 : 0;
+        const prevRtp = prevSnap?.[statId];
+        packetLoss = intervalLossPercent(
+            rtp.packetsReceived,
+            rtp.packetsLost,
+            prevRtp?.packetsReceived,
+            prevRtp?.packetsLost
+        );
         const transportRtt = getTransportRttMs(snap);
         if (kind === 'video' && transportRtt != null) {
             rtt = transportRtt;
@@ -61,7 +92,14 @@ export function collectIntervalMetrics(snap, rtp, kind, direction, dBytes, dtSec
 
     let mos;
     if (kind === 'audio') {
-        mos = audioIntervalMos(snap, rtp, direction, bitrateKbps * 1000);
+        mos = score({
+            audio: {
+                packetLoss: packetLoss ?? 0,
+                roundTripTime: rtt ?? 50,
+                bufferDelay: jitter ?? 0,
+                bitrate: bitrateKbps * 1000,
+            },
+        }).audio;
     } else {
         const expectedFrameRate = expectedVideoFrameRate(series, statId, direction);
         mos = videoIntervalMos(snap, rtp, direction, bitrateKbps * 1000, expectedFrameRate);
@@ -185,6 +223,7 @@ export function computeStreamQuality(trace, series, statId, kind, direction) {
 
         const metrics = collectIntervalMetrics(
             snap,
+            snapshots[i - 1],
             rtp,
             kind,
             direction,

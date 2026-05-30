@@ -21,6 +21,10 @@ build/
 .DS_Store
 Thumbs.db
 
+# RTC stats upload/process output (generated at runtime)
+janus-sfu-conferencing/server/upload/
+janus-sfu-conferencing/server/processed/
+
 # Logs
 npm-debug.log*
 yarn-debug.log*
