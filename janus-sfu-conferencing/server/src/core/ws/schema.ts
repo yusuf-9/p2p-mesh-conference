@@ -175,15 +175,6 @@ export const ClientToServerMessageSchemas = {
     }),
   }),
 
-INGEST_STATS: z.object({
-    type: z.literal(EVENTS.INGEST_STATS),
-    data: z.object({
-      handleId: z.uuid(),
-      stats: z.any(),
-      type: z.enum(["session_start", "health_metrics", "state_change", "session_end"]),
-    }),
-  }),
-
   RTC_STATS: z.object({
     type: z.literal(EVENTS.RTC_STATS),
     data: z.any(),
@@ -212,7 +203,6 @@ export const ClientToServerMessageSchema = z.discriminatedUnion("type", [
   ClientToServerMessageSchemas.MODERATE_FEED,
   ClientToServerMessageSchemas.CONFIGURE_FEED,
   ClientToServerMessageSchemas.CONFIGURE_FEED_SUBSCRIPTION,
-  ClientToServerMessageSchemas.INGEST_STATS,
   ClientToServerMessageSchemas.RTC_STATS,
 ]);
 
@@ -612,7 +602,6 @@ export type ClientToServerMessages = {
   [EVENTS.MODERATE_FEED]: z.infer<typeof ClientToServerMessageSchemas.MODERATE_FEED>;
   [EVENTS.CONFIGURE_FEED]: z.infer<typeof ClientToServerMessageSchemas.CONFIGURE_FEED>;
   [EVENTS.CONFIGURE_FEED_SUBSCRIPTION]: z.infer<typeof ClientToServerMessageSchemas.CONFIGURE_FEED_SUBSCRIPTION>;
-  [EVENTS.INGEST_STATS]: z.infer<typeof ClientToServerMessageSchemas.INGEST_STATS>;
   [EVENTS.RTC_STATS]: z.infer<typeof ClientToServerMessageSchemas.RTC_STATS>;
 };
 

@@ -1,23 +1,31 @@
-import { Link } from "react-router-dom";
-import useStatsStore from "../store/statsStore";
+import { useNavigate } from 'react-router-dom';
 
-export default function RoomList() {
-  const rooms = useStatsStore((s) => s.rooms);
-  const loading = useStatsStore((s) => s.loadingRooms);
+function formatDate(dateString) {
+  return new Date(dateString).toLocaleString();
+}
 
-  if (loading) return <div className="loading">Loading rooms...</div>;
-  if (!rooms.length) return <div className="empty">No rooms found.</div>;
+export default function RoomList({ rooms }) {
+  const navigate = useNavigate();
+
+  if (!rooms.length) {
+    return <p className="empty-message">No rooms found.</p>;
+  }
 
   return (
-    <ul className="room-list">
+    <ul className="item-list">
       {rooms.map((room) => (
-        <li key={room.id} className="room-item">
-          <Link to={`/room/${room.id}`} className="room-link">
-            <div className="room-name">{room.name}</div>
-            <div className="room-meta">
-              Type: {room.type} | Sessions: {room.sessionCount ?? 0}
-            </div>
-          </Link>
+        <li key={room.id}>
+          <button
+            type="button"
+            className="item-button"
+            onClick={() => navigate(`/room/${room.id}`)}
+          >
+            <span className="item-title">{room.name}</span>
+            <span className="item-meta">
+              {room.type} · {room.userCount} user{room.userCount === 1 ? '' : 's'} ·{' '}
+              {formatDate(room.createdAt)}
+            </span>
+          </button>
         </li>
       ))}
     </ul>

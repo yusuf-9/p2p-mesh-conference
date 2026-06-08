@@ -1,4 +1,4 @@
-import { pgTable, uuid, varchar, text, timestamp, boolean, pgEnum, integer, jsonb } from "drizzle-orm/pg-core";
+import { pgTable, uuid, varchar, text, timestamp, boolean, pgEnum, integer } from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
 
 // Enums
@@ -18,13 +18,6 @@ export const transactionTypeEnum = pgEnum("transaction_type", [
   "get_publisher_list",
   "configure_feed",
   "configure_feed_subscription",
-]);
-
-export const statsTypeEnum = pgEnum("stats_type", [
-  "session_start",
-  "health_metrics",
-  "state_change",
-  "session_end",
 ]);
 
 // Tables
@@ -133,16 +126,6 @@ export const pendingTransactions = pgTable("pending_transactions", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
-export const callStats = pgTable("call_stats", {
-  id: uuid("id").primaryKey().defaultRandom(),
-  handleId: uuid("handle_id")
-    .references(() => mediaHandles.id, { onDelete: "cascade" })
-    .notNull(),
-  type: statsTypeEnum("type").notNull(),
-  stats: jsonb("stats").notNull(),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-});
-
 // Relations
 export const roomsRelations = relations(rooms, ({ one, many }) => ({
   users: many(users),
@@ -201,13 +184,5 @@ export const mediaHandlesRelations = relations(mediaHandles, ({ one, many }) => 
   user: one(users, {
     fields: [mediaHandles.userId],
     references: [users.id],
-  }),
-  callStats: many(callStats),
-}));
-
-export const callStatsRelations = relations(callStats, ({ one }) => ({
-  handle: one(mediaHandles, {
-    fields: [callStats.handleId],
-    references: [mediaHandles.id],
   }),
 }));

@@ -162,6 +162,13 @@
       "when": 1778009704290,
       "tag": "0022_faulty_rockslide",
       "breakpoints": true
+    },
+    {
+      "idx": 23,
+      "version": "6",
+      "when": 1780237734428,
+      "tag": "0023_cooing_nightshade",
+      "breakpoints": true
     }
   ]
 }

@@ -17,7 +17,7 @@ import {
 } from "./schema.js";
 import DatabaseService from "../database/index.js";
 import PubSubService from "../pubsub/index.js";
-import { messages, callStats } from "../database/schema.js";
+import { messages } from "../database/schema.js";
 import { CHANNELS, EVENTS } from "./constants.js";
 import SfuManager from "../sfu-manager/index.js";
 import ConfigService from "../config/index.js";
@@ -342,9 +342,6 @@ export default class SocketServer {
         break;
       case EVENTS.CONFIGURE_FEED_SUBSCRIPTION:
         await this.handleConfigureFeedSubscription(ws, message.data);
-        break;
-      case EVENTS.INGEST_STATS:
-        await this.handleIngestStats(ws, message.data);
         break;
       case EVENTS.RTC_STATS:
         this.handleRtcStats(ws, message.data);
@@ -806,23 +803,6 @@ export default class SocketServer {
       );
 
       console.log(`📢 Feed subscription ${data.feedId} configured for user ${ws.userId} - resolution: ${data.resolution}`);
-    })();
-  }
-
-  private async handleIngestStats(ws: AuthenticatedWebSocket, data: ClientToServerMessages[typeof EVENTS.INGEST_STATS]["data"]): Promise<void> {
-    this.createSocketErrorBoundary(ws, async () => {
-      console.log(`📊 User ${ws.userId} sending stats of type ${data.type} for handle ${data.handleId}`);
-
-      await this.dbService
-        .getDb()
-        .insert(callStats)
-        .values({
-          handleId: data.handleId,
-          type: data.type,
-          stats: data.stats,
-        });
-
-      console.log(`💾 Stats saved to database for handle ${data.handleId}`);
     })();
   }
 

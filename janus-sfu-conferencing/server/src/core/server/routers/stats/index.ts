@@ -1,42 +1,87 @@
 import express, { Request, Response, NextFunction } from "express";
-import { eq, and, count, desc } from "drizzle-orm";
+import fs from "node:fs/promises";
+import path from "node:path";
+import { desc, eq } from "drizzle-orm";
+import { z } from "zod";
 import DatabaseService from "../../../database/index.js";
-import { rooms, mediaSessions, mediaRooms, mediaHandles, callStats, users } from "../../../database/schema.js";
+import Config from "../../../config/index.js";
+import { rooms } from "../../../database/schema.js";
 import CustomError from "../../../../utility-types/error.js";
+import { roomIdParamSchema } from "../room/schemas.js";
+
+const userIdParamSchema = z.object({
+  userId: z.string().uuid("Invalid user ID format"),
+});
+
+interface ProcessedFileMetadata {
+  callStart?: string;
+  callEnd?: string;
+}
 
 export default class StatsRouter {
   private router: express.Router;
   private dbService: DatabaseService;
+  private processedDir: string;
 
-  constructor(dbService: DatabaseService) {
+  constructor(dbService: DatabaseService, config: Config) {
     this.router = express.Router();
     this.dbService = dbService;
+    this.processedDir = path.resolve(config.rtcStats.processedDir);
     this.setupRoutes();
   }
 
   private setupRoutes(): void {
     this.router.get("/rooms", this.getRooms.bind(this));
-    this.router.get("/rooms/:roomId/sessions", this.getRoomSessions.bind(this));
-    this.router.get("/sessions/:sessionId/handles", this.getSessionHandles.bind(this));
-    this.router.get("/handles/:handleId/stats", this.getHandleStats.bind(this));
+    this.router.get("/rooms/:roomId/users", this.getRoomUsers.bind(this));
+    this.router.get("/users/:userId/processed", this.getUserProcessed.bind(this));
+  }
+
+  private processedFilePath(userId: string): string {
+    return path.join(this.processedDir, `${userId}_processed.json`);
+  }
+
+  private async fileExists(filePath: string): Promise<boolean> {
+    try {
+      await fs.access(filePath);
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
+  private async readProcessedMetadata(userId: string): Promise<ProcessedFileMetadata | null> {
+    const filePath = this.processedFilePath(userId);
+    if (!(await this.fileExists(filePath))) {
+      return null;
+    }
+
+    try {
+      const content = await fs.readFile(filePath, "utf-8");
+      const parsed = JSON.parse(content) as { data?: ProcessedFileMetadata };
+      return {
+        callStart: parsed.data?.callStart,
+        callEnd: parsed.data?.callEnd,
+      };
+    } catch {
+      return { callStart: undefined, callEnd: undefined };
+    }
   }
 
   private async getRooms(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       const db = this.dbService.getDb();
-
-      const allRooms = await db.select().from(rooms);
+      const allRooms = await db.select().from(rooms).orderBy(desc(rooms.createdAt));
 
       const roomsWithCounts = await Promise.all(
         allRooms.map(async (room) => {
-          const sessions = await db
-            .select({ id: mediaSessions.id })
-            .from(mediaSessions)
-            .where(eq(mediaSessions.roomId, room.id));
-
+          const userCount = await this.dbService.roomRepository.getUserCountInRoom(room.id);
           return {
-            ...room,
-            sessionCount: sessions.length,
+            id: room.id,
+            name: room.name,
+            description: room.description,
+            type: room.type,
+            createdAt: room.createdAt,
+            userCount,
           };
         })
       );
@@ -47,109 +92,80 @@ export default class StatsRouter {
     }
   }
 
-  private async getRoomSessions(req: Request, res: Response, next: NextFunction): Promise<void> {
+  private async getRoomUsers(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
-      const { roomId } = req.params;
+      const { roomId } = roomIdParamSchema.parse(req.params);
+      const room = await this.dbService.roomRepository.getById(roomId);
 
-      const db = this.dbService.getDb();
+      if (!room) {
+        throw new CustomError(404, "Room not found");
+      }
 
-      const sessions = await db
-        .select({
-          id: mediaSessions.id,
-          sessionId: mediaSessions.sessionId,
-          active: mediaSessions.active,
-          createdAt: mediaSessions.createdAt,
-        })
-        .from(mediaSessions)
-        .where(eq(mediaSessions.roomId, roomId));
+      const roomUsers = await this.dbService.userRepository.getUsersInRoom(roomId);
 
-      const sessionsWithCounts = await Promise.all(
-        sessions.map(async (session) => {
-          const handles = await db
-            .select({ id: mediaHandles.id })
-            .from(mediaRooms)
-            .leftJoin(mediaHandles, eq(mediaRooms.id, mediaHandles.mediaRoomId))
-            .where(eq(mediaRooms.sessionId, session.id));
+      const users = await Promise.all(
+        roomUsers.map(async (user) => {
+          const metadata = await this.readProcessedMetadata(user.id);
+          const hasProcessedStats = metadata !== null;
 
           return {
-            ...session,
-            handleCount: handles.length,
+            id: user.id,
+            name: user.name,
+            joinedCall: user.joinedCall,
+            connected: user.connected,
+            hasProcessedStats,
+            callStart: metadata?.callStart ?? null,
+            callEnd: metadata?.callEnd ?? null,
           };
         })
       );
 
-      res.json({ sessions: sessionsWithCounts });
+      res.json({
+        room: {
+          id: room.id,
+          name: room.name,
+        },
+        users,
+      });
     } catch (error) {
+      if (error instanceof z.ZodError) {
+        next(new CustomError(400, "Invalid room ID format"));
+        return;
+      }
       next(error);
     }
   }
 
-  private async getSessionHandles(req: Request, res: Response, next: NextFunction): Promise<void> {
+  private async getUserProcessed(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
-      const { sessionId } = req.params;
+      const { userId } = userIdParamSchema.parse(req.params);
+      const user = await this.dbService.userRepository.getUserById(userId);
 
-      const db = this.dbService.getDb();
-
-      const handles = await db
-        .select({
-          id: mediaHandles.id,
-          handleId: mediaHandles.handleId,
-          userId: mediaHandles.userId,
-          type: mediaHandles.type,
-          feedType: mediaHandles.feedType,
-          feedId: mediaHandles.feedId,
-          active: mediaHandles.active,
-          createdAt: mediaHandles.createdAt,
-        })
-        .from(mediaHandles)
-        .innerJoin(mediaRooms, eq(mediaHandles.mediaRoomId, mediaRooms.id))
-        .where(eq(mediaRooms.sessionId, sessionId));
-
-      const handlesWithUser = await Promise.all(
-        handles.map(async (handle) => {
-          if (handle.userId) {
-            const user = await db
-              .select({ name: users.name })
-              .from(users)
-              .where(eq(users.id, handle.userId))
-              .limit(1);
-
-            return {
-              ...handle,
-              userName: user[0]?.name || null,
-            };
-          }
-          return { ...handle, userName: null };
-        })
-      );
-
-      res.json({ handles: handlesWithUser });
-    } catch (error) {
-      next(error);
-    }
-  }
-
-  private async getHandleStats(req: Request, res: Response, next: NextFunction): Promise<void> {
-    try {
-      const { handleId } = req.params;
-      const { type } = req.query;
-
-      const db = this.dbService.getDb();
-
-      const conditions = [eq(callStats.handleId, handleId)];
-
-      if (type && typeof type === "string") {
-        conditions.push(eq(callStats.type, type as any));
+      if (!user) {
+        throw new CustomError(404, "User not found");
       }
 
-      const stats = await db
-        .select()
-        .from(callStats)
-        .where(and(...conditions))
-        .orderBy(desc(callStats.createdAt));
+      const filePath = this.processedFilePath(userId);
+      if (!(await this.fileExists(filePath))) {
+        throw new CustomError(404, "Processed stats not found for user");
+      }
 
-      res.json({ stats });
+      const content = await fs.readFile(filePath, "utf-8");
+      const parsed = JSON.parse(content) as { data?: unknown };
+
+      if (!parsed.data) {
+        throw new CustomError(500, "Invalid processed stats file format");
+      }
+
+      res.json({
+        userId,
+        data: parsed.data,
+      });
     } catch (error) {
+      if (error instanceof z.ZodError) {
+        next(new CustomError(400, "Invalid user ID format"));
+        return;
+      }
       next(error);
     }
   }

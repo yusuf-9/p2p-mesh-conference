@@ -20,7 +20,6 @@ export const EVENTS = {
   MODERATE_FEED: "moderate-feed",
   CONFIGURE_FEED: "configure-feed",
   CONFIGURE_FEED_SUBSCRIPTION: "configure-feed-subscription",
-  INGEST_STATS: "ingest-stats",
 
   // server -> client
   CONNECTED: "connected",

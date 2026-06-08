@@ -23,9 +23,6 @@ class RoomManager {
     this.forceRelayIce = window.location.search.includes('forceRelayIce');
     console.log('🔌 Relay ICE:', this.forceRelayIce);
     this.iceServers = null;
-
-    this.healthMetricsIntervals = new Map(); // Track health metrics intervals by feedId
-    this.healthMetricsState = new Map(); // Track previous interval values for delta calculations
   }
 
   async initializePeerStats() {
@@ -469,9 +466,6 @@ class RoomManager {
     // Find and remove the local feed
     const localFeed = store.localFeeds.find(f => f.feedId === feedId);
     if (localFeed) {
-      // Stop health metrics interval for publisher
-      this.stopHealthMetricsInterval(feedId, 'publisher');
-
       // Close the peer connection
       const peerData = store.peers.get(feedId);
       if (peerData && peerData.peerConnection) {
@@ -487,8 +481,6 @@ class RoomManager {
 
   handlePublisherUnpublishedFeed(data) {
     console.log("📺 Publisher unpublished feed:", data);
-    // Stop health metrics interval for subscriber
-    this.stopHealthMetricsInterval(data.feedId, 'subscriber');
     // Remove publisher from store
     this.removePublisherFromStore(data.feedId);
   }
@@ -501,13 +493,6 @@ class RoomManager {
 
     // Clean up simulcast monitoring
     this.cleanupSimulcastMonitoring();
-
-    // Clean up health metrics intervals
-    this.healthMetricsIntervals.forEach((interval) => {
-      clearInterval(interval);
-    });
-    this.healthMetricsIntervals.clear();
-    this.healthMetricsState.clear();
 
     // Clean up all peer connections
     store.peers.forEach((peerData) => {
@@ -544,9 +529,6 @@ class RoomManager {
 
     userFeeds.forEach(feed => {
       if (feed.feedId) {
-        // Stop health metrics interval for this subscriber
-        this.stopHealthMetricsInterval(feed.feedId, 'subscriber');
-
         // Close and remove subscriber peer connection
         const subscriberPeerData = store.peers.get(`sub-${feed.feedId}`);
         if (subscriberPeerData && subscriberPeerData.peerConnection) {
@@ -1244,54 +1226,6 @@ class RoomManager {
         console.error("Error creating publisher offer:", error);
       });
 
-    peerConnection.oniceconnectionstatechange = async (event) => {
-      if (event.target.iceConnectionState === "connected") {
-        const stats = await peerConnection.getStats();
-        const rawDump = {};
-        stats.forEach((report, id) => { rawDump[id] = report; });
-
-        // send event to ingest_stats
-        this.sendMessage(EVENTS.INGEST_STATS, {
-          handleId: handleId,
-          stats: {
-            timestamp: new Date().toISOString(),
-            rawStatsDump: rawDump,  // full dump, let server extract what it needs
-            device: {
-              userAgent: navigator.userAgent,
-              hardwareConcurrency: navigator.hardwareConcurrency ?? null,
-              deviceMemory: navigator.deviceMemory ?? null,
-              effectiveType: navigator.connection?.effectiveType ?? null,
-            }
-          },
-          type: "session_start",
-        });
-
-        // Start health metrics interval for publisher
-        this.startHealthMetricsInterval(feedId, peerConnection, handleId, 'publisher');
-      }
-    };
-
-    peerConnection.onconnectionstatechange = async (event) => {
-      const pc = event.target;
-      const stats = await pc.getStats();
-      const rawDump = {};
-      stats.forEach((report, id) => { rawDump[id] = report; });
-
-      // send event to ingest_stats
-      this.sendMessage(EVENTS.INGEST_STATS, {
-        handleId: handleId,
-        stats: {
-          timestamp: new Date().toISOString(),
-          connectionState: pc.connectionState,
-          iceConnectionState: pc.iceConnectionState,
-          iceGatheringState: pc.iceGatheringState,
-          signalingState: pc.signalingState,
-          rawStatsDump: rawDump,
-        },
-        type: "state_change",
-      });
-    };
-
     console.log("📡 Created publisher peer connection for feedId:", feedId);
   }
 
@@ -1581,68 +1515,16 @@ class RoomManager {
       }
     };
 
-    peerConnection.oniceconnectionstatechange = async (event) => {
+    peerConnection.oniceconnectionstatechange = (event) => {
       console.log(`📡 ICE connection state changed for feedId: ${feedId}`, event);
-
-      if (event.target.iceConnectionState === "connected") {
-        const currentStore = useStore.getState();
-        const currentPeerData = currentStore.peers.get(`sub-${feedId}`);
-
-        console.log(`📡 ICE connection state changed for subscriber handleId: ${handleId}`, currentPeerData);
-
-        const stats = await peerConnection.getStats();
-        const rawDump = {};
-        stats.forEach((report, id) => { rawDump[id] = report; });
-
-        this.sendMessage(EVENTS.INGEST_STATS, {
-          handleId: handleId,
-          stats: {
-            timestamp: new Date().toISOString(),
-            rawStatsDump: rawDump,
-            device: {
-              userAgent: navigator.userAgent,
-              hardwareConcurrency: navigator.hardwareConcurrency ?? null,
-              deviceMemory: navigator.deviceMemory ?? null,
-              effectiveType: navigator.connection?.effectiveType ?? null,
-            }
-          },
-          type: "session_start",
-        });
-
-        // Start health metrics interval for subscriber
-        this.startHealthMetricsInterval(feedId, peerConnection, handleId, 'subscriber');
-      }
     };
 
     peerConnection.onsignalingstatechange = (event) => {
       console.log(`📡 Signaling state changed for feedId: ${feedId}`, event);
     };
 
-    peerConnection.onconnectionstatechange = async (event) => {
+    peerConnection.onconnectionstatechange = (event) => {
       console.log(`📡 Connection state changed for feedId: ${feedId}`, event);
-
-      const currentStore = useStore.getState();
-      const currentPeerData = currentStore.peers.get(`sub-${feedId}`);
-
-      console.log(`📡 Connection state changed for subscriber handleId: ${handleId}`, currentPeerData);
-
-      const pc = event.target;
-      const stats = await pc.getStats();
-      const rawDump = {};
-      stats.forEach((report, id) => { rawDump[id] = report; });
-
-      this.sendMessage(EVENTS.INGEST_STATS, {
-        handleId: handleId,
-        stats: {
-          timestamp: new Date().toISOString(),
-          connectionState: pc.connectionState,
-          iceConnectionState: pc.iceConnectionState,
-          iceGatheringState: pc.iceGatheringState,
-          signalingState: pc.signalingState,
-          rawStatsDump: rawDump,
-        },
-        type: "state_change",
-      });
     };
 
     // Handle ICE candidates
@@ -1934,213 +1816,6 @@ class RoomManager {
     } catch (error) {
       console.error('❌ Simulcast test failed:', error);
       return false;
-    }
-  }
-
-  // Health metrics methods
-  startHealthMetricsInterval(feedId, peerConnection, handleId, role) {
-    const intervalKey = role === 'publisher' ? feedId : `sub-${feedId}`;
-
-    if (this.healthMetricsIntervals.has(intervalKey)) {
-      console.log(`⚠️ Health metrics interval already running for ${intervalKey}`);
-      return;
-    }
-
-    console.log(`📊 Starting health metrics interval for ${role} feedId: ${feedId}, handleId: ${handleId}`);
-
-    // Initialize state for this peer
-    this.healthMetricsState.set(intervalKey, {
-      bytesSent: 0,
-      packetsSent: 0,
-      nackCount: 0,
-      pliCount: 0,
-      packetsLost: 0,
-      framesDecoded: 0,
-      packetsReceived: 0,
-      bytesReceived: 0,
-      lastTimestamp: Date.now()
-    });
-
-    const interval = setInterval(async () => {
-      await this.collectAndSendHealthMetrics(feedId, peerConnection, handleId, role);
-    }, 2000);
-
-    this.healthMetricsIntervals.set(intervalKey, interval);
-  }
-
-  stopHealthMetricsInterval(feedId, role) {
-    const intervalKey = role === 'publisher' ? feedId : `sub-${feedId}`;
-    const interval = this.healthMetricsIntervals.get(intervalKey);
-
-    if (interval) {
-      clearInterval(interval);
-      this.healthMetricsIntervals.delete(intervalKey);
-      this.healthMetricsState.delete(intervalKey);
-      console.log(`🛑 Stopped health metrics interval for ${intervalKey}`);
-    }
-  }
-
-  async collectAndSendHealthMetrics(feedId, peerConnection, handleId, role) {
-    try {
-      const stats = await peerConnection.getStats();
-      const intervalKey = role === 'publisher' ? feedId : `sub-${feedId}`;
-      const prevState = this.healthMetricsState.get(intervalKey);
-
-      if (!prevState) {
-        console.warn(`⚠️ No previous state found for ${intervalKey}`);
-        return;
-      }
-
-      const now = Date.now();
-      const intervalSeconds = (now - prevState.lastTimestamp) / 1000;
-
-      let statJson = {
-        subtype: 'interval',
-        role: role,
-        timestamp: new Date().toISOString()
-      };
-
-      let videoStats = {};
-      let remoteInboundStats = null;
-      let networkStats = {};
-      let simulcastLayers = {};
-
-      stats.forEach((report) => {
-        // Get candidate-pair stats for network metrics
-        if (report.type === 'candidate-pair' && report.state === 'succeeded' && report.nominated) {
-          networkStats.currentRoundTripTime = report.currentRoundTripTime || 0;
-          networkStats.availableOutgoingBitrate = report.availableOutgoingBitrate || 0;
-        }
-
-        if (role === 'publisher') {
-          // Publisher: get outbound-rtp for video - handle simulcast layers
-          if (report.type === 'outbound-rtp' && report.kind === 'video') {
-            const rid = report.rid || 'default';
-            const layerKey = `${rid}`;
-            const prevLayerState = prevState.layers?.[layerKey] || {};
-
-            const bytesSentDelta = report.bytesSent - (prevLayerState.bytesSent || 0);
-            const bitrateKbps = intervalSeconds > 0 ? Math.round((bytesSentDelta * 8) / intervalSeconds / 1000) : 0;
-
-            const layerStats = {
-              frameWidth: report.frameWidth || 0,
-              frameHeight: report.frameHeight || 0,
-              framesPerSecond: report.framesPerSecond || 0,
-              bitrateKbps: bitrateKbps,
-              packetsSentDelta: report.packetsSent - (prevLayerState.packetsSent || 0),
-              qualityLimitationReason: report.qualityLimitationReason || 'none',
-              nackCountDelta: (report.nackCount || 0) - (prevLayerState.nackCount || 0),
-              pliCountDelta: (report.pliCount || 0) - (prevLayerState.pliCount || 0),
-              active: report.active !== false
-            };
-
-            simulcastLayers[layerKey] = layerStats;
-
-            // Use 'high' layer (or first available) for backward compatibility
-            if (rid === 'high' || !videoStats.rid) {
-              videoStats = { ...layerStats, rid };
-            }
-          }
-
-          // Publisher: get remote-inbound-rtp for remote metrics - handle simulcast
-          if (report.type === 'remote-inbound-rtp' && report.kind === 'video') {
-            const rid = report.rid || 'default';
-            const prevLayerState = prevState.layers?.[rid] || {};
-
-            const layerRemoteStats = {
-              packetsLostDelta: report.packetsLost - (prevLayerState.packetsLost || 0),
-              jitter: report.jitter || 0,
-              roundTripTime: report.roundTripTime || 0,
-              fractionLost: report.fractionLost || 0
-            };
-
-            if (!remoteInboundStats) remoteInboundStats = {};
-            remoteInboundStats[rid] = layerRemoteStats;
-
-            // Use 'high' layer for backward compatibility
-            if (rid === 'high' || !remoteInboundStats._primary) {
-              remoteInboundStats._primary = layerRemoteStats;
-            }
-          }
-        } else {
-          // Subscriber: get inbound-rtp for video
-          if (report.type === 'inbound-rtp' && report.kind === 'video') {
-            const bytesReceivedDelta = report.bytesReceived - (prevState.bytesReceived || 0);
-            const bitrateKbps = intervalSeconds > 0 ? Math.round((bytesReceivedDelta * 8) / intervalSeconds / 1000) : 0;
-
-            videoStats = {
-              frameWidth: report.frameWidth || 0,
-              frameHeight: report.frameHeight || 0,
-              framesPerSecond: report.framesPerSecond || 0,
-              bitrateKbps: bitrateKbps,
-              packetsReceivedDelta: report.packetsReceived - (prevState.packetsReceived || 0),
-              packetsLostDelta: report.packetsLost - (prevState.packetsLost || 0),
-              framesDecodedDelta: report.framesDecoded - (prevState.framesDecoded || 0),
-              jitter: report.jitter || 0,
-              nackCountDelta: (report.nackCount || 0) - (prevState.nackCount || 0),
-              pliCountDelta: (report.pliCount || 0) - (prevState.pliCount || 0)
-            };
-          }
-        }
-      });
-
-      statJson.video = videoStats;
-      if (role === 'publisher') {
-        if (remoteInboundStats) {
-          statJson.remoteInbound = remoteInboundStats._primary || null;
-          delete remoteInboundStats._primary;
-          if (Object.keys(remoteInboundStats).length > 0) {
-            statJson.remoteInboundLayers = remoteInboundStats;
-          }
-        }
-        if (Object.keys(simulcastLayers).length > 1) {
-          statJson.simulcastLayers = simulcastLayers;
-        }
-      }
-      statJson.network = networkStats;
-
-      // Update state for next interval - handle simulcast layers separately
-      if (!prevState.layers) prevState.layers = {};
-
-      stats.forEach((report) => {
-        if (role === 'publisher') {
-          if (report.type === 'outbound-rtp' && report.kind === 'video') {
-            const rid = report.rid || 'default';
-            prevState.layers[rid] = {
-              bytesSent: report.bytesSent,
-              packetsSent: report.packetsSent,
-              nackCount: report.nackCount || 0,
-              pliCount: report.pliCount || 0,
-              packetsLost: report.packetsLost || 0
-            };
-          }
-          if (report.type === 'remote-inbound-rtp' && report.kind === 'video') {
-            const rid = report.rid || 'default';
-            if (!prevState.layers[rid]) prevState.layers[rid] = {};
-            prevState.layers[rid].packetsLost = report.packetsLost;
-          }
-        } else {
-          if (report.type === 'inbound-rtp' && report.kind === 'video') {
-            prevState.bytesReceived = report.bytesReceived;
-            prevState.packetsReceived = report.packetsReceived;
-            prevState.packetsLost = report.packetsLost;
-            prevState.framesDecoded = report.framesDecoded;
-            prevState.nackCount = report.nackCount || 0;
-            prevState.pliCount = report.pliCount || 0;
-          }
-        }
-      });
-      prevState.lastTimestamp = now;
-
-      this.sendMessage(EVENTS.INGEST_STATS, {
-        handleId: handleId,
-        stats: statJson,
-        type: 'health_metrics'
-      });
-
-      console.log(`📊 Sent health metrics for ${role} feedId: ${feedId}`, statJson);
-    } catch (error) {
-      console.error(`❌ Error collecting health metrics for ${role} feedId: ${feedId}`, error);
     }
   }
 

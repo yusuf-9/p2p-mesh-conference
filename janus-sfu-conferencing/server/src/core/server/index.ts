@@ -100,7 +100,7 @@ export default class Server {
     // Router setup
     const healthRouter = new HealthRouter(this.dbService, this.serverId);
     const roomRouter = new RoomRouter(this.dbService, this.authService, this.pubSubService);
-    const statsRouter = new StatsRouter(this.dbService);
+    const statsRouter = new StatsRouter(this.dbService, this.config);
 
     // Mount routers
     this.app.use("/api/health", healthRouter.getRouter());

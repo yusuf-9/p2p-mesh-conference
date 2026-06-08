@@ -1,31 +1,22 @@
-const API_URL = import.meta.env.VITE_API_URL
+const API_URL = import.meta.env.VITE_API_URL;
 
-export async function fetchRooms() {
-  const res = await fetch(`${API_URL}/stats/rooms`);
-  if (!res.ok) throw new Error("Failed to fetch rooms");
-  const data = await res.json();
-  return data.rooms;
+async function request(path) {
+  const res = await fetch(`${API_URL}${path}`);
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({}));
+    throw new Error(body.error || `Request failed (${res.status})`);
+  }
+  return res.json();
 }
 
-export async function fetchRoomSessions(roomId) {
-  const res = await fetch(`${API_URL}/stats/rooms/${roomId}/sessions`);
-  if (!res.ok) throw new Error("Failed to fetch sessions");
-  const data = await res.json();
-  return data.sessions;
+export function fetchRooms() {
+  return request('/stats/rooms');
 }
 
-export async function fetchSessionHandles(sessionId) {
-  const res = await fetch(`${API_URL}/stats/sessions/${sessionId}/handles`);
-  if (!res.ok) throw new Error("Failed to fetch handles");
-  const data = await res.json();
-  return data.handles;
+export function fetchRoomUsers(roomId) {
+  return request(`/stats/rooms/${roomId}/users`);
 }
 
-export async function fetchHandleStats(handleId, type = null) {
-  const url = new URL(`${API_URL}/stats/handles/${handleId}/stats`);
-  if (type) url.searchParams.set("type", type);
-  const res = await fetch(url.toString());
-  if (!res.ok) throw new Error("Failed to fetch stats");
-  const data = await res.json();
-  return data.stats;
+export function fetchUserProcessed(userId) {
+  return request(`/stats/users/${userId}/processed`);
 }
