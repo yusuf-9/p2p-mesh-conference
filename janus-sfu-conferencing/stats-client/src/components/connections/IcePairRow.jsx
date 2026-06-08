@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import PairTimeline from './PairTimeline';
 import PairDetails from './PairDetails';
+import PairCharts from './PairCharts';
 import { formatBytes, getPairTimelinePosition, isRelayType } from '../../lib/transports';
 
 const STATE_CLASS = {
@@ -11,7 +12,7 @@ const STATE_CLASS = {
   FAILED: 'ice-state-failed',
 };
 
-export default function IcePairRow({ pairEntry, session }) {
+export default function IcePairRow({ pcId, pairEntry, session, pairTimeSeries }) {
   const [expanded, setExpanded] = useState(false);
   const { pairId, pair, displayState } = pairEntry;
   const position = getPairTimelinePosition(pair, session);
@@ -50,6 +51,12 @@ export default function IcePairRow({ pairEntry, session }) {
       {expanded && (
         <div className="ice-pair-row-details">
           <PairDetails pair={pair} />
+          <PairCharts
+            pcId={pcId}
+            pairEntry={pairEntry}
+            pairTimeSeries={pairTimeSeries}
+            session={session}
+          />
         </div>
       )}
     </div>

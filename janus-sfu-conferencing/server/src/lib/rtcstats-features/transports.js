@@ -2,6 +2,8 @@
  * Phase 4: per-transport candidate-pair history from getStats traces.
  */
 
+import { getFirstStatsTimestamp } from './transport-utils.js';
+
 const toISO = (ms) => (ms != null ? new Date(ms).toISOString() : null);
 
 /** getStats gap that starts a new reporting segment (matches external analyzer). */
@@ -19,14 +21,6 @@ const STATE_RANK = {
     waiting: 2,
     failed: 1,
 };
-
-function getFirstStatsTimestamp(statsValue) {
-    if (!statsValue) return null;
-    for (const stat of Object.values(statsValue)) {
-        if (stat && typeof stat === 'object' && stat.timestamp != null) return stat.timestamp;
-    }
-    return null;
-}
 
 function effectiveProtocol(stat) {
     if (!stat) return 'udp';

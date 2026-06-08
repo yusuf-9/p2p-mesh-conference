@@ -14,7 +14,7 @@ import {
 import { getSelectedIce } from '../../lib/transports';
 import { formatTime, formatMs } from '../../lib/statsFormat';
 
-export default function ConnectionDetails({ pc, transports, session }) {
+export default function ConnectionDetails({ pc, transports, session, pairTimeSeries }) {
   const iceServers = formatIceServers(pc.configuration);
   const gatheringDelays = [
     pc.timeToFirstTurnUDPCandidateMs != null &&
@@ -34,7 +34,6 @@ export default function ConnectionDetails({ pc, transports, session }) {
   return (
     <div className="connection-details">
       <DetailSection title="Setup">
-        <DetailRow label="Establishment time" value={`${pc.setupTimeMs ?? '—'} ms`} />
         <SetupTimeline pc={pc} />
       </DetailSection>
 
@@ -89,7 +88,12 @@ export default function ConnectionDetails({ pc, transports, session }) {
         />
       </DetailSection>
 
-      <IceConnectivity pcId={pc.id} transports={transports} session={session} />
+      <IceConnectivity
+        pcId={pc.id}
+        transports={transports}
+        session={session}
+        pairTimeSeries={pairTimeSeries}
+      />
 
       <DetailSection title="Stability">
         <DetailRow

@@ -1,6 +1,11 @@
 export function formatTime(dateString) {
   if (!dateString) return 'N/A';
-  return new Date(dateString).toLocaleTimeString(undefined, {
+  return formatTimestamp(new Date(dateString).getTime());
+}
+
+export function formatTimestamp(ms) {
+  if (ms == null || Number.isNaN(ms)) return 'N/A';
+  return new Date(ms).toLocaleTimeString(undefined, {
     hour: 'numeric',
     minute: '2-digit',
     second: '2-digit',

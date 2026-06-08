@@ -51,6 +51,7 @@ export default function ConnectionsTable({ data, orderBy, onOrderChange }) {
             pc={pc}
             session={session}
             transports={data.transports}
+            pairTimeSeries={data.pairTimeSeries}
           />
         ))}
       </div>

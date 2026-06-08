@@ -4,7 +4,7 @@ import ConnectionTimeline from './ConnectionTimeline';
 import ConnectionDetails from './ConnectionDetails';
 import { getTimelinePosition } from '../../lib/pConnections';
 
-export default function ConnectionRow({ pc, session, transports }) {
+export default function ConnectionRow({ pc, session, transports, pairTimeSeries }) {
   const [expanded, setExpanded] = useState(false);
   const position = getTimelinePosition(pc, session);
   const score =
@@ -28,7 +28,12 @@ export default function ConnectionRow({ pc, session, transports }) {
 
       {expanded && (
         <div className="connection-row-details">
-          <ConnectionDetails pc={pc} transports={transports} session={session} />
+          <ConnectionDetails
+            pc={pc}
+            transports={transports}
+            session={session}
+            pairTimeSeries={pairTimeSeries}
+          />
         </div>
       )}
     </div>

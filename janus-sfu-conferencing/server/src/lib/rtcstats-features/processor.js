@@ -2,6 +2,7 @@ import { readRTCStatsDump } from '../rtcstats-shared/index.js';
 import { extractStreams } from './streams.js';
 import { extractAggregatedStats, computeConnectivityScore } from './aggregated-stats.js';
 import { extractTransports } from './transports.js';
+import { extractPairTimeSeries } from './pair-timeseries.js';
 import fs from 'node:fs';
 import path from 'node:path';
 
@@ -55,7 +56,7 @@ function extractSessionMetadata(dump, includedPCIds) {
     }
 
     return {
-        schemaVersion: '1.0',
+        schemaVersion: '1.1',
         callStart: toISO(callStartMs),
         callEnd: toISO(callEndMs),
         durationMs: callStartMs != null ? Math.round(callEndMs - callStartMs) : null,
@@ -779,6 +780,7 @@ export async function processRTCStatsDump(userId, filePath, processedDir) {
     const sessionMeta = extractSessionMetadata(dump, includedPCIds);
     const streams = extractStreams(dump, includedPCIds);
     const transports = extractTransports(dump, includedPCIds);
+    const pairTimeSeries = extractPairTimeSeries(dump, includedPCIds, transports);
     const aggregatedStats = extractAggregatedStats(dump, includedPCIds, streams, pConnections);
 
     const result = {
@@ -787,6 +789,7 @@ export async function processRTCStatsDump(userId, filePath, processedDir) {
             pConnections,
             streams,
             transports,
+            pairTimeSeries,
             aggregatedStats,
             metadata: { clientProtocol: 'rtcstats#3.0' },
         },

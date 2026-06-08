@@ -9,7 +9,7 @@ const FILTERS = [
   { id: 'active', label: 'Active' },
 ];
 
-export default function IceConnectivity({ pcId, transports, session }) {
+export default function IceConnectivity({ pcId, transports, session, pairTimeSeries }) {
   const [filter, setFilter] = useState('all');
 
   const allPairs = useMemo(() => listIcePairs(pcId, transports), [pcId, transports]);
@@ -63,8 +63,10 @@ export default function IceConnectivity({ pcId, transports, session }) {
           {visiblePairs.map((entry) => (
             <IcePairRow
               key={`${entry.transportId}-${entry.pairId}`}
+              pcId={pcId}
               pairEntry={entry}
               session={session}
+              pairTimeSeries={pairTimeSeries}
             />
           ))}
         </div>

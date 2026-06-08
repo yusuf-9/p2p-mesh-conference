@@ -71,6 +71,60 @@ export function getSetupPhases(pc) {
     .filter((phase) => phase.timestamp != null);
 }
 
+const SETUP_SEGMENT_LABELS = ['Setup', 'Gathering', 'Connection', 'DTLS'];
+
+export function getSetupStepper(pc) {
+  const milestones = [
+    { key: 'start', label: 'Start', timestamp: pc.negotiationStart, sublabel: null },
+    { key: 'gathering', label: 'Gathering', timestamp: pc.gathering, sublabel: 'ICE' },
+    { key: 'checking', label: 'Checking', timestamp: pc.iceChecking, sublabel: 'ICE' },
+    { key: 'iceConnected', label: 'Connected', timestamp: pc.iceConnection, sublabel: 'ICE' },
+    { key: 'connected', label: 'Connected', timestamp: pc.connectedAt, sublabel: null },
+  ].filter((m) => m.timestamp);
+
+  const segments = [];
+  for (let i = 1; i < milestones.length; i++) {
+    const fromMs = toMs(milestones[i - 1].timestamp);
+    const toMsVal = toMs(milestones[i].timestamp);
+    segments.push({
+      label: SETUP_SEGMENT_LABELS[i - 1] ?? '',
+      ms: fromMs != null && toMsVal != null ? Math.max(0, toMsVal - fromMs) : null,
+    });
+  }
+
+  const firstMs = milestones.length ? toMs(milestones[0].timestamp) : null;
+  const lastMs = milestones.length ? toMs(milestones[milestones.length - 1].timestamp) : null;
+  const computedTotal =
+    firstMs != null && lastMs != null ? Math.max(0, lastMs - firstMs) : null;
+
+  return {
+    totalMs: pc.setupTimeMs ?? computedTotal,
+    milestones,
+    segments,
+  };
+}
+
+export function formatSetupTransportLabel(pc) {
+  const servers = pc.configuration?.iceServers ?? [];
+
+  for (const server of servers) {
+    const urls = Array.isArray(server.urls) ? server.urls : [server.urls];
+    for (const rawUrl of urls) {
+      if (!rawUrl) continue;
+      const url = String(rawUrl);
+      const match = url.match(/^(stun|turn):([^/?]+)(?::(\d+))?/i);
+      if (!match) continue;
+
+      const kind = match[1].toUpperCase();
+      const port = match[3] || '3478';
+      const transport = /transport=tcp/i.test(url) ? 'TCP' : 'UDP';
+      return `${kind} ${transport}/${port}`;
+    }
+  }
+
+  return pc.connectionType ?? null;
+}
+
 export function formatIceServers(configuration) {
   if (!configuration?.iceServers?.length) return [];
   const entries = [];

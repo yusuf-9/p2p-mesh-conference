@@ -1,30 +1,69 @@
-import { getSetupPhases } from '../../lib/pConnections';
+import { formatSetupTransportLabel, getSetupStepper } from '../../lib/pConnections';
 
 function formatPhaseMs(ms) {
   if (ms == null) return null;
   return `${Math.round(ms)} ms`;
 }
 
-export default function SetupTimeline({ pc }) {
-  const phases = getSetupPhases(pc);
+function nodeClass(index, total) {
+  if (index === 0) return 'setup-stepper-node setup-stepper-node-start';
+  if (index === total - 1) return 'setup-stepper-node setup-stepper-node-end';
+  return 'setup-stepper-node setup-stepper-node-mid';
+}
 
-  if (!phases.length) {
+export default function SetupTimeline({ pc }) {
+  const { totalMs, milestones, segments } = getSetupStepper(pc);
+  const transportLabel = formatSetupTransportLabel(pc);
+
+  if (!milestones.length) {
     return <p className="empty-message">No setup timing data.</p>;
   }
 
   return (
-    <div className="setup-timeline">
-      <div className="setup-timeline-track">
-        {phases.map((phase, index) => (
-          <div key={`${phase.label}-${index}`} className="setup-timeline-step">
-            <span className="setup-timeline-node" />
-            <span className="setup-timeline-label">{phase.label}</span>
-            {phase.segmentMs != null && phase.segmentMs > 0 && (
-              <span className="setup-timeline-segment">{formatPhaseMs(phase.segmentMs)}</span>
-            )}
-          </div>
-        ))}
+    <div className="setup-stepper">
+      {totalMs != null && (
+        <div className="setup-stepper-total">{formatPhaseMs(totalMs)}</div>
+      )}
+
+      <div className="setup-stepper-line">
+        {milestones.map((milestone, index) => {
+          const items = [];
+
+          if (index > 0) {
+            items.push(
+              <div key={`bridge-${index}`} className="setup-stepper-bridge">
+                <div className="setup-stepper-segment">
+                  <span className="setup-stepper-segment-label">
+                    {segments[index - 1]?.label}
+                  </span>
+                  <span className="setup-stepper-segment-ms">
+                    {formatPhaseMs(segments[index - 1]?.ms) ?? '—'}
+                  </span>
+                </div>
+                <span className="setup-stepper-bridge-line" />
+              </div>
+            );
+          }
+
+          items.push(
+            <div key={`node-${milestone.key}`} className={nodeClass(index, milestones.length)}>
+              <div className="setup-stepper-node-head">
+                <span className="setup-stepper-node-label">{milestone.label}</span>
+                {milestone.sublabel && (
+                  <span className="setup-stepper-node-sublabel">{milestone.sublabel}</span>
+                )}
+              </div>
+              <span className="setup-stepper-dot" aria-hidden />
+            </div>
+          );
+
+          return items;
+        })}
       </div>
+
+      {transportLabel && (
+        <div className="setup-stepper-footer">{transportLabel}</div>
+      )}
     </div>
   );
 }
