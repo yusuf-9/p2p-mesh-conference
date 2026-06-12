@@ -41,21 +41,21 @@ export default function PairCharts({ pcId, pairEntry, pairTimeSeries, session })
 
   if (!hasPairChartData(rawSeries)) {
     return (
-      <div className="pair-charts">
+      <div className="metric-charts">
         <NoDataPlaceholder message="No connectivity time series (reprocess with schema 1.1)" />
       </div>
     );
   }
 
   return (
-    <div className="pair-charts">
-      <div className="pair-charts-toolbar">
-        <div className="pair-charts-tabs">
+    <div className="metric-charts">
+      <div className="metric-charts-toolbar">
+        <div className="metric-charts-tabs">
           {CHART_TABS.map((tab) => (
             <button
               key={tab.id}
               type="button"
-              className={`pair-charts-tab${activeTab === tab.id ? ' pair-charts-tab-active' : ''}`}
+              className={`metric-charts-tab${activeTab === tab.id ? ' metric-charts-tab-active' : ''}`}
               onClick={() => setActiveTab(tab.id)}
             >
               {tab.label}
@@ -64,13 +64,13 @@ export default function PairCharts({ pcId, pairEntry, pairTimeSeries, session })
         </div>
 
         {tabDef.hasViewMode && (
-          <div className="pair-charts-view">
+          <div className="metric-charts-view">
             {VIEW_MODES.map((mode) => (
               <button
                 key={mode.id}
                 type="button"
-                className={`pair-charts-view-btn${
-                  viewMode === mode.id ? ' pair-charts-view-btn-active' : ''
+                className={`metric-charts-view-btn${
+                  viewMode === mode.id ? ' metric-charts-view-btn-active' : ''
                 }`}
                 onClick={() => setViewMode(mode.id)}
               >

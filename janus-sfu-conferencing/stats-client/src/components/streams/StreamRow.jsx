@@ -1,10 +1,11 @@
 import { useState } from 'react';
 import StreamTimeline from './StreamTimeline';
 import StreamDetails from './StreamDetails';
+import StreamCharts from './StreamCharts';
 import { getStreamBitrateKbps, getStreamTimelinePosition, getStreamKindIcon } from '../../lib/streams';
 import { formatBitrate, formatMos } from '../../lib/statsFormat';
 
-export default function StreamRow({ stream, session }) {
+export default function StreamRow({ stream, session, streamTimeSeries }) {
   const [expanded, setExpanded] = useState(false);
   const position = getStreamTimelinePosition(stream, session);
   const bitrate = formatBitrate(getStreamBitrateKbps(stream));
@@ -40,6 +41,7 @@ export default function StreamRow({ stream, session }) {
       {expanded && (
         <div className="stream-row-details">
           <StreamDetails stream={stream} />
+          <StreamCharts stream={stream} streamTimeSeries={streamTimeSeries} />
         </div>
       )}
     </div>

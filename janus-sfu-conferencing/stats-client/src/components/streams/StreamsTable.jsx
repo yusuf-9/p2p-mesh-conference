@@ -71,7 +71,12 @@ export default function StreamsTable({ data, orderBy, onOrderChange, filter, onF
       <div className="streams-table-body">
         {streams.length ? (
           streams.map((stream) => (
-            <StreamRow key={stream.id} stream={stream} session={session} />
+            <StreamRow
+              key={stream.id}
+              stream={stream}
+              session={session}
+              streamTimeSeries={data.streamTimeSeries}
+            />
           ))
         ) : (
           <p className="empty-message streams-empty">No streams match this filter.</p>

@@ -13,6 +13,64 @@ function round2(n) {
     return Math.round(n * 100) / 100;
 }
 
+export function qualityBucket(mos) {
+    if (mos == null || Number.isNaN(mos)) return null;
+    if (mos >= 4) return 'Excellent';
+    if (mos >= POOR_MOS_THRESHOLD) return 'Average';
+    return 'Poor';
+}
+
+/**
+ * Walk consecutive getStats byte deltas; return per-interval quality metrics.
+ */
+export function collectStreamQualityIntervals(trace, series, statId, kind, direction) {
+    const snapshots = trace
+        .filter(e => e.type === 'getStats' && e.value)
+        .map(e => e.value);
+    const bytesKey = direction === 'outbound' ? 'bytesSent' : 'bytesReceived';
+    const bytes = series[statId]?.[bytesKey];
+    if (!bytes || bytes.length < 2) {
+        return [];
+    }
+
+    const intervals = [];
+
+    for (let i = 1; i < bytes.length; i++) {
+        const t0 = bytes[i - 1][0];
+        const t1 = bytes[i][0];
+        const dtSec = (t1 - t0) / 1000;
+        const dBytes = bytes[i][1] - bytes[i - 1][1];
+        if (dtSec <= 0 || dBytes <= 0) continue;
+
+        const snap = snapshots[i];
+        const rtp = snap?.[statId];
+        if (!rtp) continue;
+
+        const metrics = collectIntervalMetrics(
+            snap,
+            snapshots[i - 1],
+            rtp,
+            kind,
+            direction,
+            dBytes,
+            dtSec,
+            series,
+            statId
+        );
+        if (kind === 'video' && metrics.mos == null) continue;
+
+        intervals.push({
+            startMs: t0,
+            endMs: t1,
+            mos: metrics.mos,
+            durationSec: dtSec,
+            ...metrics,
+        });
+    }
+
+    return intervals;
+}
+
 export function getTransportRttMs(snap) {
     const transport = Object.values(snap).find(
         s => s?.type === 'transport' && s.selectedCandidatePairId
@@ -197,52 +255,16 @@ function videoIntervalMos(snap, rtp, direction, bitrate, expectedFrameRate) {
  * Walk consecutive getStats byte deltas; return interval MOS samples and aggregates.
  */
 export function computeStreamQuality(trace, series, statId, kind, direction) {
-    const snapshots = trace
-        .filter(e => e.type === 'getStats' && e.value)
-        .map(e => e.value);
-    const bytesKey = direction === 'outbound' ? 'bytesSent' : 'bytesReceived';
-    const bytes = series[statId]?.[bytesKey];
-    if (!bytes || bytes.length < 2) {
+    const intervals = collectStreamQualityIntervals(trace, series, statId, kind, direction);
+    if (!intervals.length) {
         return { avgMos: null, intervals: [], poorRanges: [] };
     }
 
-    const intervals = [];
     let mosWeightedSum = 0;
     let weightSum = 0;
-
-    for (let i = 1; i < bytes.length; i++) {
-        const t0 = bytes[i - 1][0];
-        const t1 = bytes[i][0];
-        const dtSec = (t1 - t0) / 1000;
-        const dBytes = bytes[i][1] - bytes[i - 1][1];
-        if (dtSec <= 0 || dBytes < 0) continue;
-
-        const snap = snapshots[i];
-        const rtp = snap?.[statId];
-        if (!rtp) continue;
-
-        const metrics = collectIntervalMetrics(
-            snap,
-            snapshots[i - 1],
-            rtp,
-            kind,
-            direction,
-            dBytes,
-            dtSec,
-            series,
-            statId
-        );
-        if (kind === 'video' && metrics.mos == null) continue;
-
-        intervals.push({
-            startMs: t0,
-            endMs: t1,
-            mos: metrics.mos,
-            durationSec: dtSec,
-            ...metrics,
-        });
-        mosWeightedSum += metrics.mos * dtSec;
-        weightSum += dtSec;
+    for (const iv of intervals) {
+        mosWeightedSum += iv.mos * iv.durationSec;
+        weightSum += iv.durationSec;
     }
 
     const poorRanges = [];

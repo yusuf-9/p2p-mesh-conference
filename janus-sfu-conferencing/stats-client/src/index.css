@@ -1226,15 +1226,15 @@ body {
   text-transform: uppercase;
 }
 
-/* Pair connectivity charts */
-.pair-charts {
+/* Metric charts (pair + stream) */
+.metric-charts {
   margin-top: 16px;
   padding-top: 16px;
   border-top: 1px solid #e5e5e5;
   overflow: visible;
 }
 
-.pair-charts-toolbar {
+.metric-charts-toolbar {
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -1243,13 +1243,13 @@ body {
   flex-wrap: wrap;
 }
 
-.pair-charts-tabs {
+.metric-charts-tabs {
   display: flex;
   gap: 4px;
   flex-wrap: wrap;
 }
 
-.pair-charts-tab {
+.metric-charts-tab {
   padding: 5px 12px;
   border: 1px solid #ddd;
   border-radius: 4px;
@@ -1259,23 +1259,23 @@ body {
   color: #444;
 }
 
-.pair-charts-tab:hover {
+.metric-charts-tab:hover {
   background: #f5f5f5;
 }
 
-.pair-charts-tab-active {
+.metric-charts-tab-active {
   background: #e8f0fe;
   border-color: #90caf9;
   color: #0056b3;
   font-weight: 600;
 }
 
-.pair-charts-view {
+.metric-charts-view {
   display: flex;
   gap: 4px;
 }
 
-.pair-charts-view-btn {
+.metric-charts-view-btn {
   padding: 5px 10px;
   border: 1px solid #ddd;
   border-radius: 4px;
@@ -1285,18 +1285,18 @@ body {
   color: #666;
 }
 
-.pair-charts-view-btn:hover {
+.metric-charts-view-btn:hover {
   background: #f5f5f5;
 }
 
-.pair-charts-view-btn-active {
+.metric-charts-view-btn-active {
   background: #f3f8ff;
   border-color: #90caf9;
   color: #1565c0;
   font-weight: 600;
 }
 
-.pair-state-bar {
+.metric-status-bar {
   position: relative;
   height: 8px;
   margin-bottom: 8px;
@@ -1305,18 +1305,18 @@ body {
   overflow: hidden;
 }
 
-.pair-state-bar-segment {
+.metric-status-bar-segment {
   position: absolute;
   top: 0;
   height: 100%;
   min-width: 2px;
 }
 
-.pair-chart-panel {
+.metric-chart-panel {
   overflow: visible;
 }
 
-.pair-chart-empty {
+.metric-chart-empty {
   padding: 24px;
   text-align: center;
   font-size: 12px;
@@ -1325,7 +1325,7 @@ body {
   border-radius: 6px;
 }
 
-.pair-chart-tooltip {
+.metric-chart-tooltip {
   padding: 8px 10px;
   background: #1e293b;
   color: #f8fafc;
@@ -1334,31 +1334,31 @@ body {
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
 }
 
-.pair-chart-tooltip-time {
+.metric-chart-tooltip-time {
   font-weight: 700;
   margin-bottom: 6px;
 }
 
-.pair-chart-tooltip-row {
+.metric-chart-tooltip-row {
   display: flex;
   align-items: center;
   gap: 6px;
   margin-top: 3px;
 }
 
-.pair-chart-tooltip-dot {
+.metric-chart-tooltip-dot {
   width: 8px;
   height: 8px;
   border-radius: 50%;
   flex-shrink: 0;
 }
 
-.pair-chart-tooltip-label {
+.metric-chart-tooltip-label {
   flex: 1;
   color: #cbd5e1;
 }
 
-.pair-chart-tooltip-value {
+.metric-chart-tooltip-value {
   font-weight: 600;
   font-family: monospace;
 }
@@ -1640,6 +1640,7 @@ body {
   padding: 12px 16px;
   background: #fafafa;
   border-top: 1px solid #eee;
+  overflow: visible;
 }
 
 .stream-details {
