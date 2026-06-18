@@ -4,6 +4,7 @@ import {
   resolvePatches,
 } from './patches/PatchRegistry.js';
 import { TraceEngine } from './trace/TraceEngine.js';
+import type { PatchWindow } from './patches/types.js';
 import type { EventSink, LegacyTrace, PatchConfig, RtcStatsClientOptions } from './types.js';
 import {
   DEFAULT_GET_STATS_INTERVAL_MS,
@@ -17,7 +18,7 @@ import {
 export class RtcStatsClient {
   private readonly engine: TraceEngine;
   private readonly patchRegistry: PatchRegistry;
-  private readonly target: Window & typeof globalThis;
+  private readonly target: PatchWindow;
   private readonly sessionMetadata: () => Record<string, unknown>;
 
   constructor(options: RtcStatsClientOptions = {}) {
@@ -26,7 +27,7 @@ export class RtcStatsClient {
       options.getStatsInterval ??
       resolveGetStatsInterval(patchConfig, DEFAULT_GET_STATS_INTERVAL_MS);
 
-    this.target = options.target ?? window;
+    this.target = (options.target ?? window) as PatchWindow;
     this.sessionMetadata = options.sessionMetadata ?? (() => this.defaultSessionMetadata());
 
     this.engine = new TraceEngine({

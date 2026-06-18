@@ -17,6 +17,18 @@ export {
 } from './patches/PatchRegistry.js';
 export { wrapRTCPeerConnection } from './patches/peer-connection.js';
 export { wrapGetUserMedia, wrapEnumerateDevices } from './patches/media.js';
+export type {
+  PatchWindow,
+  PeerConnectionPatchWindow,
+  WrapRTCPeerConnectionOptions,
+  MediaPatchTarget,
+  EnumerateDevicesPatchTarget,
+  RtcStatsPeerConnection,
+  RtcStatsMediaStreamTrack,
+  WrapRTCPeerConnection,
+  WrapGetUserMedia,
+  WrapEnumerateDevices,
+} from './patches/types.js';
 
 export type {
   ClientConfig,

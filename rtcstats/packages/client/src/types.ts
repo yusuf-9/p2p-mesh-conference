@@ -1,3 +1,5 @@
+import type { PatchWindow } from './patches/types.js';
+
 /** Wire tuple emitted by the trace engine (method may be compressed). */
 export type WireTraceTuple = unknown[];
 
@@ -68,7 +70,7 @@ export interface RtcStatsClientOptions extends TraceEngineOptions {
   patches?: PatchConfig;
   getStatsInterval?: number;
   autoStart?: boolean;
-  target?: Window & typeof globalThis;
+  target?: PatchWindow;
   sessionMetadata?: () => Record<string, unknown>;
 }
 

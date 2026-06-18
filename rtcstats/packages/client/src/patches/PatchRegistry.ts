@@ -1,9 +1,10 @@
 import type { PatchConfig, TraceCallback } from '../types.js';
+import type { PatchWindow } from './types.js';
 import { wrapEnumerateDevices, wrapGetUserMedia } from './media.js';
 import { wrapRTCPeerConnection } from './peer-connection.js';
 
 export interface PatchContext {
-  target: Window & typeof globalThis;
+  target: PatchWindow;
   getStatsInterval: number;
 }
 
