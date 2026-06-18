@@ -32,7 +32,6 @@ import type {
   RtcStatsPeerConnection,
   RtcStatsPeerConnectionPrototype,
   RtcStatsRtpSender,
-  RtcStatsRtpTransceiver,
   WrapRTCPeerConnection,
   WrapRTCPeerConnectionOptions,
 } from './types.js';
@@ -44,13 +43,6 @@ type SignalingStateKey =
   | 'iceGatheringState';
 
 type VoidPeerConnectionMethod = 'close' | 'restartIce';
-
-type PromisePeerConnectionMethod =
-  | 'createOffer'
-  | 'createAnswer'
-  | 'setLocalDescription'
-  | 'setRemoteDescription'
-  | 'addIceCandidate';
 
 function wrapRTCRtpSender(trace: TraceCallback, window: PeerConnectionPatchWindow): void {
   const RTCRtpSender = window.RTCRtpSender;
@@ -79,7 +71,6 @@ function wrapRTCRtpSender(trace: TraceCallback, window: PeerConnectionPatchWindo
     RTCRtpSender.prototype.replaceTrack = function (
       this: RtcStatsRtpSender,
       track: MediaStreamTrack | null,
-      ...args: unknown[]
     ) {
       const serializedArgs = [
         this.track === null ? null : dumpTrackWithStreams(this.track),
@@ -123,11 +114,11 @@ function attachVideoResizeListeners(
   }, 0);
 }
 
-export const wrapRTCPeerConnection: WrapRTCPeerConnection = function wrapRTCPeerConnection(
+export const wrapRTCPeerConnection: WrapRTCPeerConnection = (
   trace: TraceCallback,
   window: PeerConnectionPatchWindow,
   { getStatsInterval }: WrapRTCPeerConnectionOptions,
-) {
+) => {
   const RTCPeerConnectionCtor = window.RTCPeerConnection;
   if (!RTCPeerConnectionCtor) return;
 
@@ -373,7 +364,7 @@ export const wrapRTCPeerConnection: WrapRTCPeerConnection = function wrapRTCPeer
     | PeerConnectionCreateOffer
     | undefined;
   if (nativeCreateOffer) {
-    OrigPeerConnection.prototype.createOffer = function (
+    OrigPeerConnection.prototype.createOffer = async function (
       this: RtcStatsPeerConnection,
       options?: RTCOfferOptions,
     ) {
@@ -403,7 +394,7 @@ export const wrapRTCPeerConnection: WrapRTCPeerConnection = function wrapRTCPeer
     | PeerConnectionCreateAnswer
     | undefined;
   if (nativeCreateAnswer) {
-    OrigPeerConnection.prototype.createAnswer = function (
+    OrigPeerConnection.prototype.createAnswer = async function (
       this: RtcStatsPeerConnection,
       options?: RTCAnswerOptions,
     ) {
@@ -433,7 +424,7 @@ export const wrapRTCPeerConnection: WrapRTCPeerConnection = function wrapRTCPeer
     | PeerConnectionSetLocalDescription
     | undefined;
   if (nativeSetLocalDescription) {
-    OrigPeerConnection.prototype.setLocalDescription = function (
+    OrigPeerConnection.prototype.setLocalDescription = async function (
       this: RtcStatsPeerConnection,
       description?: RTCLocalSessionDescriptionInit,
     ) {
@@ -489,7 +480,7 @@ export const wrapRTCPeerConnection: WrapRTCPeerConnection = function wrapRTCPeer
     | PeerConnectionSetRemoteDescription
     | undefined;
   if (nativeSetRemoteDescription) {
-    OrigPeerConnection.prototype.setRemoteDescription = function (
+    OrigPeerConnection.prototype.setRemoteDescription = async function (
       this: RtcStatsPeerConnection,
       description: RTCSessionDescriptionInit,
     ) {
@@ -515,7 +506,7 @@ export const wrapRTCPeerConnection: WrapRTCPeerConnection = function wrapRTCPeer
     | PeerConnectionAddIceCandidate
     | undefined;
   if (nativeAddIceCandidate) {
-    OrigPeerConnection.prototype.addIceCandidate = function (
+    OrigPeerConnection.prototype.addIceCandidate = async function (
       this: RtcStatsPeerConnection,
       candidate?: RTCIceCandidateInit | null,
     ) {

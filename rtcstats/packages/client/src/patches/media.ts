@@ -47,7 +47,7 @@ function wrapMediaCaptureMethod(
 
   if (method === 'getUserMedia' && mediaDevices.getUserMedia) {
     const origMethod = mediaDevices.getUserMedia.bind(mediaDevices);
-    mediaDevices.getUserMedia = (constraints?: MediaStreamConstraints) => {
+    mediaDevices.getUserMedia = async (constraints?: MediaStreamConstraints) => {
       const trackingId = `${compressMethod(traceMethod)}-${counters[method]++}`;
       trace(traceMethod, null, constraints, trackingId);
       return origMethod(constraints)
@@ -76,7 +76,7 @@ function wrapMediaCaptureMethod(
 
   if (method === 'getDisplayMedia' && mediaDevices.getDisplayMedia) {
     const origMethod = mediaDevices.getDisplayMedia.bind(mediaDevices);
-    mediaDevices.getDisplayMedia = (options?: DisplayMediaStreamOptions) => {
+    mediaDevices.getDisplayMedia = async (options?: DisplayMediaStreamOptions) => {
       const trackingId = `${compressMethod(traceMethod)}-${counters[method]++}`;
       trace(traceMethod, null, options, trackingId);
       return origMethod(options)

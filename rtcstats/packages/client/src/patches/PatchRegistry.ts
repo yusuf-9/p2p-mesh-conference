@@ -74,7 +74,7 @@ export function resolvePatches(config: PatchConfig): BrowserPatch[] {
 export function resolveGetStatsInterval(config: PatchConfig, fallback: number): number {
   const pc = config.peerConnection;
   if (pc === false) return fallback;
-  if (typeof pc === 'object' && pc.getStatsInterval != null) {
+  if (typeof pc === 'object' && typeof pc.getStatsInterval === 'number') {
     return pc.getStatsInterval;
   }
   return fallback;
