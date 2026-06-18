@@ -1,9 +1,0 @@
-RTCStatsDump
-{"startTime":1779807599370,"userId":"14043142-840e-449d-b68a-1332370b6075","roomId":"757f7c8c-41c2-415e-9826-027b073c27f6"}
-[39,null,{"hardwareConcurrency":8,"userAgentData":{"brands":[{"brand":"Chromium","version":"148"},{"brand":"Google Chrome","version":"148"},{"brand":"Not/A)Brand","version":"99"}],"mobile":false,"platform":"Linux"},"deviceMemory":16,"screen":{"width":1920,"height":1080,"devicePixelRatio":0.800000011920929},"window":{"width":2400,"height":1157}},1779807599369]
-["websocket",null,{"connectionTime":0},38]
-[60,null,{"audio":{"echoCancellation":true,"noiseSuppression":true,"autoGainControl":true,"sampleRate":48000,"sampleSize":16,"channelCount":2},"video":{"width":{"ideal":1980},"height":{"ideal":1080}}},"60-0",6275]
-[60,null,{"audio":{"echoCancellation":true,"noiseSuppression":true,"autoGainControl":true,"sampleRate":48000,"sampleSize":16,"channelCount":2},"video":{"width":{"ideal":1980},"height":{"ideal":1080}}},"60-1",4]
-[61,null,[["audio","61074449-1ac0-40af-92ea-1b6d8015ac98","Default","0fbb6779-ca22-4885-a9ac-c86993bef664"],["video","33be2e49-78b9-4896-bc3a-48061c1d4df9","HD Webcam (5986:211b)","0fbb6779-ca22-4885-a9ac-c86993bef664"]],"60-0",685]
-[61,null,[["audio","2090a13a-7b7d-4bc4-8631-bda45bb359fb","Default","f66266e9-657d-479f-85c9-0d53c256c2ab"],["video","0e38bc32-7584-4cc5-b905-bbca12787e7c","HD Webcam (5986:211b)","f66266e9-657d-479f-85c9-0d53c256c2ab"]],"60-1",4]
-["close",null,1001,4777]

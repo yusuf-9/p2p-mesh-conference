@@ -1,0 +1,16 @@
+{
+  "name": "rtcstats-monorepo",
+  "private": true,
+  "type": "module",
+  "packageManager": "pnpm@10.2.1",
+  "scripts": {
+    "build": "pnpm -r run build",
+    "typecheck": "pnpm -r run typecheck",
+    "test": "pnpm run build && pnpm -r run test",
+    "test:golden": "pnpm run build && pnpm --filter @rtcstats/server run test:golden"
+  },
+  "engines": {
+    "node": ">=18",
+    "pnpm": ">=9"
+  }
+}
